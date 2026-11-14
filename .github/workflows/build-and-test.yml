@@ -1,0 +1,224 @@
+name: build-and-test
+
+# Build the myprovider provider from the pinned spec and run every
+# credential-free test layer on each push / PR; the live smoke suite runs
+# only where the secrets are configured; a scheduled spec-drift job diffs the
+# served spec against the pin and opens an issue when it moves (drift is
+# expected and must be reviewed, never silent).
+#
+# TODO(template): set the secret names to the variables the provider reads.
+
+on:
+  push:
+    branches: [main, 'feature/**']
+    paths-ignore: ['website/**']
+  pull_request:
+    branches: [main]
+    paths-ignore: ['website/**']
+  schedule:
+    - cron: '17 3 * * 1'   # weekly spec-drift check (Monday 03:17 UTC)
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    # Consumed by the smoke job's `if`: a job-level condition cannot read
+    # secrets or another job's step outputs directly, so both gates are
+    # computed here and exported.
+    outputs:
+      pinned: ${{ steps.pin.outputs.pinned }}
+      smoke_creds: ${{ steps.creds.outputs.present }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # puts the latest stackql on PATH; bin/start-server.sh and the test
+      # runners resolve it from there
+      - name: Install stackql
+        uses: stackql/setup-stackql@v2
+
+      - name: stackql version
+        run: stackql --version
+
+      # A repository just created from the template has no pinned spec yet
+      # (provider-dev/config/spec_pin.json is written by the first
+      # `make fetch-spec`). Until it exists there is nothing to build or
+      # test, so those steps are skipped with a notice and the template
+      # itself stays green; a derived repository runs every step.
+      - name: Detect whether a spec is pinned
+        id: pin
+        run: |
+          if [ -f provider-dev/config/spec_pin.json ]; then
+            echo "pinned=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "pinned=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=No pinned spec::provider-dev/config/spec_pin.json does not exist yet (template state) - the build, drift check, tests and docs steps were skipped. Run 'make fetch-spec' to pin the upstream spec."
+          fi
+
+      # Only presence is recorded, never the value. The notice is raised only
+      # where the smoke job would otherwise have run (a pinned spec, not a
+      # pull request), so the template and PRs from forks stay quiet.
+      - name: Detect whether the smoke credentials are configured
+        id: creds
+        env:
+          MYPROVIDER_API_TOKEN: ${{ secrets.MYPROVIDER_API_TOKEN }}
+        run: |
+          if [ -n "$MYPROVIDER_API_TOKEN" ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            if [ "${{ steps.pin.outputs.pinned }}" = "true" ] && [ "$GITHUB_EVENT_NAME" != "pull_request" ]; then
+              echo "::notice title=Live smoke suite skipped::MYPROVIDER_API_TOKEN is not configured - the smoke job was skipped. Credential-free coverage still ran via the mock-server integration suite."
+            fi
+          fi
+
+      # Drift is reported, not fatal, here: the committed pin is what gets
+      # built and tested. The spec-drift job below opens the review issue.
+      - name: Verify the pinned spec against upstream (warns on drift)
+        if: steps.pin.outputs.pinned == 'true'
+        run: |
+          if ! make fetch-spec; then
+            echo "::warning title=Spec drift::The served spec no longer matches provider-dev/config/spec_pin.json - run 'make refresh-spec && make build && make test' and review the diff. Building from the committed pin."
+          fi
+
+      - name: Build provider from the pinned spec
+        if: steps.pin.outputs.pinned == 'true'
+        run: make inventory split mappings pre-normalize normalize generate
+
+      # spec_pin.json is excluded: fetch-spec refreshes its "fetched" date on
+      # every run, and pin drift is reported by the step above and by the
+      # spec-drift job.
+      - name: Fail on uncommitted generation drift
+        if: steps.pin.outputs.pinned == 'true'
+        run: |
+          git add -N .
+          if ! git diff --quiet -- provider-dev/openapi provider-dev/config provider-dev/source ':(exclude)provider-dev/config/spec_pin.json'; then
+            echo "Generated output differs from the committed artifacts - run 'make build' and commit."
+            git diff --stat -- provider-dev/openapi provider-dev/config provider-dev/source ':(exclude)provider-dev/config/spec_pin.json'
+            exit 1
+          fi
+
+      - name: Offline validation
+        if: steps.pin.outputs.pinned == 'true'
+        run: make test-offline
+
+      - name: Integration tests (mock API)
+        if: steps.pin.outputs.pinned == 'true'
+        run: make test-integration
+
+      - name: Meta-route tests
+        if: steps.pin.outputs.pinned == 'true'
+        run: make test-meta
+
+      - name: Generate docs (sanity - the site build runs on the web workflows)
+        if: steps.pin.outputs.pinned == 'true'
+        run: make docs
+
+  smoke:
+    # Live smoke suite against the dedicated dev account. Skipped at the job
+    # level, so no runner is consumed, on pull requests (secrets are not
+    # available to forks), on the schedule, until a spec is pinned, and until
+    # the secrets are configured; the last two arrive as build-and-test
+    # outputs. Never the expensive gated lifecycle - trigger that deliberately
+    # with `make smoke-gated-lifecycle`.
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    if: >-
+      github.event_name != 'pull_request' &&
+      github.event_name != 'schedule' &&
+      needs.build-and-test.outputs.pinned == 'true' &&
+      needs.build-and-test.outputs.smoke_creds == 'true'
+    env:
+      MYPROVIDER_API_TOKEN: ${{ secrets.MYPROVIDER_API_TOKEN }}
+      MYPROVIDER_ORG_ID: ${{ secrets.MYPROVIDER_ORG_ID }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Live smoke suite
+        run: make smoke
+
+  spec-drift:
+    # Diff the served spec against the pin on a schedule and on demand, and
+    # open a labelled issue when it moves.
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Detect whether a spec is pinned
+        id: pin
+        run: |
+          if [ -f provider-dev/config/spec_pin.json ]; then
+            echo "pinned=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "pinned=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=No pinned spec::provider-dev/config/spec_pin.json does not exist yet (template state) - there is no pin to compare against."
+          fi
+
+      - name: Fetch and compare against the pin
+        if: steps.pin.outputs.pinned == 'true'
+        id: drift
+        run: |
+          set +e
+          make fetch-spec > fetch.log 2>&1
+          rc=$?
+          set -e
+          cat fetch.log
+          if [ "$rc" -eq 0 ]; then
+            echo "drift=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "drift=true" >> "$GITHUB_OUTPUT"
+            # materialise the diff for the issue body (refresh into the working tree only)
+            npm run fetch-spec -- --update > /dev/null 2>&1 || true
+            git diff --stat -- provider-dev/downloaded provider-dev/config/spec_pin.json > drift.txt || true
+            cat drift.txt
+          fi
+
+      - name: Report drift
+        if: steps.drift.outputs.drift == 'true'
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const fs = require('fs');
+            const stat = fs.existsSync('drift.txt') ? fs.readFileSync('drift.txt', 'utf8') : '(diff unavailable)';
+            const title = 'Upstream spec drift detected';
+            const body = 'The upstream spec no longer matches the pin in provider-dev/config/spec_pin.json.\n\n```\n' + stat + '\n```\nRun `make refresh-spec && make build && make test`, review the generated diff (new operations, changed schemas, vendor labelling, the all_services.csv diff), update NOTES.md, and commit.';
+            await core.summary.addHeading(title).addCodeBlock(stat).write();
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner, repo: context.repo.repo, state: 'open', labels: 'spec-drift'
+            });
+            if (issues.some(i => i.title === title)) return;
+            await github.rest.issues.create({
+              owner: context.repo.owner, repo: context.repo.repo, title, body, labels: ['spec-drift']
+            });
