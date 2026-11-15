@@ -168,7 +168,7 @@ make website-start
 
 `provider-dev/docgen/provider-data/headerContent1.txt` is the landing-page front matter and pitch; `headerContent2.txt` is the getting-started page (installation, scope, authentication, the regional endpoint, the project scope, lists and pagination, labelling, example queries). `website/scripts/sanitize-docs.mjs` escapes MDX-hostile vendor text and corrects what docgen cannot know about the server variables: `api_host` is removed from required parameters and examples, the project variable is annotated "required unless OVH_CLOUD_PROJECT_SERVICE is set". `website/provider.js` carries the site identity, `website/static/CNAME` the hostname and `website/static/img/stackql-ovh-provider-featured-image.png` the social image. Commit `website/docs` (2,569 pages) after every regeneration.
 
-To publish the site: rename `.github/workflows/prod-web-deploy.yml.disabled` and `test-web-deploy.yml.disabled`, enable GitHub Pages (source: GitHub Actions) and add the DNS record:
+The site is published by two workflows: `test-web-deploy.yml` builds it (no deploy) on every pull request raised to `main`, and `prod-web-deploy.yml` builds and deploys it to GitHub Pages on every push to `main` (a merged pull request) and on `workflow_dispatch`. GitHub Pages is enabled with GitHub Actions as its source, and the DNS record is:
 
 | Source domain | Record type | Target |
 |---|---|---|
@@ -189,7 +189,7 @@ REGISTRY PULL ovh;
 
 ## 8. CI
 
-`.github/workflows/build-and-test.yml`: on push / PR - `npm ci`, `stackql/setup-stackql`, pin verification (warns on drift), the build steps, a hard failure on uncommitted generation drift, the three credential-free test layers, docs generation; a live smoke job that is skipped at the job level on pull requests and until the secrets are configured (`OVH_CLIENT_ID`, `OVH_CLIENT_SECRET`, `OVH_ENDPOINT`, `OVH_CLOUD_PROJECT_SERVICE`; never the instance lifecycle); a weekly `spec-drift` job that fetches, compares with the pin and opens a labelled issue. The web deploy workflows build the site from `main` once enabled.
+`.github/workflows/build-and-test.yml`: on push / PR - `npm ci`, `stackql/setup-stackql`, pin verification (warns on drift), the build steps, a hard failure on uncommitted generation drift, the three credential-free test layers, docs generation; a live smoke job that is skipped at the job level on pull requests and until the secrets are configured (`OVH_CLIENT_ID`, `OVH_CLIENT_SECRET`, `OVH_ENDPOINT`, `OVH_CLOUD_PROJECT_SERVICE`; never the instance lifecycle); a weekly `spec-drift` job that fetches, compares with the pin and opens a labelled issue. `test-web-deploy.yml` builds the site on every pull request to `main`; `prod-web-deploy.yml` builds and deploys it on every push to `main`.
 
 ## Contributing
 
