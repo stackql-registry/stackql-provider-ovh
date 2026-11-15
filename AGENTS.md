@@ -75,7 +75,8 @@ tests/
   smoke_test.py        # pystackql live suite (--live, --read-only, --with-instance-lifecycle, --cleanup-only)
 website/               # Docusaurus microsite (shared stackql/docusaurus-config vendored at build)
 .github/workflows/     # build-and-test.yml (pin check, build, drift check, 3 test layers, gated smoke,
-                       # weekly spec-drift); web deploys (.disabled until GitHub Pages is configured)
+                       # weekly spec-drift); test-web-deploy.yml (site build on every PR to main);
+                       # prod-web-deploy.yml (build + GitHub Pages deploy on every push to main)
 .github/copilot-instructions.md   # GitHub Copilot entry point to this file
 AGENTS.md  CLAUDE.md   # this file (the shared guidance) and the Claude Code entry point that imports it
 NOTES.md  README.md  SECURITY.md  LICENSE  .env.example
