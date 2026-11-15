@@ -1,7 +1,28 @@
 {
   "auth": {
-    "type": "bearer",
-    "credentialsenvvar": "MYPROVIDER_API_TOKEN"
+    "type": "oauth2",
+    "grant_type": "client_credentials",
+    "client_id_env_var": "OVH_CLIENT_ID",
+    "client_secret_env_var": "OVH_CLIENT_SECRET",
+    "token_url": "https://{auth_host}/oauth2/token",
+    "scopes": [
+      "all"
+    ],
+    "variables": {
+      "auth_host": {
+        "description": "The OVHcloud OAuth2 token host. Selected by OVH_ENDPOINT (ovh-eu, ovh-ca or ovh-us; default ovh-eu).",
+        "default": "auth.eu.ovhcloud.com",
+        "x-stackQL-envVarSelector": {
+          "envVar": "OVH_ENDPOINT",
+          "default": "ovh-eu",
+          "values": {
+            "ovh-eu": "auth.eu.ovhcloud.com",
+            "ovh-ca": "auth.ca.ovhcloud.com",
+            "ovh-us": "auth.us.ovhcloud.com"
+          }
+        }
+      }
+    }
   },
   "snake_case_aliases": true
 }

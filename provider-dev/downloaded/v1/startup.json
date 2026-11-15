@@ -1,0 +1,952 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "OVHcloud API specification",
+    "description": "Specification for OVHcloud API",
+    "version": "1.0",
+    "contact": {
+      "name": "OVH",
+      "email": "api@ml.ovh.net"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.eu.ovhcloud.com/v1"
+    }
+  ],
+  "components": {
+    "schemas": {
+      "any": {
+        "description": "Can be anything (text, int, bool, json, html, etc.)",
+        "example": "This is a content of any type !"
+      },
+      "duration": {
+        "type": "string",
+        "description": "Duration (e.g., P1Y2M3DT4H6M9S)",
+        "example": "P1Y2M3DT4H6M9S"
+      },
+      "email": {
+        "type": "string",
+        "description": "Email address (e.g., api@ml.ovh.net)",
+        "format": "email",
+        "example": "api@ml.ovh.net"
+      },
+      "internationalPhoneNumber": {
+        "type": "string",
+        "description": "International phone number",
+        "format": "phone-number"
+      },
+      "ip": {
+        "type": "string",
+        "description": "IP address (e.g., 192.0.2.0)",
+        "format": "ipv4",
+        "example": "192.0.2.0"
+      },
+      "ipBlock": {
+        "type": "string",
+        "description": "IP (v4 or v6) CIDR notation (e.g., 192.0.2.0/24)",
+        "format": "ip-block",
+        "example": "192.0.2.0/24"
+      },
+      "ipInterface": {
+        "type": "string",
+        "description": "IP address (e.g., 192.0.2.0)",
+        "format": "ipv4",
+        "example": "192.0.2.0"
+      },
+      "ipv4": {
+        "type": "string",
+        "description": "IPv4 address (e.g., 192.0.2.0)",
+        "format": "ipv4",
+        "example": "192.0.2.0"
+      },
+      "ipv4Block": {
+        "type": "string",
+        "description": "IPv4 CIDR notation (e.g., 192.0.2.0/24)",
+        "format": "ipv4-block",
+        "example": "192.0.2.0/24"
+      },
+      "ipv6": {
+        "type": "string",
+        "description": "IPv6 address (e.g., 2001:41d0:1:1994::1)",
+        "format": "ipv6",
+        "example": "2001:41d0:1:1994::1"
+      },
+      "ipv6Block": {
+        "type": "string",
+        "description": "IPv6 CIDR notation (e.g., 2001:41d0::/128)",
+        "format": "ipv6-block",
+        "example": "2001:41d0::/128"
+      },
+      "macAddress": {
+        "type": "string",
+        "description": "MAC address (e.g., 00:00:5e:00:53:01)",
+        "format": "mac-address",
+        "example": "00:00:5e:00:53:01"
+      },
+      "nichandle.CountryEnum": {
+        "type": "string",
+        "description": "Countries a nichandle can choose",
+        "enum": [
+          "AC",
+          "AD",
+          "AE",
+          "AF",
+          "AG",
+          "AI",
+          "AL",
+          "AM",
+          "AO",
+          "AQ",
+          "AR",
+          "AS",
+          "AT",
+          "AU",
+          "AW",
+          "AX",
+          "AZ",
+          "BA",
+          "BB",
+          "BD",
+          "BE",
+          "BF",
+          "BG",
+          "BH",
+          "BI",
+          "BJ",
+          "BL",
+          "BM",
+          "BN",
+          "BO",
+          "BQ",
+          "BR",
+          "BS",
+          "BT",
+          "BW",
+          "BY",
+          "BZ",
+          "CA",
+          "CC",
+          "CD",
+          "CF",
+          "CG",
+          "CH",
+          "CI",
+          "CK",
+          "CL",
+          "CM",
+          "CN",
+          "CO",
+          "CR",
+          "CU",
+          "CV",
+          "CW",
+          "CX",
+          "CY",
+          "CZ",
+          "DE",
+          "DG",
+          "DJ",
+          "DK",
+          "DM",
+          "DO",
+          "DZ",
+          "EA",
+          "EC",
+          "EE",
+          "EG",
+          "EH",
+          "ER",
+          "ES",
+          "ET",
+          "FI",
+          "FJ",
+          "FK",
+          "FM",
+          "FO",
+          "FR",
+          "GA",
+          "GB",
+          "GD",
+          "GE",
+          "GF",
+          "GG",
+          "GH",
+          "GI",
+          "GL",
+          "GM",
+          "GN",
+          "GP",
+          "GQ",
+          "GR",
+          "GS",
+          "GT",
+          "GU",
+          "GW",
+          "GY",
+          "HK",
+          "HN",
+          "HR",
+          "HT",
+          "HU",
+          "IC",
+          "ID",
+          "IE",
+          "IL",
+          "IM",
+          "IN",
+          "IO",
+          "IQ",
+          "IR",
+          "IS",
+          "IT",
+          "JE",
+          "JM",
+          "JO",
+          "JP",
+          "KE",
+          "KG",
+          "KH",
+          "KI",
+          "KM",
+          "KN",
+          "KP",
+          "KR",
+          "KW",
+          "KY",
+          "KZ",
+          "LA",
+          "LB",
+          "LC",
+          "LI",
+          "LK",
+          "LR",
+          "LS",
+          "LT",
+          "LU",
+          "LV",
+          "LY",
+          "MA",
+          "MC",
+          "MD",
+          "ME",
+          "MF",
+          "MG",
+          "MH",
+          "MK",
+          "ML",
+          "MM",
+          "MN",
+          "MO",
+          "MP",
+          "MQ",
+          "MR",
+          "MS",
+          "MT",
+          "MU",
+          "MV",
+          "MW",
+          "MX",
+          "MY",
+          "MZ",
+          "NA",
+          "NC",
+          "NE",
+          "NF",
+          "NG",
+          "NI",
+          "NL",
+          "NO",
+          "NP",
+          "NR",
+          "NU",
+          "NZ",
+          "OM",
+          "PA",
+          "PE",
+          "PF",
+          "PG",
+          "PH",
+          "PK",
+          "PL",
+          "PM",
+          "PN",
+          "PR",
+          "PS",
+          "PT",
+          "PW",
+          "PY",
+          "QA",
+          "RE",
+          "RO",
+          "RS",
+          "RU",
+          "RW",
+          "SA",
+          "SB",
+          "SC",
+          "SD",
+          "SE",
+          "SG",
+          "SH",
+          "SI",
+          "SJ",
+          "SK",
+          "SL",
+          "SM",
+          "SN",
+          "SO",
+          "SR",
+          "SS",
+          "ST",
+          "SV",
+          "SX",
+          "SY",
+          "SZ",
+          "TA",
+          "TC",
+          "TD",
+          "TF",
+          "TG",
+          "TH",
+          "TJ",
+          "TK",
+          "TL",
+          "TM",
+          "TN",
+          "TO",
+          "TR",
+          "TT",
+          "TV",
+          "TW",
+          "TZ",
+          "UA",
+          "UG",
+          "UM",
+          "UNKNOWN",
+          "US",
+          "UY",
+          "UZ",
+          "VA",
+          "VC",
+          "VE",
+          "VG",
+          "VI",
+          "VN",
+          "VU",
+          "WF",
+          "WS",
+          "XK",
+          "YE",
+          "YT",
+          "ZA",
+          "ZM",
+          "ZW"
+        ]
+      },
+      "phoneNumber": {
+        "type": "string",
+        "description": "Phone number",
+        "format": "phone-number"
+      },
+      "startup.acceptanceStatusEnum": {
+        "type": "string",
+        "description": "Acceptance status",
+        "enum": [
+          "Advanced",
+          "AdvancedHandOperated",
+          "AdvancedQualified",
+          "Banned",
+          "Open",
+          "Registered",
+          "RegisteredQualified",
+          "Rejected"
+        ]
+      },
+      "startup.awarnessEnum": {
+        "type": "string",
+        "description": "Where did you hear about OVHcloud",
+        "enum": [
+          "Email",
+          "EmpactVenture",
+          "Event",
+          "Facebook",
+          "InternetSearch",
+          "LinkedIn",
+          "OnlineAdvert",
+          "Partner",
+          "Twitter",
+          "Website",
+          "WordOfMouth"
+        ]
+      },
+      "startup.employeesNumberEnum": {
+        "type": "string",
+        "description": "employeesNumber",
+        "enum": [
+          "100To199",
+          "10To19",
+          "1Or2",
+          "200To249",
+          "20To49",
+          "250To499",
+          "3To5",
+          "50To99",
+          "6To9"
+        ]
+      },
+      "startup.infrastructureUsingEnum": {
+        "type": "string",
+        "description": "When do you plan to start using cloud infrastructure ? (months)",
+        "enum": [
+          "1To6",
+          "6To12",
+          "DontKnow",
+          "Less1",
+          "Over12"
+        ]
+      },
+      "startup.lastFundraisingEnum": {
+        "type": "string",
+        "description": "last Fundraising",
+        "enum": [
+          "Crowdfunding",
+          "DontShare",
+          "More",
+          "No",
+          "PreSeed",
+          "Seed",
+          "Series_A",
+          "Series_B",
+          "Series_C"
+        ]
+      },
+      "startup.plannedFundRaisingEnum": {
+        "type": "string",
+        "description": "Planned Fund Raising",
+        "enum": [
+          "DontShare",
+          "No",
+          "Yes"
+        ]
+      },
+      "startup.relatedIndustryEnum": {
+        "type": "string",
+        "description": "Society Industries",
+        "enum": [
+          "AI_Wholesale",
+          "ARTISANAT",
+          "ASP_SI_ITServices",
+          "Accommodation_and_FoodServices",
+          "Agriculture",
+          "Agro_industry",
+          "Art_Sport_Entertainment",
+          "Automotive",
+          "Banking",
+          "Construction_and_Architecture",
+          "Databases_Wholesale",
+          "DigitalServices",
+          "E_Retail",
+          "EducationalServices",
+          "Energy_and_Water",
+          "Game_Wholesale",
+          "HeadOffice",
+          "Healthcare",
+          "Host_the_Hoster_Wholesale",
+          "Human_Resources",
+          "IAASproviders_WebHosters_Data",
+          "Life_Sciences",
+          "Manufacturing_Industry",
+          "Mining_Industry",
+          "NonProfit",
+          "Other_Services_Business",
+          "Other_Services_Personal",
+          "Others",
+          "PublicSector",
+          "Real_Estate",
+          "Retail_and_Trade",
+          "ScienceR&D",
+          "Software Editors",
+          "Storage_Wholesale",
+          "TV_Media",
+          "Telecommunication_Internet",
+          "Transportation_Logistics",
+          "Ventures_for_Good",
+          "Virtualization_Wholesale",
+          "WebAgencies"
+        ]
+      },
+      "startup.relatedTechnologyEnum": {
+        "type": "string",
+        "description": "Related Technologies",
+        "enum": [
+          "3dPrinting",
+          "API",
+          "ArtificialIntelligence",
+          "AugmentedReality",
+          "BankingDataInfrastructure",
+          "Big_Data",
+          "Blockchain",
+          "CRM_ERP",
+          "Chatbot",
+          "CloudGaming",
+          "ContainersDockers",
+          "CyberSecurity",
+          "Drones",
+          "ElearningPlatform",
+          "GeoLocalization",
+          "Healthcareinfrastructure",
+          "IoT",
+          "MachineLearningDeepLearning",
+          "Marketplace",
+          "MobileApplications",
+          "Orchestration",
+          "Other",
+          "PredictiveAnalyticAlgorithms",
+          "Robotics",
+          "ScientificComputation",
+          "Storage",
+          "Streaming",
+          "VirtualDesktop",
+          "VirtualMachines",
+          "VoIP"
+        ]
+      },
+      "startup.startup": {
+        "type": "object",
+        "description": "Startup Entity",
+        "properties": {
+          "acceptanceStatus": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/startup.acceptanceStatusEnum"
+              }
+            ],
+            "description": "Acceptance Status",
+            "nullable": true,
+            "readOnly": true
+          },
+          "awarness": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/startup.awarnessEnum"
+              }
+            ],
+            "description": "Where did you hear about OVHcloud"
+          },
+          "company": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/startup.startup.company"
+              }
+            ],
+            "description": "Company information"
+          },
+          "eventCode": {
+            "type": "string",
+            "description": "Code given to startups during events or partnerships.",
+            "nullable": true
+          },
+          "fundRaising": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/startup.startup.fundRaising"
+              }
+            ],
+            "description": "Fund raising info"
+          },
+          "project": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/startup.startup.project"
+              }
+            ],
+            "description": "Project information"
+          }
+        },
+        "required": [
+          "awarness",
+          "company",
+          "fundRaising",
+          "project"
+        ]
+      },
+      "startup.startup.company": {
+        "type": "object",
+        "description": "Company info",
+        "properties": {
+          "detail": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/startup.startup.company.detail"
+              }
+            ],
+            "description": "Company detail",
+            "nullable": true
+          },
+          "employeesNumber": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/startup.employeesNumberEnum"
+              }
+            ],
+            "description": "Number of employees"
+          },
+          "incubator": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/startup.startup.company.incubator"
+              }
+            ],
+            "description": "Incubator",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "description": "Company Name"
+          },
+          "relatedIndustry": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/startup.relatedIndustryEnum"
+              }
+            ],
+            "description": "Society Industries"
+          },
+          "socialNetwork": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/startup.startup.company.socialNetwork"
+              }
+            ],
+            "description": "Social Network info",
+            "nullable": true
+          },
+          "societyWebsite": {
+            "type": "string",
+            "description": "Company website"
+          }
+        },
+        "required": [
+          "employeesNumber",
+          "name",
+          "relatedIndustry",
+          "societyWebsite"
+        ]
+      },
+      "startup.startup.company.detail": {
+        "type": "object",
+        "description": "Details that relates to the company",
+        "properties": {
+          "creationdate": {
+            "type": "string",
+            "description": "Creation date of the company, madatory if the company is created",
+            "nullable": true,
+            "format": "date"
+          },
+          "lastYearTurnover": {
+            "type": "number",
+            "description": "Last 12mth turnover, madatory if the company is created",
+            "nullable": true
+          },
+          "vatNumber": {
+            "type": "string",
+            "description": "vat number, madatory if the company is created",
+            "nullable": true
+          }
+        },
+        "required": [
+          "creationdate",
+          "lastYearTurnover",
+          "vatNumber"
+        ]
+      },
+      "startup.startup.company.incubator": {
+        "type": "object",
+        "description": "Incubator infos",
+        "properties": {
+          "city": {
+            "type": "string",
+            "description": "Ecosystem support city",
+            "nullable": true
+          },
+          "country": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/nichandle.CountryEnum"
+              }
+            ],
+            "description": "Ecosystem support country",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "description": "Do you have startup ecosystem support from any of these",
+            "nullable": true
+          }
+        },
+        "required": [
+          "city",
+          "country",
+          "name"
+        ]
+      },
+      "startup.startup.company.socialNetwork": {
+        "type": "object",
+        "description": "Company social networks",
+        "properties": {
+          "linkedin": {
+            "type": "string",
+            "description": "Linkedin link",
+            "nullable": true
+          },
+          "twitter": {
+            "type": "string",
+            "description": "Twitter link",
+            "nullable": true
+          }
+        }
+      },
+      "startup.startup.fundRaising": {
+        "type": "object",
+        "description": "Fundraising infos",
+        "properties": {
+          "lastFundraising": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/startup.lastFundraisingEnum"
+              }
+            ],
+            "description": "Last fundraising"
+          },
+          "plannedFundRaising": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/startup.plannedFundRaisingEnum"
+              }
+            ],
+            "description": "Next fundraising"
+          }
+        },
+        "required": [
+          "lastFundraising",
+          "plannedFundRaising"
+        ]
+      },
+      "startup.startup.project": {
+        "type": "object",
+        "description": "Project info",
+        "properties": {
+          "businessModel": {
+            "type": "string",
+            "description": "Describe your business model"
+          },
+          "description": {
+            "type": "string",
+            "description": "What problem are you solving"
+          },
+          "developmentStage": {
+            "type": "string",
+            "description": "Stage of development description"
+          },
+          "productName": {
+            "type": "string",
+            "description": "Product / Solution name"
+          },
+          "relatedTechnology": {
+            "type": "array",
+            "description": "Fund raising info",
+            "items": {
+              "$ref": "#/components/schemas/startup.relatedTechnologyEnum"
+            }
+          },
+          "requirements": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/startup.startup.project.technicalNeed"
+              }
+            ],
+            "description": "Technical requirements description"
+          }
+        },
+        "required": [
+          "businessModel",
+          "description",
+          "developmentStage",
+          "productName",
+          "relatedTechnology",
+          "requirements"
+        ]
+      },
+      "startup.startup.project.technicalNeed": {
+        "type": "object",
+        "description": "Project technical need info",
+        "properties": {
+          "infrastructureUsing": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/startup.infrastructureUsingEnum"
+              }
+            ],
+            "description": "When do you plan to start using cloud infrastructure?"
+          },
+          "otherCloudProvider": {
+            "type": "boolean",
+            "description": "Are you currently using another cloud provider",
+            "nullable": true
+          },
+          "otherCloudProviderInfo": {
+            "type": "string",
+            "description": "Other cloud provider info",
+            "nullable": true
+          },
+          "technicalNeeds": {
+            "type": "string",
+            "description": "Technical requirements description"
+          }
+        },
+        "required": [
+          "infrastructureUsing",
+          "technicalNeeds"
+        ]
+      },
+      "time": {
+        "type": "string",
+        "description": "Time (e.g., 15:04:05)",
+        "format": "time",
+        "example": "15:04:05"
+      }
+    },
+    "securitySchemes": {
+      "oAuth2AuthCode": {
+        "type": "oauth2",
+        "description": "Oauth2",
+        "x-client-id": "1bb9c7df371741c0",
+        "x-client-secret": "a5b4de870aca620d10fbf63cd18d205b",
+        "flows": {
+          "authorizationCode": {
+            "authorizationUrl": "https://auth.eu.ovhcloud.com/oauth2/authorize",
+            "tokenUrl": "https://auth.eu.ovhcloud.com/oauth2/token",
+            "scopes": {
+              "account/all": "Manage your account",
+              "all": "Manage your whole account and all your services",
+              "services/all": "Manage your services lifecycle and billing"
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/startup": {
+      "get": {
+        "summary": "Get startup status",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/startup.startup"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error 404 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Common error model",
+                  "properties": {
+                    "class": {
+                      "type": "string",
+                      "description": "Class of the error"
+                    },
+                    "message": {
+                      "type": "string",
+                      "description": "Error message"
+                    }
+                  }
+                },
+                "examples": {
+                  "Client::NotFound::StartupNotFound": {
+                    "value": {
+                      "class": "Client::NotFound::StartupNotFound",
+                      "message": "Startup not found"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Misc",
+            "Startup Program"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "account:apiovh:startup/get",
+            "required": true
+          }
+        ]
+      },
+      "post": {
+        "summary": "Register a startup",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/startup.startup"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Misc",
+            "Startup Program"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "account:apiovh:startup/create",
+            "required": true
+          }
+        ]
+      }
+    }
+  }
+}

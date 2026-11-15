@@ -1,0 +1,171 @@
+--- 
+title: usage_plans
+hide_title: false
+hide_table_of_contents: false
+keywords:
+  - usage_plans
+  - cloud
+  - ovh
+  - infrastructure-as-code
+  - configuration-as-data
+  - cloud inventory
+description: Query, deploy and manage ovh resources using SQL
+custom_edit_url: null
+image: /img/stackql-ovh-provider-featured-image.png
+---
+
+import CopyableCode from '@site/src/components/CopyableCode/CopyableCode';
+import CodeBlock from '@theme/CodeBlock';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+Creates, updates, deletes, gets or lists a <code>usage_plans</code> resource.
+
+## Overview
+<table><tbody>
+<tr><td><b>Name</b></td><td><CopyableCode code="usage_plans" /></td></tr>
+<tr><td><b>Type</b></td><td>Resource</td></tr>
+<tr><td><b>Id</b></td><td><CopyableCode code="ovh.cloud.usage_plans" /></td></tr>
+</tbody></table>
+
+## Fields
+
+The following fields are returned by `SELECT` queries:
+
+<Tabs
+    defaultValue="get"
+    values={[
+        { label: 'get', value: 'get' }
+    ]}
+>
+<TabItem value="get">
+
+successful operation
+
+<table>
+<thead>
+    <tr>
+    <th>Name</th>
+    <th>Datatype</th>
+    <th>Description</th>
+    </tr>
+</thead>
+<tbody>
+<tr>
+    <td><CopyableCode code="project_id" /></td>
+    <td><code>string</code></td>
+    <td>Project ID of the fetched plans (wire: projectId)</td>
+</tr>
+<tr>
+    <td><CopyableCode code="flavors" /></td>
+    <td><code>array</code></td>
+    <td>List of consumption details by flavor</td>
+</tr>
+<tr>
+    <td><CopyableCode code="period" /></td>
+    <td><code>object</code></td>
+    <td>Requested period</td>
+</tr>
+<tr>
+    <td><CopyableCode code="total_savings" /></td>
+    <td><code>object</code></td>
+    <td>Total savings for all the flavors (wire: totalSavings)</td>
+</tr>
+</tbody>
+</table>
+</TabItem>
+</Tabs>
+
+## Methods
+
+The following methods are available for this resource:
+
+<table>
+<thead>
+    <tr>
+    <th>Name</th>
+    <th>Accessible by</th>
+    <th>Required Params</th>
+    <th>Optional Params</th>
+    <th>Description</th>
+    </tr>
+</thead>
+<tbody>
+<tr>
+    <td><a href="#get"><CopyableCode code="get" /></a></td>
+    <td><CopyableCode code="select" /></td>
+    <td><a href="#parameter-service_name"><code>service_name</code></a></td>
+    <td><a href="#parameter-flavor"><code>flavor</code></a>, <a href="#parameter-month"><code>month</code></a>, <a href="#parameter-year"><code>year</code></a></td>
+    <td>Returns, for each flavor, the savings plan subscriptions, their coverage and utilization over time, and the amount saved. Filter by flavor, year and month.</td>
+</tr>
+</tbody>
+</table>
+
+## Parameters
+
+Parameters can be passed in the `WHERE` clause of a query. Check the [Methods](#methods) section to see which parameters are required or optional for each operation.
+
+<table>
+<thead>
+    <tr>
+    <th>Name</th>
+    <th>Datatype</th>
+    <th>Description</th>
+    </tr>
+</thead>
+<tbody>
+<tr id="parameter-api_host">
+    <td><CopyableCode code="api_host" /></td>
+    <td><code>string</code></td>
+    <td>The OVHcloud API host. Selected by OVH_ENDPOINT (ovh-eu, ovh-ca or ovh-us; default ovh-eu). (default: api.eu.ovhcloud.com, x-stackQL-envVarSelector: &#123;"envVar":"OVH_ENDPOINT","default":"ovh-eu","values":&#123;"ovh-eu":"api.eu.ovhcloud.com","ovh-ca":"api.ca.ovhcloud.com","ovh-us":"api.us.ovhcloud.com"&#125;&#125;)</td>
+</tr>
+<tr id="parameter-service_name">
+    <td><CopyableCode code="service_name" /></td>
+    <td><code>string</code></td>
+    <td>The Public Cloud project ID. Resolved from OVH_CLOUD_PROJECT_SERVICE when set.</td>
+</tr>
+<tr id="parameter-flavor">
+    <td><CopyableCode code="flavor" /></td>
+    <td><code>string</code></td>
+    <td>Flavor to filter plans on</td>
+</tr>
+<tr id="parameter-month">
+    <td><CopyableCode code="month" /></td>
+    <td><code>integer</code></td>
+    <td>Month of the period to extract plans consumption</td>
+</tr>
+<tr id="parameter-year">
+    <td><CopyableCode code="year" /></td>
+    <td><code>integer</code></td>
+    <td>Year of the period to extract plans consumption</td>
+</tr>
+</tbody>
+</table>
+
+## `SELECT` examples
+
+<Tabs
+    defaultValue="get"
+    values={[
+        { label: 'get', value: 'get' }
+    ]}
+>
+<TabItem value="get">
+
+Returns, for each flavor, the savings plan subscriptions, their coverage and utilization over time, and the amount saved. Filter by flavor, year and month.
+
+```sql
+SELECT
+project_id,
+flavors,
+period,
+total_savings
+FROM ovh.cloud.usage_plans
+WHERE service_name = '{{ service_name }}' -- required unless OVH_CLOUD_PROJECT_SERVICE is set
+AND flavor = '{{ flavor }}'
+AND month = '{{ month }}'
+AND year = '{{ year }}'
+;
+```
+</TabItem>
+</Tabs>

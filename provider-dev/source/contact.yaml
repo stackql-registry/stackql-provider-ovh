@@ -1,0 +1,115 @@
+openapi: 3.0.0
+info:
+  title: OVHcloud Contact API
+  description: Contact forms.
+  version: '1.0'
+  x-stackQL-apiVersion: v1
+  x-stackQL-specFamily: v1/contact
+paths:
+  /contact/form:
+    get:
+      summary: Get form characteristics
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Get_v1_contact_formResponse'
+      x-developer-hub-navigation:
+        - - Account
+          - Profile
+      x-badges:
+        - color: green
+          label: Stable production version
+      operationId: get_v1_contact_form
+      description: Get form characteristics
+      x-stackql-bare-array-wrap:
+        wrapperKey: v1_contact_form
+        wrapperName: Get_v1_contact_formResponse
+        mediaType: application/json
+        scalar: false
+  /contact/form/send:
+    post:
+      summary: Send form following characteristics of /contact/form
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                form:
+                  type: array
+                  description: Form informations
+                  items:
+                    $ref: '#/components/schemas/complexType.SafeKeyValue_string'
+                type:
+                  type: string
+                  description: Form type
+              required:
+                - form
+                - type
+      responses:
+        '200':
+          description: successful operation
+      x-developer-hub-navigation:
+        - - Account
+          - Profile
+      x-badges:
+        - color: green
+          label: Stable production version
+      operationId: post_v1_contact_form_send
+      description: Send form following characteristics of /contact/form
+components:
+  schemas:
+    contact.FormCharacteristic:
+      type: object
+      description: Form characteristics
+      properties:
+        keys:
+          type: array
+          description: Form keys to send
+          items:
+            $ref: '#/components/schemas/contact.KeyFormCharacteristic'
+        type:
+          type: string
+          description: Form type
+    complexType.SafeKeyValue_string:
+      type: object
+      description: Key and value, with proper key strings
+      properties:
+        key:
+          type: string
+        value:
+          type: string
+    contact.KeyFormCharacteristic:
+      type: object
+      description: Form key description
+      properties:
+        key:
+          type: string
+          description: Key name
+        required:
+          type: boolean
+          description: Key required or not
+    Get_v1_contact_formResponse:
+      type: object
+      properties:
+        v1_contact_form:
+          type: array
+          items:
+            $ref: '#/components/schemas/contact.FormCharacteristic'
+servers:
+  - url: https://{api_host}/v1
+    variables:
+      api_host:
+        description: The OVHcloud API host. Selected by OVH_ENDPOINT (ovh-eu, ovh-ca or ovh-us; default ovh-eu).
+        default: api.eu.ovhcloud.com
+        x-stackQL-envVarSelector:
+          envVar: OVH_ENDPOINT
+          default: ovh-eu
+          values:
+            ovh-eu: api.eu.ovhcloud.com
+            ovh-ca: api.ca.ovhcloud.com
+            ovh-us: api.us.ovhcloud.com

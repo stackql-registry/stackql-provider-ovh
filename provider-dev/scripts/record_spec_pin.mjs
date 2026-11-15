@@ -1,71 +1,82 @@
 #!/usr/bin/env node
 
-// Helper for bin/fetch-spec.sh: applies the deterministic fix classes to the
-// freshly downloaded spec, validates it with @apidevtools/swagger-parser,
-// redacts credential-shaped example values, verifies the upstream hash
-// against provider-dev/config/spec_pin.json and only then writes the
-// snapshot into provider-dev/downloaded/.
+// Fetches every OVHcloud API family document, applies the deterministic fix
+// classes, validates each with @apidevtools/swagger-parser, redacts
+// credential-shaped example values, verifies the upstream hashes against
+// provider-dev/config/spec_pin.json and only then writes the snapshots into
+// provider-dev/downloaded/<version>/<family>.json.
 //
-// - Validation failure: fail without writing anything.
+// OVHcloud is a multi-document vendor: <base>/<version>/ lists the API
+// families and each family is its own OpenAPI 3.0 document, so every
+// document is pinned under specs.<version>_<family> and the family list
+// itself is part of the pin (a family appearing or disappearing is drift).
+//
+// - Any fetch, parse, fix or validation failure: fail without writing.
 // - No pin recorded: record it (first fetch).
-// - Pin matches: refresh the fetched date only.
-// - Pin mismatch: fail without writing, unless UPDATE=true (a reviewed
-//   refresh) in which case the new hash is recorded.
+// - Pin matches: refresh the fetched dates only.
+// - Pin mismatch (a document changed, a family added or removed): fail
+//   without writing, unless --update (a reviewed refresh) in which case the
+//   new hashes are recorded.
 //
-// The pin records the raw upstream sha256 (drift is always compared against
-// upstream) plus the sanitized sha256 of the file on disk, the per-class fix
-// counts and the redaction counts. A fix class absent from a snapshot counts
+// The pin records the upstream sha256 (drift is always compared against
+// upstream; taken over the parsed document with its top-level tags sorted,
+// because the vendor serialises that array in an unstable order) plus the
+// sanitized sha256 of the file on disk, the per-class fix counts and the
+// redaction counts. A fix class absent from a snapshot counts
 // 0; add a class when a refresh introduces a new construct (never hand-edit
-// the snapshot). Multi-document vendors pin each document under
-// specs.<name> by calling this once per document.
+// a snapshot).
 //
-// Inputs via environment: UPDATE, TMP_DIR, DOWNLOAD_DIR, PIN_FILE, SPEC_URL,
-// SPEC_FILE.
+// Usage: node provider-dev/scripts/record_spec_pin.mjs [--update]
 
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import SwaggerParser from '@apidevtools/swagger-parser';
-import yaml from 'js-yaml';
+import {
+  SPEC_BASE_URL, API_VERSIONS, SPEC_FORMAT_QUERY, DOWNLOAD_DIR, PIN_FILE,
+  docKey, docFile
+} from './lib/spec_helpers.mjs';
 
-const update = process.env.UPDATE === 'true';
-const tmpDir = process.env.TMP_DIR;
-const downloadDir = process.env.DOWNLOAD_DIR;
-const pinFile = process.env.PIN_FILE;
-const specUrl = process.env.SPEC_URL;
-const specFile = process.env.SPEC_FILE;
+const update = process.argv.includes('--update');
+const CONCURRENCY = 6;
+const ATTEMPTS = 4;
 
-if (!tmpDir || !downloadDir || !pinFile || !specUrl || !specFile) {
-  console.error('record_spec_pin.mjs: missing TMP_DIR / DOWNLOAD_DIR / PIN_FILE / SPEC_URL / SPEC_FILE');
-  process.exit(1);
-}
-
-const isYaml = /\.ya?ml$/i.test(specFile);
-const tmpPath = path.join(tmpDir, specFile);
-const content = fs.readFileSync(tmpPath);
-const sha256 = crypto.createHash('sha256').update(content).digest('hex');
-let spec;
-try {
-  spec = isYaml ? yaml.load(content.toString('utf8')) : JSON.parse(content.toString('utf8'));
-} catch (err) {
-  console.error(`Spec could not be parsed, nothing written: ${err.message}`);
-  process.exit(1);
+async function fetchBytes(url) {
+  let lastErr;
+  for (let attempt = 1; attempt <= ATTEMPTS; attempt++) {
+    try {
+      const res = await fetch(url, { headers: { accept: 'application/json' } });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return Buffer.from(await res.arrayBuffer());
+    } catch (err) {
+      lastErr = err;
+      await new Promise((r) => setTimeout(r, 500 * attempt));
+    }
+  }
+  throw new Error(`fetch ${url} failed after ${ATTEMPTS} attempts: ${lastErr.message}`);
 }
 
 // ---------------------------------------------------------------------------
 // Deterministic fix classes. Each walks the document, rewrites in place and
-// returns a count. The defaults cover the JSON Schema 2019-09/2020-12 and
-// OpenAPI 3.1 leaks that swagger-parser (3.0 validation) and stackql's
-// kin-openapi loader reject. TODO(template): append vendor-specific classes.
+// returns a count. The generic classes cover the JSON Schema 2019-09/2020-12
+// and OpenAPI 3.1 leaks that swagger-parser (3.0 validation) and stackql's
+// loader reject; the OVHcloud classes follow.
 // ---------------------------------------------------------------------------
 
 const SCALAR_PREFERENCE = ['string', 'integer', 'number', 'boolean', 'object', 'array'];
+const OPERATION_KEYS = ['get', 'post', 'put', 'patch', 'delete', 'head', 'options'];
 
 function walk(node, visit) {
   if (Array.isArray(node)) { node.forEach((v) => walk(v, visit)); return; }
   if (!node || typeof node !== 'object') return;
   visit(node);
   for (const v of Object.values(node)) walk(v, visit);
+}
+
+function forEachOperation(doc, fn) {
+  for (const [pathKey, pathItem] of Object.entries(doc.paths || {})) {
+    for (const verb of OPERATION_KEYS) if (pathItem && pathItem[verb]) fn(pathItem[verb], pathKey, verb);
+  }
 }
 
 const FIX_CLASSES = [
@@ -101,48 +112,50 @@ const FIX_CLASSES = [
       return n;
     }
   },
-  { name: 'property_names_removed', apply: (doc) => { let n = 0; walk(doc, (o) => { if ('propertyNames' in o) { delete o.propertyNames; n++; } }); return n; } },
   { name: 'schema_dialect_key_removed', apply: (doc) => { let n = 0; walk(doc, (o) => { if (typeof o.$schema === 'string') { delete o.$schema; n++; } }); return n; } },
-  { name: 'const_to_enum', apply: (doc) => { let n = 0; walk(doc, (o) => { if ('const' in o && !('enum' in o)) { o.enum = [o.const]; delete o.const; n++; } }); return n; } },
-  { name: 'hide_definitions_removed', apply: (doc) => { let n = 0; walk(doc, (o) => { if ('hideDefinitions' in o) { delete o.hideDefinitions; n++; } }); return n; } },
   {
-    // swagger-parser 12 rejected the errata-only 3.1.2 by string match; 13
-    // accepts it. Kept so a snapshot's declared version does not move on a
-    // toolchain bump; the document semantics are unchanged.
-    name: 'openapi_3_1_2_to_3_1_1',
-    apply: (doc) => { if (doc.openapi === '3.1.2') { doc.openapi = '3.1.1'; return 1; } return 0; }
+    // OVHcloud leaks its internal scalar type names into a few schemas
+    // (type: long on pagination headers, type: duration on a renewal
+    // period). Lowered to the OpenAPI type they serialise as; a name not in
+    // the table fails the fetch so a new one is reviewed, never guessed.
+    name: 'vendor_scalar_type_lowered',
+    apply: (doc) => {
+      const LOWERED = { long: { type: 'integer', format: 'int64' }, duration: { type: 'string', format: 'duration' } };
+      const STANDARD = new Set(['string', 'number', 'integer', 'boolean', 'object', 'array']);
+      let n = 0;
+      const visit = (node, inProperties) => {
+        if (Array.isArray(node)) { node.forEach((v) => visit(v, false)); return; }
+        if (!node || typeof node !== 'object') return;
+        if (!inProperties && typeof node.type === 'string' && !STANDARD.has(node.type)) {
+          const lowered = LOWERED[node.type];
+          if (!lowered) throw new Error(`non-standard schema type "${node.type}" has no lowering - add it to vendor_scalar_type_lowered`);
+          node.type = lowered.type;
+          if (!node.format) node.format = lowered.format;
+          n++;
+        }
+        for (const [k, v] of Object.entries(node)) {
+          // values, not schemas: examples, defaults, enums, vendor extensions
+          if (k === 'example' || k === 'examples' || k === 'default' || k === 'enum' || k.startsWith('x-')) continue;
+          visit(v, k === 'properties');
+        }
+      };
+      visit(doc.paths, false);
+      visit(doc.components?.schemas, true);
+      return n;
+    }
+  },
+  {
+    // The console's per-operation client snippets (curl, Go, Python, ...).
+    // A vendor documentation artifact, nearly half of every document by
+    // size, that neither stackql nor the docs read.
+    name: 'code_samples_removed',
+    apply: (doc) => { let n = 0; forEachOperation(doc, (op) => { if ('x-code-samples' in op) { delete op['x-code-samples']; n++; } }); return n; }
   }
-  // TODO(template): vendor-specific classes, e.g. a required list naming an
-  // absent property, a response declared twice under one code, ...
 ];
-
-const fixCounts = {};
-try {
-  for (const cls of FIX_CLASSES) fixCounts[cls.name] = cls.apply(spec);
-} catch (err) {
-  console.error(`Fix class failed, nothing written: ${err.message}`);
-  process.exit(1);
-}
-
-// Validate before anything else touches disk
-try {
-  await SwaggerParser.validate(structuredClone(spec));
-  console.log('Spec validated OK (@apidevtools/swagger-parser)');
-} catch (err) {
-  console.error(`Spec validation FAILED, nothing written: ${err.message}`);
-  process.exit(1);
-}
-
-const pathKeys = Object.keys(spec.paths || {});
-const httpVerbs = ['get', 'post', 'put', 'patch', 'delete', 'head', 'options'];
-let opCount = 0;
-for (const p of pathKeys) for (const v of httpVerbs) if (spec.paths[p][v]) opCount++;
-console.log(`Spec: ${spec.info?.title} - openapi ${spec.openapi || spec.swagger}, stated version ${spec.info?.version}, ${pathKeys.length} paths, ${opCount} operations`);
 
 // ---------------------------------------------------------------------------
 // Deterministic redaction of credential-shaped example values (they trip
 // GitHub push protection on every artifact that embeds them).
-// TODO(template): add vendor-specific patterns seen in the snapshot.
 // ---------------------------------------------------------------------------
 
 const REDACTIONS = [
@@ -151,57 +164,186 @@ const REDACTIONS = [
   { name: 'aws_access_key_example', re: /\bAKIA[0-9A-Z]{16}\b/g, replacement: 'AKIAEXAMPLEEXAMPLE00' },
   { name: 'bearer_jwt_example', re: /\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b/g, replacement: 'eyJEXAMPLE.EXAMPLE.EXAMPLE' }
 ];
-let sanitized = isYaml ? yaml.dump(spec, { lineWidth: -1, noRefs: true }) : JSON.stringify(spec, null, 2) + '\n';
-const redactionCounts = {};
-for (const r of REDACTIONS) {
-  const matches = sanitized.match(r.re);
-  if (matches) {
-    redactionCounts[r.name] = matches.length;
-    sanitized = sanitized.replace(r.re, r.replacement);
+
+// ---------------------------------------------------------------------------
+// 1. The family lists
+// ---------------------------------------------------------------------------
+
+const families = {};
+const targets = [];
+for (const version of API_VERSIONS) {
+  const indexUrl = `${SPEC_BASE_URL}/${version}/`;
+  let index;
+  try {
+    index = JSON.parse((await fetchBytes(indexUrl)).toString('utf8'));
+  } catch (err) {
+    console.error(`Family list ${indexUrl} could not be read, nothing written: ${err.message}`);
+    process.exit(1);
+  }
+  families[version] = (index.apis || []).map((a) => a.path).sort();
+  if (families[version].length === 0) {
+    console.error(`Family list ${indexUrl} is empty, nothing written`);
+    process.exit(1);
+  }
+  for (const family of families[version]) {
+    targets.push({ version, family, key: docKey(version, family), filename: docFile(version, family), url: `${SPEC_BASE_URL}/${version}${family}.json${SPEC_FORMAT_QUERY}` });
   }
 }
-const sanitizedSha256 = crypto.createHash('sha256').update(sanitized).digest('hex');
+console.log(`Fetching ${targets.length} family documents from ${SPEC_BASE_URL} (${API_VERSIONS.map((v) => `${v}: ${families[v].length}`).join(', ')})`);
 
 // ---------------------------------------------------------------------------
-// Pin verification and write
+// 2. Download (bounded concurrency); nothing touches disk yet
 // ---------------------------------------------------------------------------
 
-let pin = { specs: {} };
-if (fs.existsSync(pinFile)) pin = JSON.parse(fs.readFileSync(pinFile, 'utf8'));
-const pinKey = specFile.replace(/\.(json|ya?ml)$/i, '');
-const existing = pin.specs[pinKey];
-
-if (existing && existing.sha256 !== sha256 && !update) {
-  console.error(
-    `Spec pin verification FAILED, nothing written: upstream content changed ` +
-    `(pinned ${existing.sha256.slice(0, 12)}..., fetched ${sha256.slice(0, 12)}...). ` +
-    `Re-run with --update (make refresh-spec) to accept the refresh, then diff the snapshots and record the summary in NOTES.md.`
-  );
+let cursor = 0;
+const failures = [];
+async function worker() {
+  while (cursor < targets.length) {
+    const t = targets[cursor++];
+    try { t.content = await fetchBytes(t.url); } catch (err) { failures.push(err.message); }
+  }
+}
+await Promise.all(Array.from({ length: CONCURRENCY }, worker));
+if (failures.length > 0) {
+  console.error('Download FAILED, nothing written:');
+  for (const f of failures) console.error(`  ${f}`);
   process.exit(1);
 }
 
-const status = !existing ? 'pinned' : existing.sha256 === sha256 ? 'unchanged' : 'updated';
-fs.mkdirSync(downloadDir, { recursive: true });
-fs.writeFileSync(path.join(downloadDir, specFile), sanitized);
-pin.specs[pinKey] = {
-  url: specUrl,
-  filename: specFile,
-  spec_version: spec.info?.version,
-  openapi: spec.openapi || spec.swagger,
-  paths: pathKeys.length,
-  operations: opCount,
-  sha256,
-  sanitized_sha256: sanitizedSha256,
-  fixes: fixCounts,
-  redactions: redactionCounts,
-  bytes: content.length,
-  fetched: new Date().toISOString().slice(0, 10)
-};
-fs.mkdirSync(path.dirname(pinFile), { recursive: true });
-fs.writeFileSync(pinFile, JSON.stringify(pin, null, 2) + '\n');
-console.log(`  ${specFile}: ${status} (upstream sha256 ${sha256.slice(0, 12)}..., ${content.length} bytes)`);
-const applied = Object.entries(fixCounts).filter(([, n]) => n > 0);
-if (applied.length) console.log(`  fix classes applied: ${applied.map(([k, n]) => `${k}=${n}`).join(', ')}`);
-for (const [name, count] of Object.entries(redactionCounts)) {
-  console.log(`  redacted ${count} ${name} value(s) in the written snapshot (sanitized sha256 ${sanitizedSha256.slice(0, 12)}...)`);
+// ---------------------------------------------------------------------------
+// 3. Fix, validate, redact
+// ---------------------------------------------------------------------------
+
+const errors = [];
+for (const t of targets) {
+  let spec;
+  try {
+    spec = JSON.parse(t.content.toString('utf8'));
+  } catch (err) {
+    errors.push(`${t.key}: could not be parsed: ${err.message}`);
+    continue;
+  }
+  // The upstream hash is taken over a canonical form, not the raw bytes: the
+  // vendor serialises the top-level `tags` array in a different order from
+  // one request to the next (measured: 4 of 88 documents changed raw hash
+  // across four consecutive fetches, none once tags are sorted by name), so
+  // a raw-byte pin would report drift that is not there.
+  if (Array.isArray(spec.tags)) spec.tags.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+  t.sha256 = crypto.createHash('sha256').update(JSON.stringify(spec)).digest('hex');
+  t.fixes = {};
+  try {
+    for (const cls of FIX_CLASSES) t.fixes[cls.name] = cls.apply(spec);
+  } catch (err) {
+    errors.push(`${t.key}: fix class failed: ${err.message}`);
+    continue;
+  }
+  try {
+    await SwaggerParser.validate(structuredClone(spec));
+  } catch (err) {
+    errors.push(`${t.key}: validation failed: ${String(err.message).split('\n').slice(0, 4).join(' | ')}`);
+    continue;
+  }
+  let opCount = 0;
+  forEachOperation(spec, () => { opCount++; });
+  t.paths = Object.keys(spec.paths || {}).length;
+  t.operations = opCount;
+  t.specVersion = spec.info?.version;
+  t.openapi = spec.openapi || spec.swagger;
+
+  let sanitized = JSON.stringify(spec, null, 2) + '\n';
+  t.redactions = {};
+  for (const r of REDACTIONS) {
+    const matches = sanitized.match(r.re);
+    if (matches) {
+      t.redactions[r.name] = matches.length;
+      sanitized = sanitized.replace(r.re, r.replacement);
+    }
+  }
+  t.sanitized = sanitized;
+  t.sanitizedSha256 = crypto.createHash('sha256').update(sanitized).digest('hex');
 }
+if (errors.length > 0) {
+  console.error(`FAILED with ${errors.length} error(s), nothing written:`);
+  for (const e of errors) console.error(`  ${e}`);
+  process.exit(1);
+}
+console.log(`All ${targets.length} documents validated OK (@apidevtools/swagger-parser)`);
+
+// ---------------------------------------------------------------------------
+// 4. Pin verification
+// ---------------------------------------------------------------------------
+
+let pin = { source: SPEC_BASE_URL, families: {}, specs: {} };
+const firstPin = !fs.existsSync(PIN_FILE);
+if (!firstPin) pin = JSON.parse(fs.readFileSync(PIN_FILE, 'utf8'));
+
+const drift = [];
+const fetchedKeys = new Set(targets.map((t) => t.key));
+for (const t of targets) {
+  const existing = pin.specs?.[t.key];
+  t.status = !existing ? 'pinned' : existing.sha256 === t.sha256 ? 'unchanged' : 'updated';
+  if (!firstPin && t.status === 'pinned') drift.push(`family added upstream: ${t.version}${t.family}`);
+  if (t.status === 'updated') drift.push(`${t.key}: upstream content changed (pinned ${existing.sha256.slice(0, 12)}..., fetched ${t.sha256.slice(0, 12)}...)`);
+}
+for (const key of Object.keys(pin.specs || {})) {
+  if (!fetchedKeys.has(key)) drift.push(`family removed upstream: ${key}`);
+}
+if (drift.length > 0 && !update) {
+  console.error(`Spec pin verification FAILED, nothing written (${drift.length} difference(s)):`);
+  for (const d of drift) console.error(`  ${d}`);
+  console.error('Re-run with --update (make refresh-spec) to accept the refresh, then diff the snapshots and record the summary in NOTES.md.');
+  process.exit(1);
+}
+
+// ---------------------------------------------------------------------------
+// 5. Write the snapshots and the pin
+// ---------------------------------------------------------------------------
+
+const today = new Date().toISOString().slice(0, 10);
+const specs = {};
+for (const t of [...targets].sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : 0))) {
+  const file = path.join(DOWNLOAD_DIR, t.filename);
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, t.sanitized);
+  specs[t.key] = {
+    url: t.url,
+    version: t.version,
+    family: t.family,
+    filename: t.filename,
+    spec_version: t.specVersion,
+    openapi: t.openapi,
+    paths: t.paths,
+    operations: t.operations,
+    sha256: t.sha256,
+    sanitized_sha256: t.sanitizedSha256,
+    fixes: t.fixes,
+    redactions: t.redactions,
+    bytes: t.content.length,
+    fetched: today
+  };
+}
+// snapshots of families that no longer exist upstream (accepted with --update)
+for (const key of Object.keys(pin.specs || {})) {
+  if (!fetchedKeys.has(key)) {
+    const stale = path.join(DOWNLOAD_DIR, pin.specs[key].filename);
+    if (fs.existsSync(stale)) fs.rmSync(stale);
+  }
+}
+fs.mkdirSync(path.dirname(PIN_FILE), { recursive: true });
+fs.writeFileSync(PIN_FILE, JSON.stringify({ source: SPEC_BASE_URL, families, specs }, null, 2) + '\n');
+
+const totals = { paths: 0, operations: 0, bytes: 0 };
+const fixTotals = {};
+const redactionTotals = {};
+const byStatus = {};
+for (const t of targets) {
+  totals.paths += t.paths; totals.operations += t.operations; totals.bytes += t.content.length;
+  byStatus[t.status] = (byStatus[t.status] || 0) + 1;
+  for (const [k, n] of Object.entries(t.fixes)) fixTotals[k] = (fixTotals[k] || 0) + n;
+  for (const [k, n] of Object.entries(t.redactions)) redactionTotals[k] = (redactionTotals[k] || 0) + n;
+}
+console.log(`Spec: ${targets.length} documents, ${totals.paths} paths, ${totals.operations} operations, ${totals.bytes} upstream bytes (${Object.entries(byStatus).map(([k, n]) => `${k}: ${n}`).join(', ')})`);
+console.log(`  fix classes: ${Object.entries(fixTotals).map(([k, n]) => `${k}=${n}`).join(', ')}`);
+if (Object.keys(redactionTotals).length) console.log(`  redactions: ${Object.entries(redactionTotals).map(([k, n]) => `${k}=${n}`).join(', ')}`);
+for (const d of drift) console.log(`  accepted: ${d}`);
+console.log(`Snapshots under ${path.relative(process.cwd(), DOWNLOAD_DIR)}, pin recorded in ${path.relative(process.cwd(), PIN_FILE)}`);

@@ -1,0 +1,5878 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "OVHcloud API specification",
+    "description": "Specification for OVHcloud API",
+    "version": "1.0",
+    "contact": {
+      "name": "OVH",
+      "email": "api@ml.ovh.net"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.eu.ovhcloud.com/v2"
+    }
+  ],
+  "components": {
+    "schemas": {
+      "any": {
+        "description": "Can be anything (text, int, bool, json, html, etc.)",
+        "example": "This is a content of any type !"
+      },
+      "common.CurrentTask": {
+        "type": "object",
+        "description": "Asynchronous operation currently running",
+        "properties": {
+          "errors": {
+            "type": "array",
+            "description": "Errors that occurred on the task",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/common.TaskError"
+            },
+            "readOnly": true
+          },
+          "id": {
+            "type": "string",
+            "description": "Identifier of the current task",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "link": {
+            "type": "string",
+            "description": "Link to the task details",
+            "readOnly": true
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/common.CurrentTaskStatusEnum"
+              }
+            ],
+            "description": "Current global status of the current task",
+            "nullable": true,
+            "readOnly": true
+          },
+          "type": {
+            "type": "string",
+            "description": "Type of the current task",
+            "readOnly": true
+          }
+        }
+      },
+      "common.CurrentTaskStatusEnum": {
+        "type": "string",
+        "description": "Current status of a task. A task in ERROR cannot be retried without your inputs. PENDING tasks will be executed as soon as possible. A RUNNING task is currently executing your original request. SCHEDULED is used for tasks that will be executed in the future.",
+        "enum": [
+          "ERROR",
+          "PENDING",
+          "RUNNING",
+          "SCHEDULED",
+          "WAITING_USER_INPUT"
+        ]
+      },
+      "common.Event": {
+        "type": "object",
+        "description": "Represents an event for an async envelope",
+        "properties": {
+          "createdAt": {
+            "type": "string",
+            "description": "Creation date of the event",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "kind": {
+            "type": "string",
+            "description": "Nature of the event",
+            "readOnly": true
+          },
+          "link": {
+            "type": "string",
+            "description": "Link to the event related resource",
+            "nullable": true,
+            "readOnly": true
+          },
+          "message": {
+            "type": "string",
+            "description": "Description of what happened on the event",
+            "readOnly": true
+          },
+          "type": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/common.EventTypeEnum"
+              }
+            ],
+            "description": "Type of the event",
+            "readOnly": true
+          }
+        }
+      },
+      "common.EventTypeEnum": {
+        "type": "string",
+        "description": "Nature of an event",
+        "enum": [
+          "TARGET_SPEC_UPDATE",
+          "TASK_ERROR",
+          "TASK_START",
+          "TASK_SUCCESS"
+        ]
+      },
+      "common.ResourceStatusEnum": {
+        "type": "string",
+        "description": "Current status of a resource",
+        "enum": [
+          "CREATING",
+          "CREATION_PLANNED",
+          "DELETING",
+          "ERROR",
+          "OUT_OF_SYNC",
+          "READY",
+          "SUSPENDED",
+          "UNKNOWN",
+          "UPDATING"
+        ]
+      },
+      "common.Task": {
+        "type": "object",
+        "description": "Asynchronous operation",
+        "properties": {
+          "createdAt": {
+            "type": "string",
+            "description": "Creation date of the task",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "errors": {
+            "type": "array",
+            "description": "Errors that occurred on the task",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/common.TaskError"
+            },
+            "readOnly": true
+          },
+          "finishedAt": {
+            "type": "string",
+            "description": "Ending date of the task",
+            "nullable": true,
+            "format": "date-time",
+            "readOnly": true
+          },
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the task",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "link": {
+            "type": "string",
+            "description": "Link to the related resource",
+            "readOnly": true
+          },
+          "message": {
+            "type": "string",
+            "description": "Description of the task",
+            "readOnly": true
+          },
+          "progress": {
+            "type": "array",
+            "description": "Progress steps of the asynchronous operation",
+            "items": {
+              "$ref": "#/components/schemas/common.TaskProgress"
+            },
+            "readOnly": true
+          },
+          "startedAt": {
+            "type": "string",
+            "description": "Starting date of the task",
+            "nullable": true,
+            "format": "date-time",
+            "readOnly": true
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/common.TaskStatusEnum"
+              }
+            ],
+            "description": "Current global status of the task",
+            "readOnly": true
+          },
+          "type": {
+            "type": "string",
+            "description": "Type of the task",
+            "readOnly": true
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "Last update of the task",
+            "format": "date-time",
+            "readOnly": true
+          }
+        }
+      },
+      "common.TaskError": {
+        "type": "object",
+        "description": "Errors that occurred on the task",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Error description",
+            "readOnly": true
+          }
+        }
+      },
+      "common.TaskProgress": {
+        "type": "object",
+        "description": "Detailed information about an asynchronous operation progress steps",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Progress step name",
+            "readOnly": true
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/common.TaskStatusEnum"
+              }
+            ],
+            "description": "Current status of the progress step",
+            "readOnly": true
+          }
+        }
+      },
+      "common.TaskStatusEnum": {
+        "type": "string",
+        "description": "Current status of a task",
+        "enum": [
+          "DONE",
+          "ERROR",
+          "PENDING",
+          "RUNNING",
+          "SCHEDULED",
+          "WAITING_USER_INPUT"
+        ]
+      },
+      "duration": {
+        "type": "string",
+        "description": "Duration (e.g., P1Y2M3DT4H6M9S)",
+        "example": "P1Y2M3DT4H6M9S"
+      },
+      "email": {
+        "type": "string",
+        "description": "Email address (e.g., api@ml.ovh.net)",
+        "format": "email",
+        "example": "api@ml.ovh.net"
+      },
+      "iam.ResourceMetadata": {
+        "type": "object",
+        "description": "IAM resource metadata embedded in services models",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "description": "Resource display name",
+            "nullable": true,
+            "readOnly": true
+          },
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the resource",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "state": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/iam.ResourceMetadata.StateEnum"
+              }
+            ],
+            "description": "Resource state",
+            "nullable": true,
+            "readOnly": true
+          },
+          "tags": {
+            "type": "object",
+            "description": "Resource tags. Tags that were internally computed are prefixed with ovh:",
+            "nullable": true,
+            "additionalProperties": {
+              "type": "string"
+            },
+            "readOnly": true
+          },
+          "urn": {
+            "type": "string",
+            "description": "Unique resource name used in policies",
+            "readOnly": true
+          }
+        }
+      },
+      "iam.ResourceMetadata.StateEnum": {
+        "type": "string",
+        "description": "Resource state",
+        "enum": [
+          "EXPIRED",
+          "IN_CREATION",
+          "OK",
+          "SUSPENDED"
+        ]
+      },
+      "iam.resource.TagFilter": {
+        "type": "object",
+        "description": "Resource tag filter",
+        "properties": {
+          "operator": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/iam.resource.TagFilter.OperatorEnum"
+              }
+            ],
+            "description": "Operator to use in order to filter on the value. Defaults to `EQ`.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "value": {
+            "type": "string",
+            "description": "Value to use in order to filter tags",
+            "readOnly": true
+          }
+        }
+      },
+      "iam.resource.TagFilter.OperatorEnum": {
+        "type": "string",
+        "description": "Operator that can be used in order to filter resources tags",
+        "enum": [
+          "EQ",
+          "EXISTS",
+          "ILIKE",
+          "LIKE",
+          "NEQ",
+          "NEXISTS"
+        ]
+      },
+      "internationalPhoneNumber": {
+        "type": "string",
+        "description": "International phone number",
+        "format": "phone-number"
+      },
+      "ip": {
+        "type": "string",
+        "description": "IP address (e.g., 192.0.2.0)",
+        "format": "ipv4",
+        "example": "192.0.2.0"
+      },
+      "ipBlock": {
+        "type": "string",
+        "description": "IP (v4 or v6) CIDR notation (e.g., 192.0.2.0/24)",
+        "format": "ip-block",
+        "example": "192.0.2.0/24"
+      },
+      "ipInterface": {
+        "type": "string",
+        "description": "IP address (e.g., 192.0.2.0)",
+        "format": "ipv4",
+        "example": "192.0.2.0"
+      },
+      "ipv4": {
+        "type": "string",
+        "description": "IPv4 address (e.g., 192.0.2.0)",
+        "format": "ipv4",
+        "example": "192.0.2.0"
+      },
+      "ipv4Block": {
+        "type": "string",
+        "description": "IPv4 CIDR notation (e.g., 192.0.2.0/24)",
+        "format": "ipv4-block",
+        "example": "192.0.2.0/24"
+      },
+      "ipv6": {
+        "type": "string",
+        "description": "IPv6 address (e.g., 2001:41d0:1:1994::1)",
+        "format": "ipv6",
+        "example": "2001:41d0:1:1994::1"
+      },
+      "ipv6Block": {
+        "type": "string",
+        "description": "IPv6 CIDR notation (e.g., 2001:41d0::/128)",
+        "format": "ipv6-block",
+        "example": "2001:41d0::/128"
+      },
+      "macAddress": {
+        "type": "string",
+        "description": "MAC address (e.g., 00:00:5e:00:53:01)",
+        "format": "mac-address",
+        "example": "00:00:5e:00:53:01"
+      },
+      "phoneNumber": {
+        "type": "string",
+        "description": "Phone number",
+        "format": "phone-number"
+      },
+      "time": {
+        "type": "string",
+        "description": "Time (e.g., 15:04:05)",
+        "format": "time",
+        "example": "15:04:05"
+      },
+      "vmwareCloudDirector.AZNameEnum": {
+        "type": "string",
+        "description": "The AZ Name of your VMware Cloud Director project",
+        "enum": [
+          "ca-east-bhs-a",
+          "eu-central-waw-a",
+          "eu-west-eri-a",
+          "eu-west-lim-a",
+          "eu-west-rbx-a",
+          "eu-west-sbg-a",
+          "us-east-vin-a",
+          "us-west-hil-a"
+        ]
+      },
+      "vmwareCloudDirector.BackupOfferNameEnum": {
+        "type": "string",
+        "description": "The backup offer type of your VMware Cloud Director project",
+        "enum": [
+          "BRONZE",
+          "GOLD",
+          "SILVER"
+        ]
+      },
+      "vmwareCloudDirector.BackupResourceStatusEnum": {
+        "type": "string",
+        "description": "Status of VMware Cloud Director backup service",
+        "enum": [
+          "CREATING",
+          "DISABLED",
+          "DISABLING",
+          "READY",
+          "REMOVED",
+          "REMOVING",
+          "UPDATING"
+        ]
+      },
+      "vmwareCloudDirector.BillingTypeEnum": {
+        "type": "string",
+        "description": "The billing type of your VMware Cloud Director project",
+        "enum": [
+          "DEMO",
+          "MONTHLY"
+        ]
+      },
+      "vmwareCloudDirector.CommercialRangeEnum": {
+        "type": "string",
+        "description": "The commercial range of your VMware Cloud Director project",
+        "enum": [
+          "NSX",
+          "STANDARD",
+          "VSAN-NSX"
+        ]
+      },
+      "vmwareCloudDirector.Compute": {
+        "type": "object",
+        "description": "Organization Virtual DataCenter compute resource",
+        "properties": {
+          "currentState": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.compute.CurrentState"
+              }
+            ],
+            "description": "Configuration currently in force on the platform. It catches up with targetSpec once the requested change has been applied.",
+            "readOnly": true
+          },
+          "currentTasks": {
+            "type": "array",
+            "description": "Asynchronous operations ongoing on the organization Virtual DataCenter compute resource",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/common.CurrentTask"
+            },
+            "readOnly": true
+          },
+          "id": {
+            "type": "string",
+            "description": "Unique identifier",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "resourceStatus": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/common.ResourceStatusEnum"
+              }
+            ],
+            "description": "Reflects the readiness of the organization Virtual DataCenter compute resource. A new target specification request will be accepted only in `READY` status.",
+            "readOnly": true
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "Date and time this resource was last modified",
+            "format": "date-time",
+            "readOnly": true
+          }
+        }
+      },
+      "vmwareCloudDirector.EdgeGateway": {
+        "type": "object",
+        "description": "Organization Virtual DataCenter edge gateway resource",
+        "properties": {
+          "currentState": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.edgeGateway.CurrentState"
+              }
+            ],
+            "description": "Configuration currently in force on the platform. It catches up with targetSpec once the requested change has been applied.",
+            "readOnly": true
+          },
+          "currentTasks": {
+            "type": "array",
+            "description": "Asynchronous operations ongoing on the organization Virtual DataCenter edge gateway",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/common.CurrentTask"
+            },
+            "readOnly": true
+          },
+          "id": {
+            "type": "string",
+            "description": "Universal Unique identifier",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "resourceStatus": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/common.ResourceStatusEnum"
+              }
+            ],
+            "description": "Reflects the readiness of the organization Virtual DataCenter edge gateway resource. A new target specification request will be accepted only in `READY` status.",
+            "readOnly": true
+          },
+          "targetSpec": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.EdgeGateway.TargetSpec"
+              }
+            ],
+            "description": "New target specification for the VMware Cloud Director organization edge gateway",
+            "readOnly": true
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "Date and time this resource was last modified",
+            "format": "date-time",
+            "readOnly": true
+          }
+        }
+      },
+      "vmwareCloudDirector.EdgeGateway.Create": {
+        "type": "object",
+        "description": "Create VMware Cloud Director organization edge gateway",
+        "properties": {
+          "targetSpec": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.EdgeGateway.TargetSpec"
+              }
+            ],
+            "description": "New target specification for the VMware Cloud Director organization edge gateway"
+          }
+        },
+        "required": [
+          "targetSpec"
+        ]
+      },
+      "vmwareCloudDirector.EdgeGateway.TargetSpec": {
+        "type": "object",
+        "description": "Organization Virtual DataCenter edge gateway target spec",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "New target specification edge gateway resource"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "vmwareCloudDirector.EdgeGateway.Update": {
+        "type": "object",
+        "description": "Update the specification of the Organization Virtual DataCenter edge gateway",
+        "properties": {
+          "targetSpec": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.EdgeGateway.TargetSpec"
+              }
+            ],
+            "description": "New target specification of the Organization Virtual DataCenter edge gateway"
+          }
+        },
+        "required": [
+          "targetSpec"
+        ]
+      },
+      "vmwareCloudDirector.EdgeGatewayDeploymentModeEnum": {
+        "type": "string",
+        "description": "Deployment type for the edge gateway",
+        "enum": [
+          "ACTIVE_STANDBY",
+          "DISTRIBUTED_ONLY"
+        ]
+      },
+      "vmwareCloudDirector.NetworkAcl": {
+        "type": "object",
+        "description": "Organization network access control list resource",
+        "properties": {
+          "currentState": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.networkAcl.CurrentState"
+              }
+            ],
+            "description": "Configuration currently in force on the platform. It catches up with targetSpec once the requested change has been applied.",
+            "readOnly": true
+          },
+          "currentTasks": {
+            "type": "array",
+            "description": "Asynchronous operations ongoing on the organization network access control list resource",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/common.CurrentTask"
+            },
+            "readOnly": true
+          },
+          "id": {
+            "type": "string",
+            "description": "Unique identifier",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "resourceStatus": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/common.ResourceStatusEnum"
+              }
+            ],
+            "description": "Reflects the readiness of the organization network access control list resource. A new target specification request will be accepted only in `READY` status.",
+            "readOnly": true
+          },
+          "targetSpec": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.networkAcl.TargetSpec"
+              }
+            ],
+            "description": "Configuration you requested. While a change is still being applied it differs from currentState.",
+            "readOnly": true
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "Date and time this resource was last modified",
+            "format": "date-time",
+            "readOnly": true
+          }
+        }
+      },
+      "vmwareCloudDirector.OrderableResource": {
+        "type": "object",
+        "description": "Available orderable resources",
+        "properties": {
+          "compute": {
+            "type": "array",
+            "description": "Available orderable compute resources to your organization Virtual DataCenter",
+            "items": {
+              "$ref": "#/components/schemas/vmwareCloudDirector.orderableResource.Compute"
+            },
+            "readOnly": true
+          },
+          "storage": {
+            "type": "array",
+            "description": "Available orderable storage resources to your organization Virtual DataCenter",
+            "items": {
+              "$ref": "#/components/schemas/vmwareCloudDirector.orderableResource.Storage"
+            },
+            "readOnly": true
+          }
+        }
+      },
+      "vmwareCloudDirector.Organization": {
+        "type": "object",
+        "description": "VMware Cloud Director organization service",
+        "properties": {
+          "currentState": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.organization.CurrentState"
+              }
+            ],
+            "description": "Configuration currently in force on the platform. It catches up with targetSpec once the requested change has been applied.",
+            "readOnly": true
+          },
+          "currentTasks": {
+            "type": "array",
+            "description": "Asynchronous operations ongoing on the VMware Cloud Director organization",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/common.CurrentTask"
+            },
+            "readOnly": true
+          },
+          "id": {
+            "type": "string",
+            "description": "Unique identifier",
+            "readOnly": true
+          },
+          "resourceStatus": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/common.ResourceStatusEnum"
+              }
+            ],
+            "description": "Reflects the readiness of the VMware Cloud Director organization. A new target specification request will be accepted only in `READY` status.",
+            "readOnly": true
+          },
+          "targetSpec": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.organization.TargetSpec"
+              }
+            ],
+            "description": "Configuration you requested. While a change is still being applied it differs from currentState.",
+            "readOnly": true
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "Date and time this resource was last modified",
+            "format": "date-time",
+            "readOnly": true
+          }
+        }
+      },
+      "vmwareCloudDirector.OrganizationWithIAM": {
+        "type": "object",
+        "description": "VMware Cloud Director organization service",
+        "properties": {
+          "currentState": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.organization.CurrentState"
+              }
+            ],
+            "description": "Configuration currently in force on the platform. It catches up with targetSpec once the requested change has been applied.",
+            "readOnly": true
+          },
+          "currentTasks": {
+            "type": "array",
+            "description": "Asynchronous operations ongoing on the VMware Cloud Director organization",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/common.CurrentTask"
+            },
+            "readOnly": true
+          },
+          "iam": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/iam.ResourceMetadata"
+              }
+            ],
+            "description": "IAM resource metadata",
+            "nullable": true,
+            "readOnly": true
+          },
+          "id": {
+            "type": "string",
+            "description": "Unique identifier",
+            "readOnly": true
+          },
+          "resourceStatus": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/common.ResourceStatusEnum"
+              }
+            ],
+            "description": "Reflects the readiness of the VMware Cloud Director organization. A new target specification request will be accepted only in `READY` status.",
+            "readOnly": true
+          },
+          "targetSpec": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.organization.TargetSpec"
+              }
+            ],
+            "description": "Configuration you requested. While a change is still being applied it differs from currentState.",
+            "readOnly": true
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "Date and time this resource was last modified",
+            "format": "date-time",
+            "readOnly": true
+          }
+        }
+      },
+      "vmwareCloudDirector.Region": {
+        "type": "object",
+        "description": "Where a VMware Cloud Director resource is hosted",
+        "properties": {
+          "location": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.RegionLocationEnum"
+              }
+            ],
+            "description": "Datacenter the resource runs in, which is where your data is stored",
+            "readOnly": true
+          },
+          "region": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.RegionNameEnum"
+              }
+            ],
+            "description": "Geographic area the datacenter belongs to, used to pick where to deploy",
+            "readOnly": true
+          }
+        }
+      },
+      "vmwareCloudDirector.RegionLocationEnum": {
+        "type": "string",
+        "description": "The region of your VMware Cloud Director project",
+        "enum": [
+          "Asia Pacific (Australia - Sydney)",
+          "Asia Pacific (Singapore -Singapore)",
+          "Europe (France - Gravelines)",
+          "Europe (France - Paris)",
+          "Europe (France - Roubaix)",
+          "Europe (France - Strasbourg)",
+          "Europe (Germany - Limburg)",
+          "Europe (Poland - Warsaw)",
+          "Europe (United Kingdom - Erith)",
+          "North America (Canada - East - Beauharnois)",
+          "North America (US - East - Vinthill)",
+          "North America (US - West - Hillsboro)"
+        ]
+      },
+      "vmwareCloudDirector.RegionNameEnum": {
+        "type": "string",
+        "description": "The region of your VMware Cloud Director project",
+        "enum": [
+          "ap-south-mum",
+          "ap-southeast-sgp",
+          "ap-southeast-syd",
+          "ca-east-bhs",
+          "ca-east-tor",
+          "eu-central-waw",
+          "eu-west-eri",
+          "eu-west-gra",
+          "eu-west-lim",
+          "eu-west-par",
+          "eu-west-rbx",
+          "eu-west-sbg",
+          "us-east-va",
+          "us-east-vin",
+          "us-west-hil",
+          "us-west-or"
+        ]
+      },
+      "vmwareCloudDirector.Storage": {
+        "type": "object",
+        "description": "Organization Virtual DataCenter storage resource",
+        "properties": {
+          "currentState": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.storage.CurrentState"
+              }
+            ],
+            "description": "Configuration currently in force on the platform. It catches up with targetSpec once the requested change has been applied.",
+            "readOnly": true
+          },
+          "currentTasks": {
+            "type": "array",
+            "description": "Asynchronous operations ongoing on the organization Virtual DataCenter storage resource",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/common.CurrentTask"
+            },
+            "readOnly": true
+          },
+          "id": {
+            "type": "string",
+            "description": "Unique identifier",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "resourceStatus": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/common.ResourceStatusEnum"
+              }
+            ],
+            "description": "Reflects the readiness of the organization Virtual DataCenter storage resource. A new target specification request will be accepted only in `READY` status.",
+            "readOnly": true
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "Date and time this resource was last modified",
+            "format": "date-time",
+            "readOnly": true
+          }
+        }
+      },
+      "vmwareCloudDirector.VirtualDataCenter": {
+        "type": "object",
+        "description": "Organization Virtual DataCenter service",
+        "properties": {
+          "currentState": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.virtualDataCenter.CurrentState"
+              }
+            ],
+            "description": "Configuration currently in force on the platform. It catches up with targetSpec once the requested change has been applied.",
+            "readOnly": true
+          },
+          "currentTasks": {
+            "type": "array",
+            "description": "Asynchronous operations ongoing on the organization Virtual DataCenter",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/common.CurrentTask"
+            },
+            "readOnly": true
+          },
+          "id": {
+            "type": "string",
+            "description": "Unique identifier",
+            "readOnly": true
+          },
+          "resourceStatus": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/common.ResourceStatusEnum"
+              }
+            ],
+            "description": "Reflects the readiness of the organization Virtual DataCenter. A new target specification request will be accepted only in `READY` status.",
+            "readOnly": true
+          },
+          "targetSpec": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.virtualDataCenter.TargetSpec"
+              }
+            ],
+            "description": "Configuration you requested. While a change is still being applied it differs from currentState.",
+            "readOnly": true
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "Date and time this resource was last modified",
+            "format": "date-time",
+            "readOnly": true
+          }
+        }
+      },
+      "vmwareCloudDirector.VirtualDataCenterWithIAM": {
+        "type": "object",
+        "description": "Organization Virtual DataCenter service",
+        "properties": {
+          "currentState": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.virtualDataCenter.CurrentState"
+              }
+            ],
+            "description": "Configuration currently in force on the platform. It catches up with targetSpec once the requested change has been applied.",
+            "readOnly": true
+          },
+          "currentTasks": {
+            "type": "array",
+            "description": "Asynchronous operations ongoing on the organization Virtual DataCenter",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/common.CurrentTask"
+            },
+            "readOnly": true
+          },
+          "iam": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/iam.ResourceMetadata"
+              }
+            ],
+            "description": "IAM resource metadata",
+            "nullable": true,
+            "readOnly": true
+          },
+          "id": {
+            "type": "string",
+            "description": "Unique identifier",
+            "readOnly": true
+          },
+          "resourceStatus": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/common.ResourceStatusEnum"
+              }
+            ],
+            "description": "Reflects the readiness of the organization Virtual DataCenter. A new target specification request will be accepted only in `READY` status.",
+            "readOnly": true
+          },
+          "targetSpec": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.virtualDataCenter.TargetSpec"
+              }
+            ],
+            "description": "Configuration you requested. While a change is still being applied it differs from currentState.",
+            "readOnly": true
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "Date and time this resource was last modified",
+            "format": "date-time",
+            "readOnly": true
+          }
+        }
+      },
+      "vmwareCloudDirector.VrackSegment": {
+        "type": "object",
+        "description": "Organization Virtual DataCenter vrack segment resource",
+        "properties": {
+          "currentState": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.vrackSegment.CurrentState"
+              }
+            ],
+            "description": "Configuration currently in force on the platform. It catches up with targetSpec once the requested change has been applied.",
+            "readOnly": true
+          },
+          "currentTasks": {
+            "type": "array",
+            "description": "Asynchronous operations ongoing on the organization Virtual DataCenter vrack segment resource",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/common.CurrentTask"
+            },
+            "readOnly": true
+          },
+          "id": {
+            "type": "string",
+            "description": "Unique identifier",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "resourceStatus": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/common.ResourceStatusEnum"
+              }
+            ],
+            "description": "Reflects the readiness of the organization Virtual DataCenter vrack segment resource. A new target specification request will be accepted only in `READY` status.",
+            "readOnly": true
+          },
+          "targetSpec": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.vrackSegment.TargetSpec"
+              }
+            ],
+            "description": "Configuration you requested. While a change is still being applied it differs from currentState.",
+            "readOnly": true
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "Date and time this resource was last modified",
+            "format": "date-time",
+            "readOnly": true
+          }
+        }
+      },
+      "vmwareCloudDirector.VrackSegmentModeEnum": {
+        "type": "string",
+        "description": "Connection mode of the segment",
+        "enum": [
+          "NSX_EDGE_GATEWAY",
+          "TAGGED",
+          "TRUNK",
+          "UNTAGGED"
+        ]
+      },
+      "vmwareCloudDirector.VrackSegmentTypeEnum": {
+        "type": "string",
+        "description": "Type of vrack segment",
+        "enum": [
+          "DEFAULT",
+          "MIGRATED"
+        ]
+      },
+      "vmwareCloudDirector.backup.BackupDetails": {
+        "type": "object",
+        "description": "VMware Cloud Director Backup service",
+        "properties": {
+          "createdAt": {
+            "type": "string",
+            "description": "Datetime when backup was enabled",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "currentState": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.backup.CurrentState"
+              }
+            ],
+            "description": "Configuration currently in force on the platform. It catches up with targetSpec once the requested change has been applied.",
+            "readOnly": true
+          },
+          "currentTasks": {
+            "type": "array",
+            "description": "Asynchronous operations ongoing on the VMware Cloud Director organization backup service",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/common.CurrentTask"
+            },
+            "readOnly": true
+          },
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the VMware Cloud Director backup",
+            "readOnly": true
+          },
+          "resourceStatus": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.BackupResourceStatusEnum"
+              }
+            ],
+            "description": "Reflects the readiness of the VMware Cloud Director organization backup service. A new target specification request will be accepted only in `READY` status.",
+            "readOnly": true
+          },
+          "targetSpec": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.backup.TargetSpec"
+              }
+            ],
+            "description": "Configuration you requested. While a change is still being applied it differs from currentState.",
+            "readOnly": true
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "Datetime when backup is modified",
+            "format": "date-time",
+            "readOnly": true
+          }
+        }
+      },
+      "vmwareCloudDirector.backup.BackupDetailsWithIAM": {
+        "type": "object",
+        "description": "VMware Cloud Director Backup service",
+        "properties": {
+          "createdAt": {
+            "type": "string",
+            "description": "Datetime when backup was enabled",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "currentState": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.backup.CurrentState"
+              }
+            ],
+            "description": "Configuration currently in force on the platform. It catches up with targetSpec once the requested change has been applied.",
+            "readOnly": true
+          },
+          "currentTasks": {
+            "type": "array",
+            "description": "Asynchronous operations ongoing on the VMware Cloud Director organization backup service",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/common.CurrentTask"
+            },
+            "readOnly": true
+          },
+          "iam": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/iam.ResourceMetadata"
+              }
+            ],
+            "description": "IAM resource metadata",
+            "nullable": true,
+            "readOnly": true
+          },
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the VMware Cloud Director backup",
+            "readOnly": true
+          },
+          "resourceStatus": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.BackupResourceStatusEnum"
+              }
+            ],
+            "description": "Reflects the readiness of the VMware Cloud Director organization backup service. A new target specification request will be accepted only in `READY` status.",
+            "readOnly": true
+          },
+          "targetSpec": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.backup.TargetSpec"
+              }
+            ],
+            "description": "Configuration you requested. While a change is still being applied it differs from currentState.",
+            "readOnly": true
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "Datetime when backup is modified",
+            "format": "date-time",
+            "readOnly": true
+          }
+        }
+      },
+      "vmwareCloudDirector.backup.CurrentState": {
+        "type": "object",
+        "description": "VMware Cloud Director Backup service current state",
+        "properties": {
+          "azName": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.AZNameEnum"
+              }
+            ],
+            "description": "Availability zone of VMware Cloud Director organization backup",
+            "readOnly": true
+          },
+          "offers": {
+            "type": "array",
+            "description": "List of your VMware Cloud Director organization backup offers",
+            "items": {
+              "$ref": "#/components/schemas/vmwareCloudDirector.backup.CurrentStateOffer"
+            },
+            "readOnly": true
+          }
+        }
+      },
+      "vmwareCloudDirector.backup.CurrentStateOffer": {
+        "type": "object",
+        "description": "VMware Cloud Director Backup current state",
+        "properties": {
+          "name": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.BackupOfferNameEnum"
+              }
+            ],
+            "description": "Backup service offer type (BRONZE|SILVER|GOLD)",
+            "readOnly": true
+          },
+          "protectionPrimaryRegion": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.RegionNameEnum"
+              }
+            ],
+            "description": "Backup repository primary region",
+            "readOnly": true
+          },
+          "protectionReplicatedRegion": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.RegionNameEnum"
+              }
+            ],
+            "description": "Backup repository replicated region",
+            "nullable": true,
+            "readOnly": true
+          },
+          "quotaInTB": {
+            "type": "integer",
+            "description": "Backup repository quota in TB",
+            "readOnly": true
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.BackupResourceStatusEnum"
+              }
+            ],
+            "description": "Backup offer status",
+            "readOnly": true
+          },
+          "usedSpaceInGB": {
+            "type": "number",
+            "description": "Backup repository used space in GB",
+            "readOnly": true
+          }
+        }
+      },
+      "vmwareCloudDirector.backup.TargetOffer": {
+        "type": "object",
+        "description": "VMware Cloud Director Backup target",
+        "properties": {
+          "name": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.BackupOfferNameEnum"
+              }
+            ],
+            "description": "Backup service offer type (BRONZE|SILVER|GOLD)"
+          },
+          "quotaInTB": {
+            "type": "integer",
+            "description": "Backup repository quota in TB"
+          }
+        },
+        "required": [
+          "name",
+          "quotaInTB"
+        ]
+      },
+      "vmwareCloudDirector.backup.TargetSpec": {
+        "type": "object",
+        "description": "VMware Cloud Director Backup target spec",
+        "properties": {
+          "offers": {
+            "type": "array",
+            "description": "List of your VMware Cloud Director backup offers",
+            "items": {
+              "$ref": "#/components/schemas/vmwareCloudDirector.backup.TargetOffer"
+            }
+          }
+        },
+        "required": [
+          "offers"
+        ]
+      },
+      "vmwareCloudDirector.backup.backupDetails.Update": {
+        "type": "object",
+        "description": "Update specification of VMware Cloud Director Backup service",
+        "properties": {
+          "targetSpec": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.backup.TargetSpec"
+              }
+            ],
+            "description": "New target specification for the VMware Cloud Director organization backup service and offers"
+          }
+        },
+        "required": [
+          "targetSpec"
+        ]
+      },
+      "vmwareCloudDirector.compute.CurrentState": {
+        "type": "object",
+        "description": "Current status of organization Virtual DataCenter compute resource",
+        "properties": {
+          "billingType": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.BillingTypeEnum"
+              }
+            ],
+            "description": "Billing type of your organization Virtual DataCenter compute resource",
+            "readOnly": true
+          },
+          "memoryQuota": {
+            "type": "integer",
+            "description": "Memory quota in GB assigned to your organization Virtual DataCenter compute resource",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of your organization Virtual DataCenter compute resource",
+            "readOnly": true
+          },
+          "profile": {
+            "type": "string",
+            "description": "Profile of your organization Virtual DataCenter compute resource",
+            "readOnly": true
+          },
+          "vCPUCount": {
+            "type": "integer",
+            "description": "vCPU core count allocated to your organization Virtual DataCenter compute resource",
+            "readOnly": true
+          }
+        }
+      },
+      "vmwareCloudDirector.edgeGateway.CurrentState": {
+        "type": "object",
+        "description": "Current status of organization Virtual DataCenter edge gateway resource",
+        "properties": {
+          "deploymentMode": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.EdgeGatewayDeploymentModeEnum"
+              }
+            ],
+            "description": "Edge gateway resource deployment mode",
+            "readOnly": true
+          },
+          "idurn": {
+            "type": "string",
+            "description": "Edge gateway resource VCD ID",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of your organization Virtual DataCenter edge gateway resource",
+            "readOnly": true
+          },
+          "providerGateway": {
+            "type": "string",
+            "description": "Name of the provider gateway",
+            "readOnly": true
+          }
+        }
+      },
+      "vmwareCloudDirector.ipSpace": {
+        "type": "object",
+        "description": "VMware Cloud Director organization IP Space resource",
+        "properties": {
+          "currentState": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.ipSpace.CurrentState"
+              }
+            ],
+            "description": "Configuration currently in force on the platform. It catches up with targetSpec once the requested change has been applied.",
+            "readOnly": true
+          },
+          "currentTasks": {
+            "type": "array",
+            "description": "Asynchronous operations ongoing on the organization IP Space",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/common.CurrentTask"
+            },
+            "readOnly": true
+          },
+          "id": {
+            "type": "string",
+            "description": "Universal Unique identifier",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "resourceStatus": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/common.ResourceStatusEnum"
+              }
+            ],
+            "description": "Reflects the readiness of the organization IP Space resource. A new target specification request will be accepted only in `READY` status.",
+            "readOnly": true
+          },
+          "targetSpec": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.ipSpace.TargetSpec"
+              }
+            ],
+            "description": "New target specification for the VMware Cloud Director organization IP space",
+            "nullable": true,
+            "readOnly": true
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "Date and time this resource was last modified",
+            "format": "date-time",
+            "readOnly": true
+          }
+        }
+      },
+      "vmwareCloudDirector.ipSpace.CurrentState": {
+        "type": "object",
+        "description": "Current status of organization IP Space resource",
+        "properties": {
+          "edgeGatewayId": {
+            "type": "string",
+            "description": "Universal Unique identifier of the associated edge gateway",
+            "nullable": true,
+            "format": "uuid",
+            "readOnly": true
+          },
+          "internalScope": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ipBlock"
+              }
+            ],
+            "description": "Network CIDR of the IP space. Must be in form of <ip-address>/<mask>.",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of your organization IP Space resource",
+            "readOnly": true
+          }
+        }
+      },
+      "vmwareCloudDirector.ipSpace.TargetSpec": {
+        "type": "object",
+        "description": "Organization IP Space target spec",
+        "properties": {
+          "edgeGatewayId": {
+            "type": "string",
+            "description": "Universal Unique identifier",
+            "nullable": true,
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the IP space"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "vmwareCloudDirector.ipSpace.Update": {
+        "type": "object",
+        "description": "Update the specification of the VMware Cloud Director organization IP Space",
+        "properties": {
+          "targetSpec": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.ipSpace.TargetSpec"
+              }
+            ],
+            "description": "New target specification for the VMware Cloud Director organization IP Space"
+          }
+        },
+        "required": [
+          "targetSpec"
+        ]
+      },
+      "vmwareCloudDirector.migration.CurrentState": {
+        "type": "object",
+        "description": "Specifies the current state of VMware Cloud Director migration service",
+        "properties": {
+          "azName": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.AZNameEnum"
+              }
+            ],
+            "description": "Availability zone of VMware Cloud Director organization backup",
+            "readOnly": true
+          },
+          "ips": {
+            "type": "array",
+            "description": "Allowed IP addresses to pair on-premise with cloud migration service",
+            "items": {
+              "$ref": "#/components/schemas/ipBlock"
+            },
+            "readOnly": true
+          },
+          "migrationCloudUrl": {
+            "type": "string",
+            "description": "VMware Cloud Director Migration Cloud URL",
+            "readOnly": true
+          },
+          "organizationId": {
+            "type": "string",
+            "description": "Identifier of the VMware Cloud Director Organization",
+            "format": "uuid",
+            "readOnly": true
+          }
+        }
+      },
+      "vmwareCloudDirector.migration.MigrationDetails": {
+        "type": "object",
+        "description": "VMware Cloud Director migration service",
+        "properties": {
+          "createdAt": {
+            "type": "string",
+            "description": "Datetime when migration was enabled",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "currentState": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.migration.CurrentState"
+              }
+            ],
+            "description": "Configuration currently in force on the platform. It catches up with targetSpec once the requested change has been applied.",
+            "readOnly": true
+          },
+          "currentTasks": {
+            "type": "array",
+            "description": "Asynchronous operations ongoing on the VMware Cloud Director migration service",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/common.CurrentTask"
+            },
+            "readOnly": true
+          },
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the VMware Cloud Director migration service",
+            "readOnly": true
+          },
+          "resourceStatus": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/common.ResourceStatusEnum"
+              }
+            ],
+            "description": "Reflects the readiness of the VMware Cloud Director migration service. A new target specification request will be accepted only in `READY` status.",
+            "readOnly": true
+          },
+          "targetSpec": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.migration.TargetSpec"
+              }
+            ],
+            "description": "Configuration you requested. While a change is still being applied it differs from currentState.",
+            "readOnly": true
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "Datetime when migration service is modified",
+            "format": "date-time",
+            "readOnly": true
+          }
+        }
+      },
+      "vmwareCloudDirector.migration.MigrationDetailsWithIAM": {
+        "type": "object",
+        "description": "VMware Cloud Director migration service",
+        "properties": {
+          "createdAt": {
+            "type": "string",
+            "description": "Datetime when migration was enabled",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "currentState": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.migration.CurrentState"
+              }
+            ],
+            "description": "Configuration currently in force on the platform. It catches up with targetSpec once the requested change has been applied.",
+            "readOnly": true
+          },
+          "currentTasks": {
+            "type": "array",
+            "description": "Asynchronous operations ongoing on the VMware Cloud Director migration service",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/common.CurrentTask"
+            },
+            "readOnly": true
+          },
+          "iam": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/iam.ResourceMetadata"
+              }
+            ],
+            "description": "IAM resource metadata",
+            "nullable": true,
+            "readOnly": true
+          },
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the VMware Cloud Director migration service",
+            "readOnly": true
+          },
+          "resourceStatus": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/common.ResourceStatusEnum"
+              }
+            ],
+            "description": "Reflects the readiness of the VMware Cloud Director migration service. A new target specification request will be accepted only in `READY` status.",
+            "readOnly": true
+          },
+          "targetSpec": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.migration.TargetSpec"
+              }
+            ],
+            "description": "Configuration you requested. While a change is still being applied it differs from currentState.",
+            "readOnly": true
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "Datetime when migration service is modified",
+            "format": "date-time",
+            "readOnly": true
+          }
+        }
+      },
+      "vmwareCloudDirector.migration.TargetSpec": {
+        "type": "object",
+        "description": "Specifies the allowed IP addresses to reach migration service",
+        "properties": {
+          "ips": {
+            "type": "array",
+            "description": "Allowed IP addresses to pair on-premise with cloud migration service",
+            "items": {
+              "$ref": "#/components/schemas/ipBlock"
+            }
+          }
+        }
+      },
+      "vmwareCloudDirector.migration.Update": {
+        "type": "object",
+        "description": "VMware Cloud Director migration service update",
+        "properties": {
+          "targetSpec": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.migration.TargetSpec"
+              }
+            ],
+            "description": "New target specification for the VCDA migration allowed ips list"
+          }
+        },
+        "required": [
+          "targetSpec"
+        ]
+      },
+      "vmwareCloudDirector.networkAcl.CurrentState": {
+        "type": "object",
+        "description": "Current status of the network access control list associated to an organization",
+        "properties": {
+          "networks": {
+            "type": "array",
+            "description": "List of rules in this network access control list",
+            "items": {
+              "$ref": "#/components/schemas/vmwareCloudDirector.networkAcl.Rule"
+            },
+            "readOnly": true
+          }
+        }
+      },
+      "vmwareCloudDirector.networkAcl.Rule": {
+        "type": "object",
+        "description": "A network access control list rule allows a given IP block to reach an organization",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the rule"
+          },
+          "network": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ipBlock"
+              }
+            ],
+            "description": "IP block allowed by the rule. Must be in form of <ip-address>/<mask>."
+          }
+        },
+        "required": [
+          "name",
+          "network"
+        ]
+      },
+      "vmwareCloudDirector.networkAcl.TargetSpec": {
+        "type": "object",
+        "description": "Desired status of organization network access control list resource",
+        "properties": {
+          "networks": {
+            "type": "array",
+            "description": "List of network access control list rules associated with the organization",
+            "items": {
+              "$ref": "#/components/schemas/vmwareCloudDirector.networkAcl.Rule"
+            }
+          }
+        },
+        "required": [
+          "networks"
+        ]
+      },
+      "vmwareCloudDirector.networkAcl.Update": {
+        "type": "object",
+        "description": "Update specification of the organization network access control list resource",
+        "properties": {
+          "targetSpec": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.networkAcl.TargetSpec"
+              }
+            ],
+            "description": "New target specification for the organization network access control list"
+          }
+        },
+        "required": [
+          "targetSpec"
+        ]
+      },
+      "vmwareCloudDirector.orderableResource.Compute": {
+        "type": "object",
+        "description": "Possible Virtual Host",
+        "properties": {
+          "memoryQuota": {
+            "type": "integer",
+            "description": "Memory quota in GB assigned to your organization Virtual DataCenter compute profile",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of your organization Virtual DataCenter compute profile",
+            "readOnly": true
+          },
+          "profile": {
+            "type": "string",
+            "description": "Profile (plan code) of your organization Virtual DataCenter compute profile",
+            "readOnly": true
+          },
+          "vCPUCount": {
+            "type": "integer",
+            "description": "vCPU core count allocated to your organization Virtual DataCenter compute profile",
+            "readOnly": true
+          },
+          "vCPUSpeed": {
+            "type": "number",
+            "description": "Effective vCPU speed in GHz for VMs in your organization Virtual DataCenter compute profile",
+            "readOnly": true
+          }
+        }
+      },
+      "vmwareCloudDirector.orderableResource.Storage": {
+        "type": "object",
+        "description": "Possible Storage",
+        "properties": {
+          "capacity": {
+            "type": "integer",
+            "description": "Capacity available in GB for the given resource in your organization Virtual DataCenter storage resource",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of your organization Virtual DataCenter storage resource",
+            "readOnly": true
+          },
+          "performanceClass": {
+            "type": "integer",
+            "description": "Minimum ratio of input/output Operations (IOPS) per TB",
+            "readOnly": true
+          },
+          "profile": {
+            "type": "string",
+            "description": "Profile (plan code) of your organization Virtual DataCenter storage resource",
+            "readOnly": true
+          },
+          "type": {
+            "type": "string",
+            "description": "Type of your organization Virtual DataCenter storage resource",
+            "readOnly": true
+          }
+        }
+      },
+      "vmwareCloudDirector.organization.CurrentState": {
+        "type": "object",
+        "description": "Current status of VMware Cloud Director organization service",
+        "properties": {
+          "apiUrl": {
+            "type": "string",
+            "description": "API URL to interact with your VMware Cloud Director organization on OVHcloud",
+            "readOnly": true
+          },
+          "billingType": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.BillingTypeEnum"
+              }
+            ],
+            "description": "Billing type of your VMware Cloud Director project",
+            "readOnly": true
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of your VMware Cloud Director organization on OVHcloud",
+            "readOnly": true
+          },
+          "fullName": {
+            "type": "string",
+            "description": "Human readable full name of your VMware Cloud Director organization",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of your VMware Cloud Director organization",
+            "readOnly": true
+          },
+          "region": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.RegionNameEnum"
+              }
+            ],
+            "description": "Datacenter where your VMware Cloud Director organization is physically located",
+            "readOnly": true
+          },
+          "spla": {
+            "type": "boolean",
+            "description": "SPLA licensing state",
+            "readOnly": true
+          },
+          "webInterfaceUrl": {
+            "type": "string",
+            "description": "URL to administrate your VMware Cloud Director organization on OVHcloud",
+            "readOnly": true
+          }
+        }
+      },
+      "vmwareCloudDirector.organization.TargetSpec": {
+        "type": "object",
+        "description": "Target specification of VMware Cloud Director organization service",
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "Description of your VMware Cloud Director organization on OVHcloud"
+          },
+          "fullName": {
+            "type": "string",
+            "description": "Human readable full name of your VMware Cloud Director organization"
+          }
+        },
+        "required": [
+          "fullName"
+        ]
+      },
+      "vmwareCloudDirector.organization.Update": {
+        "type": "object",
+        "description": "Update specification of VMware Cloud Director organization service",
+        "properties": {
+          "targetSpec": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.organization.TargetSpec"
+              }
+            ],
+            "description": "New target specification for the VMware Cloud Director organization"
+          }
+        },
+        "required": [
+          "targetSpec"
+        ]
+      },
+      "vmwareCloudDirector.storage.CurrentState": {
+        "type": "object",
+        "description": "Current status of organization Virtual DataCenter storage resource",
+        "properties": {
+          "billingType": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.BillingTypeEnum"
+              }
+            ],
+            "description": "Billing type of your organization Virtual DataCenter storage resource",
+            "readOnly": true
+          },
+          "capacity": {
+            "type": "integer",
+            "description": "Capacity available in GB for the given resource in your organization Virtual DataCenter storage resource",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of your organization Virtual DataCenter storage resource",
+            "readOnly": true
+          },
+          "profile": {
+            "type": "string",
+            "description": "Profile of your organization Virtual DataCenter storage resource",
+            "readOnly": true
+          },
+          "type": {
+            "type": "string",
+            "description": "Type of your organization Virtual DataCenter storage resource",
+            "readOnly": true
+          }
+        }
+      },
+      "vmwareCloudDirector.virtualDataCenter.CurrentState": {
+        "type": "object",
+        "description": "Current status of organization Virtual DataCenter service",
+        "properties": {
+          "commercialRange": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.CommercialRangeEnum"
+              }
+            ],
+            "description": "Commercial range of your VMware Cloud Director project",
+            "readOnly": true
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of your organization Virtual DataCenter",
+            "readOnly": true
+          },
+          "ipQuota": {
+            "type": "integer",
+            "description": "IP address quota assigned to your organization Virtual DataCenter",
+            "readOnly": true
+          },
+          "memoryQuota": {
+            "type": "integer",
+            "description": "Memory quota in GB assigned to your organization Virtual DataCenter",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of your organization Virtual DataCenter",
+            "readOnly": true
+          },
+          "region": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.RegionNameEnum"
+              }
+            ],
+            "description": "Datacenter where your VMware Cloud Director organization is physically located",
+            "readOnly": true
+          },
+          "storageQuota": {
+            "type": "integer",
+            "description": "Storage quota in GB assigned to your organization Virtual DataCenter",
+            "readOnly": true
+          },
+          "vCPUCount": {
+            "type": "integer",
+            "description": "vCPU core count allocated to your organization Virtual DataCenter",
+            "readOnly": true
+          },
+          "vCPUSpeed": {
+            "type": "number",
+            "description": "Effective vCPU speed in GHz for VMs in your organization Virtual DataCenter",
+            "readOnly": true
+          },
+          "vrack": {
+            "type": "string",
+            "description": "vRack name assigned to your organization Virtual DataCenter",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "vmwareCloudDirector.virtualDataCenter.TargetSpec": {
+        "type": "object",
+        "description": "Target specification of organization Virtual DataCenter service",
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "Description of your VMware Cloud Director organization Virtual DataCenter"
+          },
+          "vCPUSpeed": {
+            "type": "number",
+            "description": "Effective vCPU speed in GHz for VMs in your organization Virtual DataCenter"
+          }
+        },
+        "required": [
+          "description",
+          "vCPUSpeed"
+        ]
+      },
+      "vmwareCloudDirector.virtualDataCenter.Update": {
+        "type": "object",
+        "description": "Update specification of organization Virtual DataCenter service",
+        "properties": {
+          "targetSpec": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.virtualDataCenter.TargetSpec"
+              }
+            ],
+            "description": "New target specification for the organization Virtual DataCenter"
+          }
+        },
+        "required": [
+          "targetSpec"
+        ]
+      },
+      "vmwareCloudDirector.vrackSegment.CurrentState": {
+        "type": "object",
+        "description": "Current status of segment associated to an organization",
+        "properties": {
+          "mode": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.VrackSegmentModeEnum"
+              }
+            ],
+            "description": "Connection mode for a segment associated to the organization",
+            "readOnly": true
+          },
+          "networks": {
+            "type": "array",
+            "description": "List of network associated to vrack segment. Must be in form of <ip-address>/<mask>.",
+            "items": {
+              "$ref": "#/components/schemas/ipBlock"
+            },
+            "readOnly": true
+          },
+          "type": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.VrackSegmentTypeEnum"
+              }
+            ],
+            "description": "Type of vrack segment resource",
+            "readOnly": true
+          },
+          "vlanId": {
+            "type": "string",
+            "description": "VLAN ID associated to vrack segment",
+            "readOnly": true
+          }
+        }
+      },
+      "vmwareCloudDirector.vrackSegment.TargetSpec": {
+        "type": "object",
+        "description": "Current status of organization Virtual DataCenter vrack segment resource",
+        "properties": {
+          "mode": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.VrackSegmentModeEnum"
+              }
+            ],
+            "description": "Connection mode of the organization Virtual DataCenter vrack segment resource"
+          },
+          "networks": {
+            "type": "array",
+            "description": "List of network gateway CIDRs associated with the organization Virtual DataCenter vrack segment resource. Must be in form of <ip-address>/<mask>.",
+            "items": {
+              "$ref": "#/components/schemas/ipBlock"
+            }
+          },
+          "vlanId": {
+            "type": "string",
+            "description": "VLAN ID associated with the organization Virtual DataCenter vrack segment resource"
+          }
+        },
+        "required": [
+          "mode",
+          "networks",
+          "vlanId"
+        ]
+      },
+      "vmwareCloudDirector.vrackSegment.Update": {
+        "type": "object",
+        "description": "Update specification of the organization Virtual DataCenter vrack segment resource",
+        "properties": {
+          "targetSpec": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/vmwareCloudDirector.vrackSegment.TargetSpec"
+              }
+            ],
+            "description": "New target specification for the organization Virtual DataCenter vrack segment"
+          }
+        },
+        "required": [
+          "targetSpec"
+        ]
+      }
+    },
+    "securitySchemes": {
+      "oAuth2AuthCode": {
+        "type": "oauth2",
+        "description": "Oauth2",
+        "x-client-id": "1bb9c7df371741c0",
+        "x-client-secret": "a5b4de870aca620d10fbf63cd18d205b",
+        "flows": {
+          "authorizationCode": {
+            "authorizationUrl": "https://auth.eu.ovhcloud.com/oauth2/authorize",
+            "tokenUrl": "https://auth.eu.ovhcloud.com/oauth2/token",
+            "scopes": {
+              "account/all": "Manage your account",
+              "all": "Manage your whole account and all your services",
+              "services/all": "Manage your services lifecycle and billing"
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/vmwareCloudDirector/backup": {
+      "get": {
+        "operationId": "getAllVcdBackups",
+        "summary": "List backup services",
+        "description": "Returns the backup services, with their offers and status.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Pagination-Cursor",
+            "description": "Pagination cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Pagination-Size",
+            "description": "Pagination size",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "iamTags",
+            "description": "Filter resources on IAM tags",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/iam.resource.TagFilter"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/vmwareCloudDirector.backup.BackupDetailsWithIAM"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Backup"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "Backup & Disaster recovery solutions",
+            "Managed Veeam for Public VCF aaS@@@20"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "vmwareCloudDirectorBackup:apiovh:get",
+            "required": true
+          }
+        ],
+        "x-expanded-response": "VmwareCloudDirectorBackupBackupDetailsWithIAM"
+      }
+    },
+    "/vmwareCloudDirector/backup/{backupId}": {
+      "get": {
+        "operationId": "getVcdBackup",
+        "summary": "Get a backup service",
+        "description": "Returns the backup service: offers with their quota and used space, availability zone and status.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "backupId",
+            "description": "Backup ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/vmwareCloudDirector.backup.BackupDetailsWithIAM"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Backup"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "Backup & Disaster recovery solutions",
+            "Managed Veeam for Public VCF aaS@@@30"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "vmwareCloudDirectorBackup:apiovh:get",
+            "required": true
+          }
+        ]
+      },
+      "put": {
+        "operationId": "editVcdBackup",
+        "summary": "Update a backup service",
+        "description": "Replaces the backup offers of the service: BRONZE, SILVER or GOLD, each with a quota in TB. An offer left out of the list is removed. Accepted only when the service is `READY`, then applied asynchronously: `currentState` catches up with `targetSpec`.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "backupId",
+            "description": "Backup ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/vmwareCloudDirector.backup.backupDetails.Update"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/vmwareCloudDirector.backup.BackupDetails"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Backup"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "Backup & Disaster recovery solutions",
+            "Managed Veeam for Public VCF aaS@@@60"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "vmwareCloudDirectorBackup:apiovh:edit",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/vmwareCloudDirector/backup/{backupId}/task": {
+      "get": {
+        "operationId": "getAllVcdBackupTasks",
+        "summary": "List backup tasks",
+        "description": "Returns the asynchronous tasks of the backup service.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Pagination-Cursor",
+            "description": "Pagination cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Pagination-Size",
+            "description": "Pagination size",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "backupId",
+            "description": "Backup ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/common.Task"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Backup"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "Backup & Disaster recovery solutions",
+            "Managed Veeam for Public VCF aaS@@@10"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "vmwareCloudDirectorBackup:apiovh:task/get",
+            "required": true
+          }
+        ],
+        "x-response-identifier": "id",
+        "x-expanded-response": "CommonTask"
+      }
+    },
+    "/vmwareCloudDirector/backup/{backupId}/task/{taskId}": {
+      "get": {
+        "operationId": "getVcdBackupTask",
+        "summary": "Get a backup task",
+        "description": "Returns the task: type, status, progress steps, errors and dates.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "backupId",
+            "description": "Backup ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "taskId",
+            "description": "Task ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/common.Task"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Backup"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "Backup & Disaster recovery solutions",
+            "Managed Veeam for Public VCF aaS@@@50"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "vmwareCloudDirectorBackup:apiovh:task/get",
+            "required": true
+          }
+        ],
+        "x-response-identifier": "id"
+      }
+    },
+    "/vmwareCloudDirector/migration": {
+      "get": {
+        "operationId": "getAllVcdMigrations",
+        "summary": "List migration services",
+        "description": "Returns the migration services, with their status.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Pagination-Cursor",
+            "description": "Pagination cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Pagination-Size",
+            "description": "Pagination size",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "iamTags",
+            "description": "Filter resources on IAM tags",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/iam.resource.TagFilter"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/vmwareCloudDirector.migration.MigrationDetailsWithIAM"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Migration"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Public VCF as-a-Service",
+            "Migration@@@10"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "vmwareCloudDirectorMigration:apiovh:get",
+            "required": true
+          }
+        ],
+        "x-expanded-response": "VmwareCloudDirectorMigrationMigrationDetailsWithIAM"
+      }
+    },
+    "/vmwareCloudDirector/migration/{migrationId}": {
+      "get": {
+        "operationId": "getVcdMigration",
+        "summary": "Get a migration service",
+        "description": "Returns the migration service: migration cloud URL, organization ID and the IP blocks allowed to pair an on-premises site.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "migrationId",
+            "description": "Migration ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/vmwareCloudDirector.migration.MigrationDetailsWithIAM"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Migration"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Public VCF as-a-Service",
+            "Migration@@@20"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "vmwareCloudDirectorMigration:apiovh:get",
+            "required": true
+          }
+        ]
+      },
+      "put": {
+        "operationId": "editVcdMigration",
+        "summary": "Update a migration service",
+        "description": "Replaces the IP blocks allowed to pair an on-premises site with the migration service. An IP block left out of the list is removed. Accepted only when the service is `READY`, then applied asynchronously: `currentState` catches up with `targetSpec`.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "migrationId",
+            "description": "Migration ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/vmwareCloudDirector.migration.Update"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/vmwareCloudDirector.migration.MigrationDetails"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Migration"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Public VCF as-a-Service",
+            "Migration@@@30"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "vmwareCloudDirectorMigration:apiovh:edit",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/vmwareCloudDirector/organization": {
+      "get": {
+        "operationId": "getAllVcdOrganizations",
+        "summary": "List organizations",
+        "description": "Returns the organizations, with their state and specification.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Pagination-Cursor",
+            "description": "Pagination cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Pagination-Size",
+            "description": "Pagination size",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "iamTags",
+            "description": "Filter resources on IAM tags",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/iam.resource.TagFilter"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/vmwareCloudDirector.OrganizationWithIAM"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organization"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Public VCF as-a-Service",
+            "Organization@@@10"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "vmwareCloudDirector:apiovh:organization/get",
+            "required": true
+          }
+        ],
+        "x-expanded-response": "VmwareCloudDirectorOrganizationWithIAM"
+      }
+    },
+    "/vmwareCloudDirector/organization/{organizationId}": {
+      "get": {
+        "operationId": "getVcdOrganization",
+        "summary": "Get an organization",
+        "description": "Returns the organization: name, region, billing type, API and web interface URLs, and requested specification.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organizationId",
+            "description": "Organization ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/vmwareCloudDirector.OrganizationWithIAM"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organization"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Public VCF as-a-Service",
+            "Organization@@@130"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "vmwareCloudDirector:apiovh:organization/get",
+            "required": true
+          }
+        ]
+      },
+      "put": {
+        "operationId": "editVcdOrganization",
+        "summary": "Update an organization",
+        "description": "Updates the full name and description of the organization. Accepted only when the organization is `READY`, then applied asynchronously: `currentState` catches up with `targetSpec`.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organizationId",
+            "description": "Organization ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/vmwareCloudDirector.organization.Update"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/vmwareCloudDirector.Organization"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organization"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Public VCF as-a-Service",
+            "Organization@@@360"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "vmwareCloudDirector:apiovh:organization/edit",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/vmwareCloudDirector/organization/{organizationId}/ipSpace": {
+      "get": {
+        "operationId": "getAllVcdIpSpaces",
+        "summary": "List IP spaces",
+        "description": "Returns the IP spaces of the organization.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Pagination-Cursor",
+            "description": "Pagination cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Pagination-Size",
+            "description": "Pagination size",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "organizationId",
+            "description": "Organization ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/vmwareCloudDirector.ipSpace"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "IpSpace"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Public VCF as-a-Service",
+            "Organization@@@40"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "vmwareCloudDirector:apiovh:organization/ipSpace/get",
+            "required": true
+          }
+        ],
+        "x-response-identifier": "id",
+        "x-expanded-response": "VmwareCloudDirectorIpSpace"
+      }
+    },
+    "/vmwareCloudDirector/organization/{organizationId}/ipSpace/{ipSpaceId}": {
+      "get": {
+        "operationId": "getVcdIpSpace",
+        "summary": "Get an IP space",
+        "description": "Returns the IP space: name, internal scope and associated edge gateway.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ipSpaceId",
+            "description": "Ip space ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "organizationId",
+            "description": "Organization ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/vmwareCloudDirector.ipSpace"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "IpSpace"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Public VCF as-a-Service",
+            "Organization@@@150"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "vmwareCloudDirector:apiovh:organization/ipSpace/get",
+            "required": true
+          }
+        ],
+        "x-response-identifier": "id"
+      },
+      "put": {
+        "operationId": "editVcdIpSpace",
+        "summary": "Update an IP space",
+        "description": "Renames the IP space or associates it with another edge gateway. Accepted only when the IP space is `READY`, then applied asynchronously: `currentState` catches up with `targetSpec`.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ipSpaceId",
+            "description": "Ip space ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "organizationId",
+            "description": "Organization ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/vmwareCloudDirector.ipSpace.Update"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/vmwareCloudDirector.ipSpace"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "IpSpace"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Public VCF as-a-Service",
+            "Organization@@@370"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "vmwareCloudDirector:apiovh:organization/ipSpace/edit",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/vmwareCloudDirector/organization/{organizationId}/ipSpace/{ipSpaceId}/task": {
+      "get": {
+        "operationId": "getAllVcdIpSpaceTasks",
+        "summary": "List IP space tasks",
+        "description": "Returns the asynchronous tasks of the IP space.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Pagination-Cursor",
+            "description": "Pagination cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Pagination-Size",
+            "description": "Pagination size",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "ipSpaceId",
+            "description": "Ip space ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "organizationId",
+            "description": "Organization ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/common.Task"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "IpSpace"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Public VCF as-a-Service",
+            "Organization@@@30"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "vmwareCloudDirector:apiovh:organization/ipSpace/task/get",
+            "required": true
+          }
+        ],
+        "x-response-identifier": "id",
+        "x-expanded-response": "CommonTask"
+      }
+    },
+    "/vmwareCloudDirector/organization/{organizationId}/ipSpace/{ipSpaceId}/task/{taskId}": {
+      "get": {
+        "operationId": "getVcdIpSpaceTask",
+        "summary": "Get an IP space task",
+        "description": "Returns the task: type, status, progress steps, errors and dates.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ipSpaceId",
+            "description": "Ip space ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "organizationId",
+            "description": "Organization ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "taskId",
+            "description": "Task ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/common.Task"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "IpSpace"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Public VCF as-a-Service",
+            "Organization@@@160"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "vmwareCloudDirector:apiovh:organization/ipSpace/task/get",
+            "required": true
+          }
+        ],
+        "x-response-identifier": "id"
+      }
+    },
+    "/vmwareCloudDirector/organization/{organizationId}/networkAcl": {
+      "get": {
+        "operationId": "getAllVcdNetworkAcls",
+        "summary": "List network ACLs",
+        "description": "Returns the network access control lists of the organization.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Pagination-Cursor",
+            "description": "Pagination cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Pagination-Size",
+            "description": "Pagination size",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "organizationId",
+            "description": "Organization ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/vmwareCloudDirector.NetworkAcl"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organization"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Public VCF as-a-Service",
+            "Organization@@@50"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "blue",
+            "label": "Alpha version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "vmwareCloudDirector:apiovh:organization/networkAcl/get",
+            "required": true
+          }
+        ],
+        "x-response-identifier": "id",
+        "x-expanded-response": "VmwareCloudDirectorNetworkAcl"
+      }
+    },
+    "/vmwareCloudDirector/organization/{organizationId}/networkAcl/{id}": {
+      "get": {
+        "operationId": "getVcdNetworkAcl",
+        "summary": "Get a network ACL",
+        "description": "Returns the IP blocks allowed to reach the organization, as applied and as requested.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "Id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "organizationId",
+            "description": "Organization ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/vmwareCloudDirector.NetworkAcl"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organization"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Public VCF as-a-Service",
+            "Organization@@@170"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "blue",
+            "label": "Alpha version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "vmwareCloudDirector:apiovh:organization/networkAcl/get",
+            "required": true
+          }
+        ],
+        "x-response-identifier": "id"
+      },
+      "put": {
+        "operationId": "editVcdNetworkAcl",
+        "summary": "Replace network ACL rules",
+        "description": "Replaces the rules of the network access control list: each rule allows an IP block to reach the organization. A rule left out of the list is removed. Accepted only when the network ACL is `READY`, then applied asynchronously: `currentState` catches up with `targetSpec`.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "Id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "organizationId",
+            "description": "Organization ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/vmwareCloudDirector.networkAcl.Update"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/vmwareCloudDirector.NetworkAcl"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organization"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Public VCF as-a-Service",
+            "Organization@@@380"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "blue",
+            "label": "Alpha version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "vmwareCloudDirector:apiovh:organization/networkAcl/edit",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/vmwareCloudDirector/organization/{organizationId}/password": {
+      "post": {
+        "operationId": "resetVcdOrganizationPassword",
+        "summary": "Reset the administrator password",
+        "description": "Resets the password of the organization administrator. The new password is sent by email to the admin contact.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organizationId",
+            "description": "Organization ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        },
+        "tags": [
+          "Organization"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Public VCF as-a-Service",
+            "Organization@@@300"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "vmwareCloudDirector:apiovh:organization/resetPassword",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/vmwareCloudDirector/organization/{organizationId}/task": {
+      "get": {
+        "operationId": "getAllVcdOrganizationTasks",
+        "summary": "List organization tasks",
+        "description": "Returns the asynchronous tasks of the organization.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Pagination-Cursor",
+            "description": "Pagination cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Pagination-Size",
+            "description": "Pagination size",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "organizationId",
+            "description": "Organization ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/common.Task"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organization"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Public VCF as-a-Service",
+            "Organization@@@60"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "vmwareCloudDirector:apiovh:organization/task/get",
+            "required": true
+          }
+        ],
+        "x-response-identifier": "id",
+        "x-expanded-response": "CommonTask"
+      }
+    },
+    "/vmwareCloudDirector/organization/{organizationId}/task/{taskId}": {
+      "get": {
+        "operationId": "getVcdOrganizationTask",
+        "summary": "Get an organization task",
+        "description": "Returns the task: type, status, progress steps, errors and dates.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organizationId",
+            "description": "Organization ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "taskId",
+            "description": "Task ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/common.Task"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organization"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Public VCF as-a-Service",
+            "Organization@@@180"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "vmwareCloudDirector:apiovh:organization/task/get",
+            "required": true
+          }
+        ],
+        "x-response-identifier": "id"
+      }
+    },
+    "/vmwareCloudDirector/organization/{organizationId}/virtualDataCenter": {
+      "get": {
+        "operationId": "getAllVcdVirtualDataCenters",
+        "summary": "List virtual datacenters",
+        "description": "Returns the virtual datacenters of the organization.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Pagination-Cursor",
+            "description": "Pagination cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Pagination-Size",
+            "description": "Pagination size",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "iamTags",
+            "description": "Filter resources on IAM tags",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/iam.resource.TagFilter"
+                }
+              }
+            }
+          },
+          {
+            "in": "path",
+            "name": "organizationId",
+            "description": "Organization ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/vmwareCloudDirector.VirtualDataCenterWithIAM"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "VirtualDataCenter"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Public VCF as-a-Service",
+            "Organization@@@100"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "vmwareCloudDirector:apiovh:organization/virtualDataCenter/get",
+            "required": true
+          }
+        ],
+        "x-expanded-response": "VmwareCloudDirectorVirtualDataCenterWithIAM"
+      }
+    },
+    "/vmwareCloudDirector/organization/{organizationId}/virtualDataCenter/{virtualDataCenterId}": {
+      "get": {
+        "operationId": "getVcdVirtualDataCenter",
+        "summary": "Get a virtual datacenter",
+        "description": "Returns the virtual datacenter: commercial range, region, vCPU, memory, storage and IP quotas, and vRack.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organizationId",
+            "description": "Organization ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "virtualDataCenterId",
+            "description": "Virtual data center ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/vmwareCloudDirector.VirtualDataCenterWithIAM"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "VirtualDataCenter"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Public VCF as-a-Service",
+            "Organization@@@190"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "vmwareCloudDirector:apiovh:organization/virtualDataCenter/get",
+            "required": true
+          }
+        ]
+      },
+      "put": {
+        "operationId": "editVcdVirtualDataCenter",
+        "summary": "Update a virtual datacenter",
+        "description": "Updates the description and the vCPU speed of the virtual datacenter. Accepted only when the virtual datacenter is `READY`, then applied asynchronously: `currentState` catches up with `targetSpec`.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organizationId",
+            "description": "Organization ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "virtualDataCenterId",
+            "description": "Virtual data center ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/vmwareCloudDirector.virtualDataCenter.Update"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/vmwareCloudDirector.VirtualDataCenter"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "VirtualDataCenter"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Public VCF as-a-Service",
+            "Organization@@@390"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "vmwareCloudDirector:apiovh:organization/virtualDataCenter/edit",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/vmwareCloudDirector/organization/{organizationId}/virtualDataCenter/{virtualDataCenterId}/compute": {
+      "get": {
+        "operationId": "getAllVcdComputeResources",
+        "summary": "List compute resources",
+        "description": "Returns the compute resources of the virtual datacenter.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Pagination-Cursor",
+            "description": "Pagination cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Pagination-Size",
+            "description": "Pagination size",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "organizationId",
+            "description": "Organization ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "virtualDataCenterId",
+            "description": "Virtual data center ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/vmwareCloudDirector.Compute"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Resource"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Public VCF as-a-Service",
+            "Organization@@@70"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "vmwareCloudDirector:apiovh:organization/virtualDataCenter/compute/get",
+            "required": true
+          }
+        ],
+        "x-response-identifier": "id",
+        "x-expanded-response": "VmwareCloudDirectorCompute"
+      }
+    },
+    "/vmwareCloudDirector/organization/{organizationId}/virtualDataCenter/{virtualDataCenterId}/compute/{computeId}": {
+      "delete": {
+        "operationId": "deleteVcdComputeResource",
+        "summary": "Delete a compute resource",
+        "description": "Deletes the compute resource from the virtual datacenter.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "computeId",
+            "description": "Compute ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "organizationId",
+            "description": "Organization ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "virtualDataCenterId",
+            "description": "Virtual data center ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        },
+        "tags": [
+          "Resource"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Public VCF as-a-Service",
+            "Organization@@@340"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "vmwareCloudDirector:apiovh:organization/virtualDataCenter/compute/delete",
+            "required": true
+          }
+        ]
+      },
+      "get": {
+        "operationId": "getVcdComputeResource",
+        "summary": "Get a compute resource",
+        "description": "Returns the compute resource: profile, vCPU count, memory quota and billing type.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "computeId",
+            "description": "Compute ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "organizationId",
+            "description": "Organization ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "virtualDataCenterId",
+            "description": "Virtual data center ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/vmwareCloudDirector.Compute"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Resource"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Public VCF as-a-Service",
+            "Organization@@@210"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "vmwareCloudDirector:apiovh:organization/virtualDataCenter/compute/get",
+            "required": true
+          }
+        ],
+        "x-response-identifier": "id"
+      }
+    },
+    "/vmwareCloudDirector/organization/{organizationId}/virtualDataCenter/{virtualDataCenterId}/edgeGateway": {
+      "get": {
+        "operationId": "getAllVcdEdgeGateways",
+        "summary": "List edge gateways",
+        "description": "Returns the edge gateways of the virtual datacenter.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Pagination-Cursor",
+            "description": "Pagination cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Pagination-Size",
+            "description": "Pagination size",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "organizationId",
+            "description": "Organization ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "virtualDataCenterId",
+            "description": "Virtual data center ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/vmwareCloudDirector.EdgeGateway"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "EdgeGateway"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Public VCF as-a-Service",
+            "Organization@@@90"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "vmwareCloudDirector:apiovh:organization/virtualDataCenter/edgeGateway/get",
+            "required": true
+          }
+        ],
+        "x-response-identifier": "id",
+        "x-expanded-response": "VmwareCloudDirectorEdgeGateway"
+      },
+      "post": {
+        "operationId": "createVcdEdgeGateway",
+        "summary": "Create an edge gateway",
+        "description": "Creates an edge gateway in the virtual datacenter, with the name given in `targetSpec`.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organizationId",
+            "description": "Organization ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "virtualDataCenterId",
+            "description": "Virtual data center ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/vmwareCloudDirector.EdgeGateway.Create"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/vmwareCloudDirector.EdgeGateway"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "EdgeGateway"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Public VCF as-a-Service",
+            "Organization@@@310"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "vmwareCloudDirector:apiovh:organization/virtualDataCenter/edgeGateway/create",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/vmwareCloudDirector/organization/{organizationId}/virtualDataCenter/{virtualDataCenterId}/edgeGateway/{edgeGatewayId}": {
+      "delete": {
+        "operationId": "deleteVcdEdgeGateway",
+        "summary": "Delete an edge gateway",
+        "description": "Deletes the edge gateway from the virtual datacenter.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "edgeGatewayId",
+            "description": "Edge gateway ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "organizationId",
+            "description": "Organization ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "virtualDataCenterId",
+            "description": "Virtual data center ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        },
+        "tags": [
+          "EdgeGateway"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Public VCF as-a-Service",
+            "Organization@@@320"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "vmwareCloudDirector:apiovh:organization/virtualDataCenter/edgeGateway/delete",
+            "required": true
+          }
+        ]
+      },
+      "get": {
+        "operationId": "getVcdEdgeGateway",
+        "summary": "Get an edge gateway",
+        "description": "Returns the edge gateway: name, deployment mode, provider gateway and VMware Cloud Director ID.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "edgeGatewayId",
+            "description": "Edge gateway ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "organizationId",
+            "description": "Organization ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "virtualDataCenterId",
+            "description": "Virtual data center ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/vmwareCloudDirector.EdgeGateway"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "EdgeGateway"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Public VCF as-a-Service",
+            "Organization@@@260"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "vmwareCloudDirector:apiovh:organization/virtualDataCenter/edgeGateway/get",
+            "required": true
+          }
+        ],
+        "x-response-identifier": "id"
+      },
+      "put": {
+        "operationId": "editVcdEdgeGateway",
+        "summary": "Update an edge gateway",
+        "description": "Renames the edge gateway. Accepted only when the edge gateway is `READY`, then applied asynchronously: `currentState` catches up with `targetSpec`.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "edgeGatewayId",
+            "description": "Edge gateway ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "organizationId",
+            "description": "Organization ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "virtualDataCenterId",
+            "description": "Virtual data center ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/vmwareCloudDirector.EdgeGateway.Update"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/vmwareCloudDirector.EdgeGateway"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "EdgeGateway"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Public VCF as-a-Service",
+            "Organization@@@400"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "vmwareCloudDirector:apiovh:organization/virtualDataCenter/edgeGateway/edit",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/vmwareCloudDirector/organization/{organizationId}/virtualDataCenter/{virtualDataCenterId}/edgeGateway/{edgeGatewayId}/task": {
+      "get": {
+        "operationId": "getAllVcdEdgeGatewayTasks",
+        "summary": "List edge gateway tasks",
+        "description": "Returns the asynchronous tasks of the edge gateway.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Pagination-Cursor",
+            "description": "Pagination cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Pagination-Size",
+            "description": "Pagination size",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "edgeGatewayId",
+            "description": "Edge gateway ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "organizationId",
+            "description": "Organization ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "virtualDataCenterId",
+            "description": "Virtual data center ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/common.Task"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "EdgeGateway"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Public VCF as-a-Service",
+            "Organization@@@20"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "vmwareCloudDirector:apiovh:organization/virtualDataCenter/edgeGateway/task/get",
+            "required": true
+          }
+        ],
+        "x-response-identifier": "id",
+        "x-expanded-response": "CommonTask"
+      }
+    },
+    "/vmwareCloudDirector/organization/{organizationId}/virtualDataCenter/{virtualDataCenterId}/edgeGateway/{edgeGatewayId}/task/{taskId}": {
+      "get": {
+        "operationId": "getVcdEdgeGatewayTask",
+        "summary": "Get an edge gateway task",
+        "description": "Returns the task: type, status, progress steps, errors and dates.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "edgeGatewayId",
+            "description": "Edge gateway ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "organizationId",
+            "description": "Organization ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "taskId",
+            "description": "Task ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "virtualDataCenterId",
+            "description": "Virtual data center ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/common.Task"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "EdgeGateway"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Public VCF as-a-Service",
+            "Organization@@@200"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "vmwareCloudDirector:apiovh:organization/virtualDataCenter/edgeGateway/task/get",
+            "required": true
+          }
+        ],
+        "x-response-identifier": "id"
+      }
+    },
+    "/vmwareCloudDirector/organization/{organizationId}/virtualDataCenter/{virtualDataCenterId}/orderableResource": {
+      "get": {
+        "operationId": "getVcdOrderableResources",
+        "summary": "List orderable resources",
+        "description": "Returns the compute and storage profiles that can be ordered for the virtual datacenter, with their quotas, vCPU speed and IOPS per TB.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organizationId",
+            "description": "Organization ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "virtualDataCenterId",
+            "description": "Virtual data center ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/vmwareCloudDirector.OrderableResource"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "VirtualDataCenter"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Public VCF as-a-Service",
+            "Organization@@@290"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "vmwareCloudDirector:apiovh:organization/virtualDataCenter/orderableResource/get",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/vmwareCloudDirector/organization/{organizationId}/virtualDataCenter/{virtualDataCenterId}/storage": {
+      "get": {
+        "operationId": "getAllVcdStorageResources",
+        "summary": "List storage resources",
+        "description": "Returns the storage resources of the virtual datacenter.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Pagination-Cursor",
+            "description": "Pagination cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Pagination-Size",
+            "description": "Pagination size",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "organizationId",
+            "description": "Organization ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "virtualDataCenterId",
+            "description": "Virtual data center ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/vmwareCloudDirector.Storage"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Resource"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Public VCF as-a-Service",
+            "Organization@@@80"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "vmwareCloudDirector:apiovh:organization/virtualDataCenter/storage/get",
+            "required": true
+          }
+        ],
+        "x-response-identifier": "id",
+        "x-expanded-response": "VmwareCloudDirectorStorage"
+      }
+    },
+    "/vmwareCloudDirector/organization/{organizationId}/virtualDataCenter/{virtualDataCenterId}/storage/{storageId}": {
+      "delete": {
+        "operationId": "deleteVcdStorageResource",
+        "summary": "Delete a storage resource",
+        "description": "Deletes the storage resource from the virtual datacenter.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organizationId",
+            "description": "Organization ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "storageId",
+            "description": "Storage ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "virtualDataCenterId",
+            "description": "Virtual data center ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        },
+        "tags": [
+          "Resource"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Public VCF as-a-Service",
+            "Organization@@@330"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "vmwareCloudDirector:apiovh:organization/virtualDataCenter/storage/delete",
+            "required": true
+          }
+        ]
+      },
+      "get": {
+        "operationId": "getVcdStorageResource",
+        "summary": "Get a storage resource",
+        "description": "Returns the storage resource: profile, type, capacity and billing type.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organizationId",
+            "description": "Organization ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "storageId",
+            "description": "Storage ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "virtualDataCenterId",
+            "description": "Virtual data center ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/vmwareCloudDirector.Storage"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Resource"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Public VCF as-a-Service",
+            "Organization@@@220"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "vmwareCloudDirector:apiovh:organization/virtualDataCenter/storage/get",
+            "required": true
+          }
+        ],
+        "x-response-identifier": "id"
+      }
+    },
+    "/vmwareCloudDirector/organization/{organizationId}/virtualDataCenter/{virtualDataCenterId}/task": {
+      "get": {
+        "operationId": "getAllVcdVirtualDataCenterTasks",
+        "summary": "List virtual datacenter tasks",
+        "description": "Returns the asynchronous tasks of the virtual datacenter.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Pagination-Cursor",
+            "description": "Pagination cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Pagination-Size",
+            "description": "Pagination size",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "organizationId",
+            "description": "Organization ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "virtualDataCenterId",
+            "description": "Virtual data center ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/common.Task"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "VirtualDataCenter"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Public VCF as-a-Service",
+            "Organization@@@110"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "vmwareCloudDirector:apiovh:organization/virtualDataCenter/task/get",
+            "required": true
+          }
+        ],
+        "x-response-identifier": "id",
+        "x-expanded-response": "CommonTask"
+      }
+    },
+    "/vmwareCloudDirector/organization/{organizationId}/virtualDataCenter/{virtualDataCenterId}/task/{taskId}": {
+      "get": {
+        "operationId": "getVcdVirtualDataCenterTask",
+        "summary": "Get a virtual datacenter task",
+        "description": "Returns the task: type, status, progress steps, errors and dates.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organizationId",
+            "description": "Organization ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "taskId",
+            "description": "Task ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "virtualDataCenterId",
+            "description": "Virtual data center ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/common.Task"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "VirtualDataCenter"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Public VCF as-a-Service",
+            "Organization@@@230"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "vmwareCloudDirector:apiovh:organization/virtualDataCenter/task/get",
+            "required": true
+          }
+        ],
+        "x-response-identifier": "id"
+      }
+    },
+    "/vmwareCloudDirector/organization/{organizationId}/virtualDataCenter/{virtualDataCenterId}/vrackSegment": {
+      "get": {
+        "operationId": "getAllVcdVrackSegments",
+        "summary": "List vRack segments",
+        "description": "Returns the vRack segments of the virtual datacenter.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Pagination-Cursor",
+            "description": "Pagination cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Pagination-Size",
+            "description": "Pagination size",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "organizationId",
+            "description": "Organization ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "virtualDataCenterId",
+            "description": "Virtual data center ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/vmwareCloudDirector.VrackSegment"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Resource"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Public VCF as-a-Service",
+            "Organization@@@120"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "blue",
+            "label": "Alpha version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "vmwareCloudDirector:apiovh:organization/virtualDataCenter/vrackSegment/get",
+            "required": true
+          }
+        ],
+        "x-response-identifier": "id",
+        "x-expanded-response": "VmwareCloudDirectorVrackSegment"
+      }
+    },
+    "/vmwareCloudDirector/organization/{organizationId}/virtualDataCenter/{virtualDataCenterId}/vrackSegment/{id}": {
+      "delete": {
+        "operationId": "deleteVcdVrackSegment",
+        "summary": "Delete a vRack segment",
+        "description": "Deletes the vRack segment from the virtual datacenter.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "Id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "organizationId",
+            "description": "Organization ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "virtualDataCenterId",
+            "description": "Virtual data center ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/vmwareCloudDirector.VrackSegment"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Resource"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Public VCF as-a-Service",
+            "Organization@@@350"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "blue",
+            "label": "Alpha version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "vmwareCloudDirector:apiovh:organization/virtualDataCenter/vrackSegment/delete",
+            "required": true
+          }
+        ]
+      },
+      "get": {
+        "operationId": "getVcdVrackSegment",
+        "summary": "Get a vRack segment",
+        "description": "Returns the vRack segment: VLAN ID, networks, connection mode and type.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "Id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "organizationId",
+            "description": "Organization ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "virtualDataCenterId",
+            "description": "Virtual data center ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/vmwareCloudDirector.VrackSegment"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Resource"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Public VCF as-a-Service",
+            "Organization@@@240"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "blue",
+            "label": "Alpha version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "vmwareCloudDirector:apiovh:organization/virtualDataCenter/vrackSegment/get",
+            "required": true
+          }
+        ],
+        "x-response-identifier": "id"
+      },
+      "put": {
+        "operationId": "editVcdVrackSegment",
+        "summary": "Update a vRack segment",
+        "description": "Updates the VLAN ID, the gateway networks in CIDR notation and the connection mode of the segment. Accepted only when the segment is `READY`, then applied asynchronously: `currentState` catches up with `targetSpec`.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "Id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "organizationId",
+            "description": "Organization ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "virtualDataCenterId",
+            "description": "Virtual data center ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/vmwareCloudDirector.vrackSegment.Update"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/vmwareCloudDirector.VrackSegment"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Resource"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Public VCF as-a-Service",
+            "Organization@@@410"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "blue",
+            "label": "Alpha version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "vmwareCloudDirector:apiovh:organization/virtualDataCenter/vrackSegment/edit",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/vmwareCloudDirector/organization/{organizationId}/virtualDataCenter/{virtualDataCenterId}/vrackSegment/{id}/task": {
+      "get": {
+        "operationId": "getAllVcdVrackSegmentTasks",
+        "summary": "List vRack segment tasks",
+        "description": "Returns the asynchronous tasks of the vRack segment.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Pagination-Cursor",
+            "description": "Pagination cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Pagination-Size",
+            "description": "Pagination size",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "description": "Id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "organizationId",
+            "description": "Organization ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "virtualDataCenterId",
+            "description": "Virtual data center ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/common.Task"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "VirtualDataCenter"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Public VCF as-a-Service",
+            "Organization@@@125"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "vmwareCloudDirector:apiovh:organization/virtualDataCenter/vrackSegment/task/get",
+            "required": true
+          }
+        ],
+        "x-response-identifier": "id",
+        "x-expanded-response": "CommonTask"
+      }
+    },
+    "/vmwareCloudDirector/organization/{organizationId}/virtualDataCenter/{virtualDataCenterId}/vrackSegment/{id}/task/{taskId}": {
+      "get": {
+        "operationId": "getVcdVrackSegmentTask",
+        "summary": "Get a vRack segment task",
+        "description": "Returns the task: type, status, progress steps, errors and dates.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "Id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "organizationId",
+            "description": "Organization ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "taskId",
+            "description": "Task ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "virtualDataCenterId",
+            "description": "Virtual data center ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/common.Task"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "VirtualDataCenter"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Public VCF as-a-Service",
+            "Organization@@@270"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "vmwareCloudDirector:apiovh:organization/virtualDataCenter/vrackSegment/task/get",
+            "required": true
+          }
+        ],
+        "x-response-identifier": "id"
+      }
+    },
+    "/vmwareCloudDirector/reference/region": {
+      "get": {
+        "operationId": "getVcdRegions",
+        "summary": "List regions",
+        "description": "Returns the regions and the datacenters where resources can be deployed.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Pagination-Cursor",
+            "description": "Pagination cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Pagination-Size",
+            "description": "Pagination size",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/vmwareCloudDirector.Region"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Reference"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Public VCF as-a-Service",
+            "Organization@@@280"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-response-identifier": "region"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Backup",
+      "x-tag-expanded": false,
+      "description": "Missing description"
+    },
+    {
+      "name": "EdgeGateway",
+      "x-tag-expanded": false,
+      "description": "Missing description"
+    },
+    {
+      "name": "IpSpace",
+      "x-tag-expanded": false,
+      "description": "Missing description"
+    },
+    {
+      "name": "Migration",
+      "x-tag-expanded": false,
+      "description": "Missing description"
+    },
+    {
+      "name": "Organization",
+      "x-tag-expanded": false,
+      "description": "Missing description"
+    },
+    {
+      "name": "Reference",
+      "x-tag-expanded": false,
+      "description": "Missing description"
+    },
+    {
+      "name": "Resource",
+      "x-tag-expanded": false,
+      "description": "Missing description"
+    },
+    {
+      "name": "VirtualDataCenter",
+      "x-tag-expanded": false,
+      "description": "Missing description"
+    }
+  ]
+}

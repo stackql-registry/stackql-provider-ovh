@@ -1,0 +1,171 @@
+--- 
+title: voicemail_directories_transcripts
+hide_title: false
+hide_table_of_contents: false
+keywords:
+  - voicemail_directories_transcripts
+  - telephony
+  - ovh
+  - infrastructure-as-code
+  - configuration-as-data
+  - cloud inventory
+description: Query, deploy and manage ovh resources using SQL
+custom_edit_url: null
+image: /img/stackql-ovh-provider-featured-image.png
+---
+
+import CopyableCode from '@site/src/components/CopyableCode/CopyableCode';
+import CodeBlock from '@theme/CodeBlock';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+Creates, updates, deletes, gets or lists a <code>voicemail_directories_transcripts</code> resource.
+
+## Overview
+<table><tbody>
+<tr><td><b>Name</b></td><td><CopyableCode code="voicemail_directories_transcripts" /></td></tr>
+<tr><td><b>Type</b></td><td>Resource</td></tr>
+<tr><td><b>Id</b></td><td><CopyableCode code="ovh.telephony.voicemail_directories_transcripts" /></td></tr>
+</tbody></table>
+
+## Fields
+
+The following fields are returned by `SELECT` queries:
+
+<Tabs
+    defaultValue="get"
+    values={[
+        { label: 'get', value: 'get' }
+    ]}
+>
+<TabItem value="get">
+
+successful operation
+
+<table>
+<thead>
+    <tr>
+    <th>Name</th>
+    <th>Datatype</th>
+    <th>Description</th>
+    </tr>
+</thead>
+<tbody>
+<tr>
+    <td><CopyableCode code="filename" /></td>
+    <td><code>string</code></td>
+    <td>The transcript filename</td>
+</tr>
+<tr>
+    <td><CopyableCode code="status" /></td>
+    <td><code>string</code></td>
+    <td>The status of the request (doing, done, error)</td>
+</tr>
+<tr>
+    <td><CopyableCode code="url" /></td>
+    <td><code>string</code></td>
+    <td>The download URL for the transcript file</td>
+</tr>
+<tr>
+    <td><CopyableCode code="url_expiration_datetime" /></td>
+    <td><code>string (date-time)</code></td>
+    <td>The expiration date for the download URL (wire: urlExpirationDatetime)</td>
+</tr>
+</tbody>
+</table>
+</TabItem>
+</Tabs>
+
+## Methods
+
+The following methods are available for this resource:
+
+<table>
+<thead>
+    <tr>
+    <th>Name</th>
+    <th>Accessible by</th>
+    <th>Required Params</th>
+    <th>Optional Params</th>
+    <th>Description</th>
+    </tr>
+</thead>
+<tbody>
+<tr>
+    <td><a href="#get"><CopyableCode code="get" /></a></td>
+    <td><CopyableCode code="select" /></td>
+    <td><a href="#parameter-billing_account"><code>billing_account</code></a>, <a href="#parameter-format"><code>format</code></a>, <a href="#parameter-id"><code>id</code></a>, <a href="#parameter-service_name"><code>service_name</code></a></td>
+    <td></td>
+    <td>Download the message transcript (Beta version)</td>
+</tr>
+</tbody>
+</table>
+
+## Parameters
+
+Parameters can be passed in the `WHERE` clause of a query. Check the [Methods](#methods) section to see which parameters are required or optional for each operation.
+
+<table>
+<thead>
+    <tr>
+    <th>Name</th>
+    <th>Datatype</th>
+    <th>Description</th>
+    </tr>
+</thead>
+<tbody>
+<tr id="parameter-api_host">
+    <td><CopyableCode code="api_host" /></td>
+    <td><code>string</code></td>
+    <td>The OVHcloud API host. Selected by OVH_ENDPOINT (ovh-eu, ovh-ca or ovh-us; default ovh-eu). (default: api.eu.ovhcloud.com, x-stackQL-envVarSelector: &#123;"envVar":"OVH_ENDPOINT","default":"ovh-eu","values":&#123;"ovh-eu":"api.eu.ovhcloud.com","ovh-ca":"api.ca.ovhcloud.com","ovh-us":"api.us.ovhcloud.com"&#125;&#125;)</td>
+</tr>
+<tr id="parameter-billing_account">
+    <td><CopyableCode code="billing_account" /></td>
+    <td><code>string</code></td>
+    <td>The name of your billingAccount (wire: billingAccount)</td>
+</tr>
+<tr id="parameter-format">
+    <td><CopyableCode code="format" /></td>
+    <td><code>string</code></td>
+    <td>format of the file to retrieve</td>
+</tr>
+<tr id="parameter-id">
+    <td><CopyableCode code="id" /></td>
+    <td><code>integer</code></td>
+    <td>Id of the object</td>
+</tr>
+<tr id="parameter-service_name">
+    <td><CopyableCode code="service_name" /></td>
+    <td><code>string</code></td>
+    <td> (wire: serviceName)</td>
+</tr>
+</tbody>
+</table>
+
+## `SELECT` examples
+
+<Tabs
+    defaultValue="get"
+    values={[
+        { label: 'get', value: 'get' }
+    ]}
+>
+<TabItem value="get">
+
+Download the message transcript (Beta version)
+
+```sql
+SELECT
+filename,
+status,
+url,
+url_expiration_datetime
+FROM ovh.telephony.voicemail_directories_transcripts
+WHERE billing_account = '{{ billing_account }}' -- required
+AND format = '{{ format }}' -- required
+AND id = '{{ id }}' -- required
+AND service_name = '{{ service_name }}' -- required
+;
+```
+</TabItem>
+</Tabs>

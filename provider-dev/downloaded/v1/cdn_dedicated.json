@@ -1,0 +1,3780 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "OVHcloud API specification",
+    "description": "Specification for OVHcloud API",
+    "version": "1.0",
+    "contact": {
+      "name": "OVH",
+      "email": "api@ml.ovh.net"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.eu.ovhcloud.com/v1"
+    }
+  ],
+  "components": {
+    "schemas": {
+      "any": {
+        "description": "Can be anything (text, int, bool, json, html, etc.)",
+        "example": "This is a content of any type !"
+      },
+      "cdnanycast.Anycast": {
+        "type": "object",
+        "description": "Anycast IP of a CDN customer",
+        "properties": {
+          "anycast": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ipv4"
+              }
+            ],
+            "readOnly": true
+          },
+          "backendLimit": {
+            "type": "integer",
+            "readOnly": true
+          },
+          "backendUse": {
+            "type": "integer",
+            "readOnly": true
+          },
+          "cacheRuleLimitPerDomain": {
+            "type": "integer",
+            "readOnly": true
+          },
+          "lastQuotaOrder": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "readOnly": true
+          },
+          "logUrl": {
+            "type": "string",
+            "description": "URL for downloading daily log of your CDN",
+            "nullable": true,
+            "readOnly": true
+          },
+          "offer": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          },
+          "quota": {
+            "type": "integer",
+            "readOnly": true
+          },
+          "service": {
+            "type": "string",
+            "description": "The internal name of your CDN offer",
+            "readOnly": true
+          }
+        }
+      },
+      "cdnanycast.AnycastWithIAM": {
+        "type": "object",
+        "description": "Anycast IP of a CDN customer",
+        "properties": {
+          "anycast": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ipv4"
+              }
+            ],
+            "readOnly": true
+          },
+          "backendLimit": {
+            "type": "integer",
+            "readOnly": true
+          },
+          "backendUse": {
+            "type": "integer",
+            "readOnly": true
+          },
+          "cacheRuleLimitPerDomain": {
+            "type": "integer",
+            "readOnly": true
+          },
+          "iam": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/iam.ResourceMetadata"
+              }
+            ],
+            "description": "IAM resource metadata",
+            "nullable": true,
+            "readOnly": true
+          },
+          "lastQuotaOrder": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "readOnly": true
+          },
+          "logUrl": {
+            "type": "string",
+            "description": "URL for downloading daily log of your CDN",
+            "nullable": true,
+            "readOnly": true
+          },
+          "offer": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          },
+          "quota": {
+            "type": "integer",
+            "readOnly": true
+          },
+          "service": {
+            "type": "string",
+            "description": "The internal name of your CDN offer",
+            "readOnly": true
+          }
+        }
+      },
+      "cdnanycast.Backend": {
+        "type": "object",
+        "description": "Backend for a domain",
+        "properties": {
+          "ip": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ipv4"
+              }
+            ],
+            "readOnly": true
+          }
+        }
+      },
+      "cdnanycast.CacheRule": {
+        "type": "object",
+        "description": "CacheRules for a domain",
+        "properties": {
+          "cacheRuleId": {
+            "type": "integer",
+            "description": "Id for this cache rule",
+            "readOnly": true
+          },
+          "cacheType": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/cdnanycast.CacheRuleCacheTypeEnum"
+              }
+            ],
+            "readOnly": true
+          },
+          "domain": {
+            "type": "string",
+            "readOnly": true
+          },
+          "fileMatch": {
+            "type": "string",
+            "readOnly": true
+          },
+          "fileType": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/cdnanycast.CacheRuleFileTypeEnum"
+              }
+            ],
+            "readOnly": true
+          },
+          "status": {
+            "$ref": "#/components/schemas/cdnanycast.CacheRuleStatusEnum"
+          },
+          "ttl": {
+            "type": "integer"
+          }
+        }
+      },
+      "cdnanycast.CacheRuleCacheTypeEnum": {
+        "type": "string",
+        "description": "All type a cache can be in",
+        "enum": [
+          "forceCache",
+          "noCache"
+        ]
+      },
+      "cdnanycast.CacheRuleFileTypeEnum": {
+        "type": "string",
+        "description": "All states an anycast pool can be in",
+        "enum": [
+          "extension",
+          "file",
+          "folder"
+        ]
+      },
+      "cdnanycast.CacheRuleStatusEnum": {
+        "type": "string",
+        "description": "All states a status can be in",
+        "enum": [
+          "creating",
+          "deleting",
+          "error",
+          "off",
+          "on",
+          "updating"
+        ]
+      },
+      "cdnanycast.Domain": {
+        "type": "object",
+        "description": "Domain on CDN",
+        "properties": {
+          "cacheRuleUse": {
+            "type": "integer",
+            "readOnly": true
+          },
+          "cname": {
+            "type": "string",
+            "readOnly": true
+          },
+          "domain": {
+            "type": "string",
+            "description": "Domain of this object",
+            "readOnly": true
+          },
+          "status": {
+            "$ref": "#/components/schemas/cdnanycast.DomainStatusEnum"
+          },
+          "type": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/cdnanycast.DomainTypeEnum"
+              }
+            ],
+            "readOnly": true
+          }
+        }
+      },
+      "cdnanycast.DomainStatusEnum": {
+        "type": "string",
+        "description": "All states a status can be in",
+        "enum": [
+          "error",
+          "off",
+          "on",
+          "removing"
+        ]
+      },
+      "cdnanycast.DomainTypeEnum": {
+        "type": "string",
+        "description": "All type of Domain",
+        "enum": [
+          "plain",
+          "ssl"
+        ]
+      },
+      "cdnanycast.LogsURL": {
+        "type": "object",
+        "description": "URL to real time logs",
+        "properties": {
+          "expirationDate": {
+            "type": "string",
+            "description": "URL expiration date",
+            "format": "date-time"
+          },
+          "url": {
+            "type": "string",
+            "description": "URL to logs"
+          }
+        }
+      },
+      "cdnanycast.Pop": {
+        "type": "object",
+        "description": "CDN Pop",
+        "properties": {
+          "city": {
+            "type": "string",
+            "readOnly": true
+          },
+          "comment": {
+            "type": "string",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the pop",
+            "readOnly": true
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/cdnanycast.PopStatusEnum"
+              }
+            ],
+            "readOnly": true
+          }
+        }
+      },
+      "cdnanycast.PopStatusEnum": {
+        "type": "string",
+        "description": "All Pop status",
+        "enum": [
+          "down",
+          "ok",
+          "rerouted",
+          "unknown"
+        ]
+      },
+      "cdnanycast.Ssl": {
+        "type": "object",
+        "description": "CDN Ssl",
+        "properties": {
+          "certificateProvider": {
+            "type": "string",
+            "description": "Provider of the certificate installed on CDN",
+            "readOnly": true
+          },
+          "certificateValidFrom": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "readOnly": true
+          },
+          "certificateValidTo": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "readOnly": true
+          },
+          "cn": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "readOnly": true
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/cdnanycast.SslStateEnum"
+              }
+            ],
+            "readOnly": true
+          }
+        }
+      },
+      "cdnanycast.SslStateEnum": {
+        "type": "string",
+        "description": "All states a CDN SSL can be in",
+        "enum": [
+          "checking",
+          "creating",
+          "error",
+          "off",
+          "on",
+          "removing",
+          "updating",
+          "uploading"
+        ]
+      },
+      "cdnanycast.StatsDataType": {
+        "type": "object",
+        "description": "A structure describing type of a stats hash",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "value": {
+            "type": "integer",
+            "nullable": true
+          }
+        }
+      },
+      "cdnanycast.StatsPeriodEnum": {
+        "type": "string",
+        "description": "Period of the statistics",
+        "enum": [
+          "day",
+          "month",
+          "week"
+        ]
+      },
+      "cdnanycast.StatsTypeEnum": {
+        "type": "string",
+        "description": "Type of statistics related to cache",
+        "enum": [
+          "backend",
+          "cdn",
+          "threat"
+        ]
+      },
+      "cdnanycast.StatsValueEnum": {
+        "type": "string",
+        "description": "Value bandwidth or request",
+        "enum": [
+          "bandwidth",
+          "request"
+        ]
+      },
+      "cdnanycast.Task": {
+        "type": "object",
+        "description": "Task on a CDN",
+        "properties": {
+          "comment": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          },
+          "function": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/cdnanycast.TaskFunctionEnum"
+              }
+            ],
+            "readOnly": true
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/cdnanycast.TaskStateEnum"
+              }
+            ],
+            "readOnly": true
+          },
+          "taskId": {
+            "type": "integer",
+            "readOnly": true
+          }
+        }
+      },
+      "cdnanycast.TaskFunctionEnum": {
+        "type": "string",
+        "description": "All function CDN task can be",
+        "enum": [
+          "flush",
+          "flushAll",
+          "generateSsl",
+          "installSsl",
+          "reinstallSsl",
+          "removeDomain",
+          "uninstallSsl",
+          "updateCacheRule"
+        ]
+      },
+      "cdnanycast.TaskStateEnum": {
+        "type": "string",
+        "description": "All states a CDN task can be in",
+        "enum": [
+          "cancelled",
+          "doing",
+          "done",
+          "error",
+          "todo"
+        ]
+      },
+      "dbaas.logs.LogKind": {
+        "type": "object",
+        "description": "Log kind",
+        "properties": {
+          "additionalReturnedFields": {
+            "type": "array",
+            "description": "List of additional log fields managed in this log kind",
+            "items": {
+              "type": "string"
+            },
+            "readOnly": true
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "Creation date of the log kind",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "displayName": {
+            "type": "string",
+            "description": "Log kind display name",
+            "readOnly": true
+          },
+          "kindId": {
+            "type": "string",
+            "description": "Log kind ID",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "description": "Log kind name",
+            "readOnly": true
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "Last update date of the log kind",
+            "format": "date-time",
+            "readOnly": true
+          }
+        }
+      },
+      "dbaas.logs.LogSubscription": {
+        "type": "object",
+        "description": "Log subscription",
+        "properties": {
+          "createdAt": {
+            "type": "string",
+            "description": "Creation date of the subscription",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "kind": {
+            "type": "string",
+            "description": "Log kind name of this subscription",
+            "readOnly": true
+          },
+          "resource": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/dbaas.logs.SubscriptionResource"
+              }
+            ],
+            "description": "Subscribed resource, where the logs come from",
+            "readOnly": true
+          },
+          "serviceName": {
+            "type": "string",
+            "description": "Name of the destination log service",
+            "readOnly": true
+          },
+          "streamId": {
+            "type": "string",
+            "description": "Id of the destination log stream",
+            "readOnly": true
+          },
+          "subscriptionId": {
+            "type": "string",
+            "description": "Subscription ID",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "Last update date of the subscription",
+            "format": "date-time",
+            "readOnly": true
+          }
+        }
+      },
+      "dbaas.logs.LogSubscriptionCreation": {
+        "type": "object",
+        "description": "Log subscription creation payload",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "description": "Log kind name to subscribe to"
+          },
+          "streamId": {
+            "type": "string",
+            "description": "Customer log stream ID",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "kind",
+          "streamId"
+        ]
+      },
+      "dbaas.logs.LogSubscriptionResponse": {
+        "type": "object",
+        "description": "Asynchronous operation after subscribing or unsubscribing to a resource logs",
+        "properties": {
+          "operationId": {
+            "type": "string",
+            "description": "Identifier of the operation",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "serviceName": {
+            "type": "string",
+            "description": "Operation owner's service name",
+            "readOnly": true
+          }
+        }
+      },
+      "dbaas.logs.LogUrlCreation": {
+        "type": "object",
+        "description": "Log temporary URL creation payload",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "description": "Log kind name"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "dbaas.logs.SubscriptionResource": {
+        "type": "object",
+        "description": "Log subscription resource",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of subscribed resource",
+            "readOnly": true
+          },
+          "type": {
+            "type": "string",
+            "description": "Type of subscribed resource",
+            "readOnly": true
+          }
+        }
+      },
+      "dbaas.logs.TemporaryLogsLink": {
+        "type": "object",
+        "description": "Temporary url information",
+        "properties": {
+          "expirationDate": {
+            "type": "string",
+            "description": "Temporary url expiration date",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "url": {
+            "type": "string",
+            "description": "Temporary url",
+            "readOnly": true
+          }
+        }
+      },
+      "duration": {
+        "type": "string",
+        "description": "Duration (e.g., P1Y2M3DT4H6M9S)",
+        "example": "P1Y2M3DT4H6M9S"
+      },
+      "email": {
+        "type": "string",
+        "description": "Email address (e.g., api@ml.ovh.net)",
+        "format": "email",
+        "example": "api@ml.ovh.net"
+      },
+      "iam.ResourceMetadata": {
+        "type": "object",
+        "description": "IAM resource metadata embedded in services models",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "description": "Resource display name",
+            "nullable": true,
+            "readOnly": true
+          },
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the resource",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "state": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/iam.ResourceMetadata.StateEnum"
+              }
+            ],
+            "description": "Resource state",
+            "nullable": true,
+            "readOnly": true
+          },
+          "tags": {
+            "type": "object",
+            "description": "Resource tags. Tags that were internally computed are prefixed with ovh:",
+            "nullable": true,
+            "additionalProperties": {
+              "type": "string"
+            },
+            "readOnly": true
+          },
+          "urn": {
+            "type": "string",
+            "description": "Unique resource name used in policies",
+            "readOnly": true
+          }
+        }
+      },
+      "iam.ResourceMetadata.StateEnum": {
+        "type": "string",
+        "description": "Resource state",
+        "enum": [
+          "EXPIRED",
+          "IN_CREATION",
+          "OK",
+          "SUSPENDED"
+        ]
+      },
+      "iam.resource.TagFilter": {
+        "type": "object",
+        "description": "Resource tag filter",
+        "properties": {
+          "operator": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/iam.resource.TagFilter.OperatorEnum"
+              }
+            ],
+            "description": "Operator to use in order to filter on the value (defaults to 'EQ')",
+            "nullable": true,
+            "readOnly": true
+          },
+          "value": {
+            "type": "string",
+            "description": "Value to use in order to filter tags",
+            "readOnly": true
+          }
+        }
+      },
+      "iam.resource.TagFilter.OperatorEnum": {
+        "type": "string",
+        "description": "Operator that can be used in order to filter resources tags",
+        "enum": [
+          "EQ",
+          "EXISTS",
+          "ILIKE",
+          "LIKE",
+          "NEQ",
+          "NEXISTS"
+        ]
+      },
+      "internationalPhoneNumber": {
+        "type": "string",
+        "description": "International phone number",
+        "format": "phone-number"
+      },
+      "ip": {
+        "type": "string",
+        "description": "IP address (e.g., 192.0.2.0)",
+        "format": "ipv4",
+        "example": "192.0.2.0"
+      },
+      "ipBlock": {
+        "type": "string",
+        "description": "IP (v4 or v6) CIDR notation (e.g., 192.0.2.0/24)",
+        "format": "ip-block",
+        "example": "192.0.2.0/24"
+      },
+      "ipInterface": {
+        "type": "string",
+        "description": "IP address (e.g., 192.0.2.0)",
+        "format": "ipv4",
+        "example": "192.0.2.0"
+      },
+      "ipv4": {
+        "type": "string",
+        "description": "IPv4 address (e.g., 192.0.2.0)",
+        "format": "ipv4",
+        "example": "192.0.2.0"
+      },
+      "ipv4Block": {
+        "type": "string",
+        "description": "IPv4 CIDR notation (e.g., 192.0.2.0/24)",
+        "format": "ipv4-block",
+        "example": "192.0.2.0/24"
+      },
+      "ipv6": {
+        "type": "string",
+        "description": "IPv6 address (e.g., 2001:41d0:1:1994::1)",
+        "format": "ipv6",
+        "example": "2001:41d0:1:1994::1"
+      },
+      "ipv6Block": {
+        "type": "string",
+        "description": "IPv6 CIDR notation (e.g., 2001:41d0::/128)",
+        "format": "ipv6-block",
+        "example": "2001:41d0::/128"
+      },
+      "macAddress": {
+        "type": "string",
+        "description": "MAC address (e.g., 00:00:5e:00:53:01)",
+        "format": "mac-address",
+        "example": "00:00:5e:00:53:01"
+      },
+      "phoneNumber": {
+        "type": "string",
+        "description": "Phone number",
+        "format": "phone-number"
+      },
+      "service.RenewType": {
+        "type": "object",
+        "description": "Map a possible renew for a specific service",
+        "properties": {
+          "automatic": {
+            "type": "boolean",
+            "description": "The service is automatically renewed"
+          },
+          "deleteAtExpiration": {
+            "type": "boolean",
+            "description": "The service will be deleted at expiration"
+          },
+          "forced": {
+            "type": "boolean",
+            "description": "The service forced to be renewed"
+          },
+          "manualPayment": {
+            "type": "boolean",
+            "description": "The service needs to be manually renewed and paid",
+            "nullable": true
+          },
+          "period": {
+            "type": "integer",
+            "description": "period of renew in month",
+            "nullable": true
+          }
+        }
+      },
+      "service.RenewalTypeEnum": {
+        "type": "string",
+        "description": "Detailed renewal type of a service",
+        "enum": [
+          "automaticForcedProduct",
+          "automaticV2012",
+          "automaticV2014",
+          "automaticV2016",
+          "automaticV2024",
+          "manual",
+          "oneShot",
+          "option"
+        ]
+      },
+      "service.StateEnum": {
+        "type": "string",
+        "enum": [
+          "autorenewInProgress",
+          "expired",
+          "inCreation",
+          "ok",
+          "pendingDebt",
+          "unPaid"
+        ]
+      },
+      "services.Service": {
+        "type": "object",
+        "description": "Details about a Service",
+        "properties": {
+          "canDeleteAtExpiration": {
+            "type": "boolean",
+            "description": "Indicates that the service can be set up to be deleted at expiration",
+            "readOnly": true
+          },
+          "contactAdmin": {
+            "type": "string",
+            "readOnly": true
+          },
+          "contactBilling": {
+            "type": "string",
+            "readOnly": true
+          },
+          "contactTech": {
+            "type": "string",
+            "readOnly": true
+          },
+          "creation": {
+            "type": "string",
+            "format": "date",
+            "readOnly": true
+          },
+          "domain": {
+            "type": "string",
+            "readOnly": true
+          },
+          "engagedUpTo": {
+            "type": "string",
+            "nullable": true,
+            "format": "date",
+            "readOnly": true
+          },
+          "expiration": {
+            "type": "string",
+            "format": "date",
+            "readOnly": true
+          },
+          "possibleRenewPeriod": {
+            "type": "array",
+            "description": "All the possible renew period of your service in month",
+            "nullable": true,
+            "items": {
+              "type": "integer"
+            },
+            "readOnly": true
+          },
+          "renew": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/service.RenewType"
+              }
+            ],
+            "description": "Way of handling the renew",
+            "nullable": true
+          },
+          "renewalType": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/service.RenewalTypeEnum"
+              }
+            ],
+            "readOnly": true
+          },
+          "serviceId": {
+            "type": "integer",
+            "readOnly": true
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/service.StateEnum"
+              }
+            ],
+            "readOnly": true
+          }
+        }
+      },
+      "time": {
+        "type": "string",
+        "description": "Time (e.g., 15:04:05)",
+        "format": "time",
+        "example": "15:04:05"
+      }
+    },
+    "securitySchemes": {
+      "oAuth2AuthCode": {
+        "type": "oauth2",
+        "description": "Oauth2",
+        "x-client-id": "1bb9c7df371741c0",
+        "x-client-secret": "a5b4de870aca620d10fbf63cd18d205b",
+        "flows": {
+          "authorizationCode": {
+            "authorizationUrl": "https://auth.eu.ovhcloud.com/oauth2/authorize",
+            "tokenUrl": "https://auth.eu.ovhcloud.com/oauth2/token",
+            "scopes": {
+              "account/all": "Manage your account",
+              "all": "Manage your whole account and all your services",
+              "services/all": "Manage your services lifecycle and billing"
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/cdn/dedicated": {
+      "get": {
+        "summary": "List CDN services",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "iamTags",
+            "description": "Filter resources on IAM tags",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/iam.resource.TagFilter"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Network",
+            "CDN",
+            "Services@@@10"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "cdn:apiovh:get",
+            "required": true
+          }
+        ],
+        "x-expanded-response": "CdnanycastAnycastWithIAM"
+      }
+    },
+    "/cdn/dedicated/log/kind": {
+      "get": {
+        "summary": "List log kinds",
+        "description": "Returns the names of the log kinds CDN emits, which can be forwarded to a stream.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Network",
+            "CDN",
+            "Observability@@@10"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-expanded-response": "DbaasLogsLogKind"
+      }
+    },
+    "/cdn/dedicated/log/kind/{name}": {
+      "get": {
+        "summary": "Get a log kind",
+        "description": "Returns a log kind and the additional fields its logs carry.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "name",
+            "description": "Name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dbaas.logs.LogKind"
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Network",
+            "CDN",
+            "Observability@@@30"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-response-identifier": "name"
+      }
+    },
+    "/cdn/dedicated/pops": {
+      "get": {
+        "summary": "List points of presence",
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Network",
+            "CDN",
+            "Points of presence@@@10"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-expanded-response": "CdnanycastPop"
+      }
+    },
+    "/cdn/dedicated/pops/{name}": {
+      "get": {
+        "summary": "Get a point of presence",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "name",
+            "description": "Name of the pop",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/cdnanycast.Pop"
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Network",
+            "CDN",
+            "Points of presence@@@20"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ]
+      }
+    },
+    "/cdn/dedicated/{serviceName}": {
+      "get": {
+        "summary": "Get a CDN service",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "The internal name of your CDN offer",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/cdnanycast.AnycastWithIAM"
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Network",
+            "CDN",
+            "Services@@@20"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "cdn:apiovh:get",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/cdn/dedicated/{serviceName}/changeContact": {
+      "post": {
+        "summary": "Change service contacts",
+        "description": "Change service contacts. Starts a procedure to change the admin, tech or billing contact of the service.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "The internal name of your CDN offer",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "contactAdmin": {
+                    "type": "string",
+                    "description": "The contact to set as admin contact"
+                  },
+                  "contactBilling": {
+                    "type": "string",
+                    "description": "The contact to set as billing contact"
+                  },
+                  "contactTech": {
+                    "type": "string",
+                    "description": "The contact to set as tech contact"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Network",
+            "CDN",
+            "Subscription@@@30"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "cdn:apiovh:changeContact",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/cdn/dedicated/{serviceName}/domains": {
+      "get": {
+        "summary": "List domains",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "The internal name of your CDN offer",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Network",
+            "CDN",
+            "Domains@@@10"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "cdn:apiovh:domains/get",
+            "required": true
+          }
+        ],
+        "x-expanded-response": "CdnanycastDomain"
+      },
+      "post": {
+        "summary": "Create a domain",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "The internal name of your CDN offer",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "domain": {
+                    "type": "string",
+                    "description": "domain name to add on CDN"
+                  }
+                },
+                "required": [
+                  "domain"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/cdnanycast.Domain"
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Network",
+            "CDN",
+            "Domains@@@20"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "cdn:apiovh:domains/create",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/cdn/dedicated/{serviceName}/domains/{domain}": {
+      "delete": {
+        "summary": "Delete a domain",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "domain",
+            "description": "Domain of this object",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "The internal name of your CDN offer",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/cdnanycast.Task"
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Network",
+            "CDN",
+            "Domains@@@40"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "cdn:apiovh:domains/delete",
+            "required": true
+          }
+        ]
+      },
+      "get": {
+        "summary": "Get a domain",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "domain",
+            "description": "Domain of this object",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "The internal name of your CDN offer",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/cdnanycast.Domain"
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Network",
+            "CDN",
+            "Domains@@@30"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "cdn:apiovh:domains/get",
+            "required": true
+          }
+        ]
+      },
+      "put": {
+        "summary": "Update a domain",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "domain",
+            "description": "Domain of this object",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "The internal name of your CDN offer",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/cdnanycast.Domain"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Network",
+            "CDN",
+            "Domains@@@50"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "cdn:apiovh:domains/edit",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/cdn/dedicated/{serviceName}/domains/{domain}/backends": {
+      "get": {
+        "summary": "List backends",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "domain",
+            "description": "Domain of this object",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "The internal name of your CDN offer",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ipv4"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Network",
+            "CDN",
+            "Backends@@@10"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "cdn:apiovh:domains/backends/get",
+            "required": true
+          }
+        ],
+        "x-expanded-response": "CdnanycastBackend"
+      },
+      "post": {
+        "summary": "Create a backend",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "domain",
+            "description": "Domain of this object",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "The internal name of your CDN offer",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "ip": {
+                    "type": "string",
+                    "description": "IP to add to backends list"
+                  }
+                },
+                "required": [
+                  "ip"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/cdnanycast.Backend"
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Network",
+            "CDN",
+            "Backends@@@20"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "cdn:apiovh:domains/backends/create",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/cdn/dedicated/{serviceName}/domains/{domain}/backends/{ip}": {
+      "delete": {
+        "summary": "Delete a backend",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "domain",
+            "description": "Domain of this object",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "ip",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ipv4"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "The internal name of your CDN offer",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ipv4"
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Network",
+            "CDN",
+            "Backends@@@40"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "cdn:apiovh:domains/backends/delete",
+            "required": true
+          }
+        ]
+      },
+      "get": {
+        "summary": "Get a backend",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "domain",
+            "description": "Domain of this object",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "ip",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ipv4"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "The internal name of your CDN offer",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/cdnanycast.Backend"
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Network",
+            "CDN",
+            "Backends@@@30"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "cdn:apiovh:domains/backends/get",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/cdn/dedicated/{serviceName}/domains/{domain}/cacheRules": {
+      "get": {
+        "summary": "List cache rules",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "domain",
+            "description": "Domain of this object",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "fileMatch",
+            "description": "Filter the value of fileMatch property (like)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "The internal name of your CDN offer",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Network",
+            "CDN",
+            "Cache@@@10"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "cdn:apiovh:domains/cacheRules/get",
+            "required": true
+          }
+        ],
+        "x-expanded-response": "CdnanycastCacheRule"
+      },
+      "post": {
+        "summary": "Create a cache rule",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "domain",
+            "description": "Domain of this object",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "The internal name of your CDN offer",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "cacheType": {
+                    "description": "Type of cache rule to add to the domain",
+                    "$ref": "#/components/schemas/cdnanycast.CacheRuleCacheTypeEnum"
+                  },
+                  "fileMatch": {
+                    "type": "string",
+                    "description": "File match for cache rule to add to the domain"
+                  },
+                  "fileType": {
+                    "description": "File type for cache rule to add to the domain",
+                    "$ref": "#/components/schemas/cdnanycast.CacheRuleFileTypeEnum"
+                  },
+                  "ttl": {
+                    "type": "integer",
+                    "description": "ttl for cache rule to add to the domain"
+                  }
+                },
+                "required": [
+                  "cacheType",
+                  "fileMatch",
+                  "fileType",
+                  "ttl"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/cdnanycast.CacheRule"
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Network",
+            "CDN",
+            "Cache@@@20"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "cdn:apiovh:domains/cacheRules/create",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/cdn/dedicated/{serviceName}/domains/{domain}/cacheRules/{cacheRuleId}": {
+      "delete": {
+        "summary": "Delete a cache rule",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "cacheRuleId",
+            "description": "Id for this cache rule",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "domain",
+            "description": "Domain of this object",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "The internal name of your CDN offer",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/cdnanycast.Task"
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Network",
+            "CDN",
+            "Cache@@@40"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "cdn:apiovh:domains/cacheRules/delete",
+            "required": true
+          }
+        ]
+      },
+      "get": {
+        "summary": "Get a cache rule",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "cacheRuleId",
+            "description": "Id for this cache rule",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "domain",
+            "description": "Domain of this object",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "The internal name of your CDN offer",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/cdnanycast.CacheRule"
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Network",
+            "CDN",
+            "Cache@@@30"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "cdn:apiovh:domains/cacheRules/get",
+            "required": true
+          }
+        ]
+      },
+      "put": {
+        "summary": "Update a cache rule",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "cacheRuleId",
+            "description": "Id for this cache rule",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "domain",
+            "description": "Domain of this object",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "The internal name of your CDN offer",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/cdnanycast.CacheRule"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Network",
+            "CDN",
+            "Cache@@@50"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "cdn:apiovh:domains/cacheRules/edit",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/cdn/dedicated/{serviceName}/domains/{domain}/cacheRules/{cacheRuleId}/flush": {
+      "post": {
+        "summary": "Flush the cache of a rule",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "cacheRuleId",
+            "description": "Id for this cache rule",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "domain",
+            "description": "Domain of this object",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "The internal name of your CDN offer",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/cdnanycast.Task"
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Network",
+            "CDN",
+            "Cache@@@60"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "cdn:apiovh:domains/cacheRules/flush",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/cdn/dedicated/{serviceName}/domains/{domain}/cacheRules/{cacheRuleId}/tasks": {
+      "get": {
+        "summary": "List cache rule tasks",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "cacheRuleId",
+            "description": "Id for this cache rule",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "domain",
+            "description": "Domain of this object",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "The internal name of your CDN offer",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Network",
+            "CDN",
+            "Tasks@@@30"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "cdn:apiovh:domains/cacheRules/tasks/get",
+            "required": true
+          }
+        ],
+        "x-expanded-response": "CdnanycastTask"
+      }
+    },
+    "/cdn/dedicated/{serviceName}/domains/{domain}/cacheRules/{cacheRuleId}/tasks/{taskId}": {
+      "get": {
+        "summary": "Get a task",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "cacheRuleId",
+            "description": "Id for this cache rule",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "domain",
+            "description": "Domain of this object",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "The internal name of your CDN offer",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "taskId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/cdnanycast.Task"
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Network",
+            "CDN",
+            "Tasks@@@40"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "cdn:apiovh:domains/cacheRules/tasks/get",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/cdn/dedicated/{serviceName}/domains/{domain}/flush": {
+      "post": {
+        "summary": "Flush the domain cache",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "domain",
+            "description": "Domain of this object",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "The internal name of your CDN offer",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/cdnanycast.Task"
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Network",
+            "CDN",
+            "Cache@@@70"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "cdn:apiovh:domains/flush",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/cdn/dedicated/{serviceName}/domains/{domain}/logs": {
+      "post": {
+        "summary": "Generate a domain real time logs URL",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "domain",
+            "description": "Domain of this object",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "The internal name of your CDN offer",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/cdnanycast.LogsURL"
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Network",
+            "CDN",
+            "Observability@@@80"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "blue",
+            "label": "Beta version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "cdn:apiovh:domains/logs/create",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/cdn/dedicated/{serviceName}/domains/{domain}/statistics": {
+      "get": {
+        "summary": "Get domain statistics",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "domain",
+            "description": "Domain of this object",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "period",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/cdnanycast.StatsPeriodEnum"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "The internal name of your CDN offer",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "type",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/cdnanycast.StatsTypeEnum"
+            }
+          },
+          {
+            "in": "query",
+            "name": "value",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/cdnanycast.StatsValueEnum"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/cdnanycast.StatsDataType"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Network",
+            "CDN",
+            "Statistics@@@10"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "cdn:apiovh:domains/statistics/get",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/cdn/dedicated/{serviceName}/domains/{domain}/tasks": {
+      "get": {
+        "summary": "List domain tasks",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "domain",
+            "description": "Domain of this object",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "The internal name of your CDN offer",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Network",
+            "CDN",
+            "Tasks@@@10"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "cdn:apiovh:domains/tasks/get",
+            "required": true
+          }
+        ],
+        "x-expanded-response": "CdnanycastTask"
+      }
+    },
+    "/cdn/dedicated/{serviceName}/domains/{domain}/tasks/{taskId}": {
+      "get": {
+        "summary": "Get a task",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "domain",
+            "description": "Domain of this object",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "The internal name of your CDN offer",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "taskId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/cdnanycast.Task"
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Network",
+            "CDN",
+            "Tasks@@@20"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "cdn:apiovh:domains/tasks/get",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/cdn/dedicated/{serviceName}/log/subscription": {
+      "get": {
+        "summary": "List log subscriptions",
+        "description": "Returns the identifiers of the CDN log subscriptions. Set `kind` to restrict the list to one log kind.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "kind",
+            "description": "Filter on a specific kind (e.g., audit)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "The internal name of your CDN offer",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Network",
+            "CDN",
+            "Observability@@@20"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "cdn:apiovh:log/subscription/get",
+            "required": true
+          }
+        ],
+        "x-expanded-response": "DbaasLogsLogSubscription"
+      },
+      "post": {
+        "summary": "Create a log subscription",
+        "description": "Forwards CDN logs of one kind to a Logs Data Platform stream. The subscription is created asynchronously and the response returns the operation identifier.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "The internal name of your CDN offer",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/dbaas.logs.LogSubscriptionCreation"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dbaas.logs.LogSubscriptionResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Network",
+            "CDN",
+            "Observability@@@50"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "cdn:apiovh:log/subscription/create",
+            "required": true
+          },
+          {
+            "name": "ldp:apiovh:output/graylog/stream/forwardTo",
+            "description": "Required on the targeted LDP service",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/cdn/dedicated/{serviceName}/log/subscription/{subscriptionId}": {
+      "delete": {
+        "summary": "Delete a log subscription",
+        "description": "Deletes the subscription and stops forwarding CDN logs to the stream.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "The internal name of your CDN offer",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "subscriptionId",
+            "description": "Subscription ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dbaas.logs.LogSubscriptionResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Network",
+            "CDN",
+            "Observability@@@90"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "cdn:apiovh:log/subscription/delete",
+            "required": true
+          }
+        ]
+      },
+      "get": {
+        "summary": "Get a log subscription",
+        "description": "Returns the log kind and the destination stream of a subscription.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "The internal name of your CDN offer",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "subscriptionId",
+            "description": "Subscription ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dbaas.logs.LogSubscription"
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Network",
+            "CDN",
+            "Observability@@@40"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "cdn:apiovh:log/subscription/get",
+            "required": true
+          }
+        ],
+        "x-response-identifier": "subscriptionId"
+      }
+    },
+    "/cdn/dedicated/{serviceName}/log/url": {
+      "post": {
+        "summary": "Generate a temporary log URL",
+        "description": "Generates a temporary URL to read the logs of one kind. The URL expires.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "The internal name of your CDN offer",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/dbaas.logs.LogUrlCreation"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dbaas.logs.TemporaryLogsLink"
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Network",
+            "CDN",
+            "Observability@@@60"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "cdn:apiovh:log/url/create",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/cdn/dedicated/{serviceName}/logs": {
+      "post": {
+        "summary": "Generate a real time logs URL",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "The internal name of your CDN offer",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/cdnanycast.LogsURL"
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Network",
+            "CDN",
+            "Observability@@@70"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "blue",
+            "label": "Beta version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "cdn:apiovh:logs/create",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/cdn/dedicated/{serviceName}/quota": {
+      "get": {
+        "summary": "List quota history",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "period",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/cdnanycast.StatsPeriodEnum"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "The internal name of your CDN offer",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/cdnanycast.StatsDataType"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Network",
+            "CDN",
+            "Quotas@@@10"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "cdn:apiovh:quota/get",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/cdn/dedicated/{serviceName}/serviceInfos": {
+      "get": {
+        "summary": "Get service information",
+        "description": "Get service information. Returns the status, creation and expiration dates, contacts and renewal settings of the service.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "The internal name of your CDN offer",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/services.Service"
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Network",
+            "CDN",
+            "Subscription@@@10"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "cdn:apiovh:serviceInfos/get",
+            "required": true
+          }
+        ]
+      },
+      "put": {
+        "summary": "Update service information",
+        "description": "Update service information. Updates the renewal settings of the service: automatic renewal, period, or deletion at expiration.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "The internal name of your CDN offer",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/services.Service"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Network",
+            "CDN",
+            "Subscription@@@20"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "cdn:apiovh:serviceInfos/edit",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/cdn/dedicated/{serviceName}/ssl": {
+      "delete": {
+        "summary": "Delete the SSL certificate",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "The internal name of your CDN offer",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/cdnanycast.Task"
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Network",
+            "CDN",
+            "SSL@@@30"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "cdn:apiovh:ssl/delete",
+            "required": true
+          }
+        ]
+      },
+      "get": {
+        "summary": "Get the SSL certificate",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "The internal name of your CDN offer",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/cdnanycast.Ssl"
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Network",
+            "CDN",
+            "SSL@@@10"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "cdn:apiovh:ssl/get",
+            "required": true
+          }
+        ]
+      },
+      "post": {
+        "summary": "Create an SSL certificate",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "The internal name of your CDN offer",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "certificate": {
+                    "type": "string",
+                    "description": "certificate (empty for lets encrypt generation)"
+                  },
+                  "chain": {
+                    "type": "string",
+                    "description": "certificate chain (empty for lets encrypt generation)"
+                  },
+                  "key": {
+                    "type": "string",
+                    "description": "certificate key (empty for lets encrypt generation)"
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "ssl name to add on CDN"
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/cdnanycast.Ssl"
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Network",
+            "CDN",
+            "SSL@@@20"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "cdn:apiovh:ssl/create",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/cdn/dedicated/{serviceName}/ssl/tasks": {
+      "get": {
+        "summary": "List SSL tasks",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "function",
+            "description": "Filter the value of function property (=)",
+            "schema": {
+              "$ref": "#/components/schemas/cdnanycast.TaskFunctionEnum"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "The internal name of your CDN offer",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "description": "Filter the value of status property (=)",
+            "schema": {
+              "$ref": "#/components/schemas/cdnanycast.TaskStateEnum"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Network",
+            "CDN",
+            "Tasks@@@50"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "cdn:apiovh:ssl/tasks/get",
+            "required": true
+          }
+        ],
+        "x-expanded-response": "CdnanycastTask"
+      }
+    },
+    "/cdn/dedicated/{serviceName}/ssl/tasks/{taskId}": {
+      "get": {
+        "summary": "Get a task",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "The internal name of your CDN offer",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "taskId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/cdnanycast.Task"
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Network",
+            "CDN",
+            "Tasks@@@60"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "cdn:apiovh:ssl/tasks/get",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/cdn/dedicated/{serviceName}/ssl/update": {
+      "post": {
+        "summary": "Update the SSL certificate",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "The internal name of your CDN offer",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "certificate": {
+                    "type": "string",
+                    "description": "certificate"
+                  },
+                  "chain": {
+                    "type": "string",
+                    "description": "certificate chain"
+                  },
+                  "key": {
+                    "type": "string",
+                    "description": "certificate key"
+                  }
+                },
+                "required": [
+                  "certificate",
+                  "key"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/cdnanycast.Task"
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Network",
+            "CDN",
+            "SSL@@@40"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "cdn:apiovh:ssl/update",
+            "required": true
+          }
+        ]
+      }
+    }
+  }
+}

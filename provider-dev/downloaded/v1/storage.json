@@ -1,0 +1,6307 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "OVHcloud API specification",
+    "description": "Specification for OVHcloud API",
+    "version": "1.0",
+    "contact": {
+      "name": "OVH",
+      "email": "api@ml.ovh.net"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.eu.ovhcloud.com/v1"
+    }
+  ],
+  "components": {
+    "schemas": {
+      "any": {
+        "description": "Can be anything (text, int, bool, json, html, etc.)",
+        "example": "This is a content of any type !"
+      },
+      "duration": {
+        "type": "string",
+        "description": "Duration (e.g., P1Y2M3DT4H6M9S)",
+        "example": "P1Y2M3DT4H6M9S"
+      },
+      "email": {
+        "type": "string",
+        "description": "Email address (e.g., api@ml.ovh.net)",
+        "format": "email",
+        "example": "api@ml.ovh.net"
+      },
+      "iam.ResourceMetadata": {
+        "type": "object",
+        "description": "IAM resource metadata embedded in services models",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "description": "Resource display name",
+            "nullable": true,
+            "readOnly": true
+          },
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the resource",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "state": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/iam.ResourceMetadata.StateEnum"
+              }
+            ],
+            "description": "Resource state",
+            "nullable": true,
+            "readOnly": true
+          },
+          "tags": {
+            "type": "object",
+            "description": "Resource tags. Tags that were internally computed are prefixed with ovh:",
+            "nullable": true,
+            "additionalProperties": {
+              "type": "string"
+            },
+            "readOnly": true
+          },
+          "urn": {
+            "type": "string",
+            "description": "Unique resource name used in policies",
+            "readOnly": true
+          }
+        }
+      },
+      "iam.ResourceMetadata.StateEnum": {
+        "type": "string",
+        "description": "Resource state",
+        "enum": [
+          "EXPIRED",
+          "IN_CREATION",
+          "OK",
+          "SUSPENDED"
+        ]
+      },
+      "iam.resource.TagFilter": {
+        "type": "object",
+        "description": "Resource tag filter",
+        "properties": {
+          "operator": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/iam.resource.TagFilter.OperatorEnum"
+              }
+            ],
+            "description": "Operator to use in order to filter on the value (defaults to 'EQ')",
+            "nullable": true,
+            "readOnly": true
+          },
+          "value": {
+            "type": "string",
+            "description": "Value to use in order to filter tags",
+            "readOnly": true
+          }
+        }
+      },
+      "iam.resource.TagFilter.OperatorEnum": {
+        "type": "string",
+        "description": "Operator that can be used in order to filter resources tags",
+        "enum": [
+          "EQ",
+          "EXISTS",
+          "ILIKE",
+          "LIKE",
+          "NEQ",
+          "NEXISTS"
+        ]
+      },
+      "internationalPhoneNumber": {
+        "type": "string",
+        "description": "International phone number",
+        "format": "phone-number"
+      },
+      "ip": {
+        "type": "string",
+        "description": "IP address (e.g., 192.0.2.0)",
+        "format": "ipv4",
+        "example": "192.0.2.0"
+      },
+      "ipBlock": {
+        "type": "string",
+        "description": "IP (v4 or v6) CIDR notation (e.g., 192.0.2.0/24)",
+        "format": "ip-block",
+        "example": "192.0.2.0/24"
+      },
+      "ipInterface": {
+        "type": "string",
+        "description": "IP address (e.g., 192.0.2.0)",
+        "format": "ipv4",
+        "example": "192.0.2.0"
+      },
+      "ipv4": {
+        "type": "string",
+        "description": "IPv4 address (e.g., 192.0.2.0)",
+        "format": "ipv4",
+        "example": "192.0.2.0"
+      },
+      "ipv4Block": {
+        "type": "string",
+        "description": "IPv4 CIDR notation (e.g., 192.0.2.0/24)",
+        "format": "ipv4-block",
+        "example": "192.0.2.0/24"
+      },
+      "ipv6": {
+        "type": "string",
+        "description": "IPv6 address (e.g., 2001:41d0:1:1994::1)",
+        "format": "ipv6",
+        "example": "2001:41d0:1:1994::1"
+      },
+      "ipv6Block": {
+        "type": "string",
+        "description": "IPv6 CIDR notation (e.g., 2001:41d0::/128)",
+        "format": "ipv6-block",
+        "example": "2001:41d0::/128"
+      },
+      "macAddress": {
+        "type": "string",
+        "description": "MAC address (e.g., 00:00:5e:00:53:01)",
+        "format": "mac-address",
+        "example": "00:00:5e:00:53:01"
+      },
+      "phoneNumber": {
+        "type": "string",
+        "description": "Phone number",
+        "format": "phone-number"
+      },
+      "service.RenewType": {
+        "type": "object",
+        "description": "Map a possible renew for a specific service",
+        "properties": {
+          "automatic": {
+            "type": "boolean",
+            "description": "The service is automatically renewed"
+          },
+          "deleteAtExpiration": {
+            "type": "boolean",
+            "description": "The service will be deleted at expiration"
+          },
+          "forced": {
+            "type": "boolean",
+            "description": "The service forced to be renewed"
+          },
+          "manualPayment": {
+            "type": "boolean",
+            "description": "The service needs to be manually renewed and paid",
+            "nullable": true
+          },
+          "period": {
+            "type": "integer",
+            "description": "period of renew in month",
+            "nullable": true
+          }
+        }
+      },
+      "service.RenewalTypeEnum": {
+        "type": "string",
+        "description": "Detailed renewal type of a service",
+        "enum": [
+          "automaticForcedProduct",
+          "automaticV2012",
+          "automaticV2014",
+          "automaticV2016",
+          "manual",
+          "oneShot",
+          "option"
+        ]
+      },
+      "service.StateEnum": {
+        "type": "string",
+        "description": "service.StateEnum",
+        "enum": [
+          "autorenewInProgress",
+          "expired",
+          "inCreation",
+          "ok",
+          "pendingDebt",
+          "unPaid"
+        ]
+      },
+      "service.TerminationFutureUseEnum": {
+        "type": "string",
+        "description": "All future uses you can provide for a service termination",
+        "enum": [
+          "NOT_REPLACING_SERVICE",
+          "OTHER",
+          "SUBSCRIBE_AN_OTHER_SERVICE",
+          "SUBSCRIBE_OTHER_KIND_OF_SERVICE_WITH_COMPETITOR",
+          "SUBSCRIBE_SIMILAR_SERVICE_WITH_COMPETITOR"
+        ]
+      },
+      "service.TerminationReasonEnum": {
+        "type": "string",
+        "description": "All reasons you can provide for a service termination",
+        "enum": [
+          "FEATURES_DONT_SUIT_ME",
+          "LACK_OF_PERFORMANCES",
+          "MIGRATED_TO_ANOTHER_OVH_PRODUCT",
+          "MIGRATED_TO_COMPETITOR",
+          "NOT_ENOUGH_RECOGNITION",
+          "NOT_NEEDED_ANYMORE",
+          "NOT_RELIABLE",
+          "NO_ANSWER",
+          "OTHER",
+          "PRODUCT_DIMENSION_DONT_SUIT_ME",
+          "PRODUCT_TOOLS_DONT_SUIT_ME",
+          "TOO_EXPENSIVE",
+          "TOO_HARD_TO_USE",
+          "UNSATIFIED_BY_CUSTOMER_SUPPORT"
+        ]
+      },
+      "services.Service": {
+        "type": "object",
+        "description": "Details about a Service",
+        "properties": {
+          "canDeleteAtExpiration": {
+            "type": "boolean",
+            "description": "Indicates that the service can be set up to be deleted at expiration",
+            "readOnly": true
+          },
+          "contactAdmin": {
+            "type": "string",
+            "readOnly": true
+          },
+          "contactBilling": {
+            "type": "string",
+            "readOnly": true
+          },
+          "contactTech": {
+            "type": "string",
+            "readOnly": true
+          },
+          "creation": {
+            "type": "string",
+            "format": "date",
+            "readOnly": true
+          },
+          "domain": {
+            "type": "string",
+            "readOnly": true
+          },
+          "engagedUpTo": {
+            "type": "string",
+            "nullable": true,
+            "format": "date",
+            "readOnly": true
+          },
+          "expiration": {
+            "type": "string",
+            "format": "date",
+            "readOnly": true
+          },
+          "possibleRenewPeriod": {
+            "type": "array",
+            "description": "All the possible renew period of your service in month",
+            "nullable": true,
+            "items": {
+              "type": "integer"
+            },
+            "readOnly": true
+          },
+          "renew": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/service.RenewType"
+              }
+            ],
+            "description": "Way of handling the renew",
+            "nullable": true
+          },
+          "renewalType": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/service.RenewalTypeEnum"
+              }
+            ],
+            "readOnly": true
+          },
+          "serviceId": {
+            "type": "integer",
+            "readOnly": true
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/service.StateEnum"
+              }
+            ],
+            "readOnly": true
+          }
+        }
+      },
+      "services.changeContact": {
+        "type": "object",
+        "description": "Service change contact payload",
+        "properties": {
+          "contactAdmin": {
+            "type": "string",
+            "description": "The contact to set as admin contact"
+          },
+          "contactBilling": {
+            "type": "string",
+            "description": "The contact to set as billing contact"
+          },
+          "contactTech": {
+            "type": "string",
+            "description": "The contact to set as tech contact"
+          }
+        }
+      },
+      "services.confirmTermination": {
+        "type": "object",
+        "description": "Service confirm termination payload",
+        "properties": {
+          "commentary": {
+            "type": "string",
+            "description": "Commentary about your termination request"
+          },
+          "commentaryFutureUse": {
+            "type": "string",
+            "description": "Commentary about your future use"
+          },
+          "commentaryReason": {
+            "type": "string",
+            "description": "Commentary about your reason for termination request"
+          },
+          "futureUse": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/service.TerminationFutureUseEnum"
+              }
+            ],
+            "description": "All future uses you can provide for a service termination"
+          },
+          "reason": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/service.TerminationReasonEnum"
+              }
+            ],
+            "description": "All reasons you can provide for a service termination"
+          },
+          "token": {
+            "type": "string",
+            "description": "The termination token sent by email to the admin contact"
+          }
+        },
+        "required": [
+          "token"
+        ]
+      },
+      "storage.MetricsToken": {
+        "type": "object",
+        "description": "Metrics token",
+        "properties": {
+          "endpoint": {
+            "type": "string",
+            "description": "Backend url",
+            "readOnly": true
+          },
+          "expiry": {
+            "type": "string",
+            "description": "Token expiration date",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "token": {
+            "type": "string",
+            "description": "Generated token",
+            "format": "password",
+            "readOnly": true
+          }
+        }
+      },
+      "storage.NetAppCapabilitiesFileSize": {
+        "type": "object",
+        "description": "File size constraints",
+        "properties": {
+          "max": {
+            "type": "integer",
+            "description": "Maximum file size",
+            "readOnly": true
+          },
+          "unit": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppSizeUnitEnum"
+              }
+            ],
+            "description": "File size unit",
+            "readOnly": true
+          }
+        }
+      },
+      "storage.NetAppCapabilitiesPerTiBLimit": {
+        "type": "object",
+        "description": "A limit proportional to the provisioned size",
+        "properties": {
+          "perTiB": {
+            "type": "integer",
+            "description": "Limit value per TiB",
+            "readOnly": true
+          },
+          "unit": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppPerformanceUnitEnum"
+              }
+            ],
+            "description": "Limit unit",
+            "readOnly": true
+          }
+        }
+      },
+      "storage.NetAppCapabilitiesPerformance": {
+        "type": "object",
+        "description": "Performance capabilities",
+        "properties": {
+          "levels": {
+            "type": "array",
+            "description": "Available performance levels",
+            "items": {
+              "$ref": "#/components/schemas/storage.NetAppCapabilitiesPerformanceLevel"
+            },
+            "readOnly": true
+          }
+        }
+      },
+      "storage.NetAppCapabilitiesPerformanceLevel": {
+        "type": "object",
+        "description": "A performance level",
+        "properties": {
+          "limits": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppCapabilitiesPerformanceLevelLimits"
+              }
+            ],
+            "description": "Performance level limits",
+            "readOnly": true
+          },
+          "name": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppServicePerformanceLevelEnum"
+              }
+            ],
+            "description": "Performance level name",
+            "readOnly": true
+          }
+        }
+      },
+      "storage.NetAppCapabilitiesPerformanceLevelLimits": {
+        "type": "object",
+        "description": "Performance level limits",
+        "properties": {
+          "bandwidth": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppCapabilitiesPerTiBLimit"
+              }
+            ],
+            "description": "Bandwidth limit",
+            "readOnly": true
+          },
+          "iops": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppCapabilitiesPerTiBLimit"
+              }
+            ],
+            "description": "IOPS limit",
+            "readOnly": true
+          }
+        }
+      },
+      "storage.NetAppCapabilitiesProduct": {
+        "type": "object",
+        "description": "NetApp product capabilities",
+        "properties": {
+          "performance": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppCapabilitiesPerformance"
+              }
+            ],
+            "description": "Performance capabilities",
+            "readOnly": true
+          },
+          "service": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppCapabilitiesService"
+              }
+            ],
+            "description": "Service capabilities",
+            "readOnly": true
+          },
+          "share": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppCapabilitiesShare"
+              }
+            ],
+            "description": "Share capabilities",
+            "readOnly": true
+          },
+          "shareReplica": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppCapabilitiesShareReplica"
+              }
+            ],
+            "description": "Share replica capabilities",
+            "readOnly": true
+          },
+          "snapshotPolicy": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppCapabilitiesSnapshotPolicy"
+              }
+            ],
+            "description": "Snapshot policy capabilities",
+            "readOnly": true
+          }
+        }
+      },
+      "storage.NetAppCapabilitiesService": {
+        "type": "object",
+        "description": "Service capabilities",
+        "properties": {
+          "features": {
+            "type": "array",
+            "description": "Available features",
+            "items": {
+              "$ref": "#/components/schemas/storage.NetAppFeatureEnum"
+            },
+            "readOnly": true
+          },
+          "networks": {
+            "type": "array",
+            "description": "Supported network types",
+            "items": {
+              "$ref": "#/components/schemas/storage.NetAppCapabilitiesServiceNetwork"
+            },
+            "readOnly": true
+          },
+          "protocols": {
+            "type": "array",
+            "description": "Supported protocols",
+            "items": {
+              "$ref": "#/components/schemas/storage.NetAppCapabilitiesServiceProtocol"
+            },
+            "readOnly": true
+          },
+          "size": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppCapabilitiesSizeRange"
+              }
+            ],
+            "description": "Service size constraints",
+            "readOnly": true
+          }
+        }
+      },
+      "storage.NetAppCapabilitiesServiceNetwork": {
+        "type": "object",
+        "description": "Network capabilities",
+        "properties": {
+          "type": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppNetworkEnum"
+              }
+            ],
+            "description": "Network type",
+            "readOnly": true
+          },
+          "vRackServices": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppCapabilitiesServiceNetworkVRackServices"
+              }
+            ],
+            "description": "vRack Services constraints",
+            "readOnly": true
+          }
+        }
+      },
+      "storage.NetAppCapabilitiesServiceNetworkVRackServices": {
+        "type": "object",
+        "description": "vRack Services constraints",
+        "properties": {
+          "max": {
+            "type": "integer",
+            "description": "Maximum number of vRack Services",
+            "readOnly": true
+          }
+        }
+      },
+      "storage.NetAppCapabilitiesServiceProtocol": {
+        "type": "object",
+        "description": "Protocol capabilities",
+        "properties": {
+          "type": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.ProtocolEnum"
+              }
+            ],
+            "description": "Protocol type",
+            "readOnly": true
+          },
+          "versions": {
+            "type": "array",
+            "description": "Protocol versions",
+            "items": {
+              "type": "string"
+            },
+            "readOnly": true
+          }
+        }
+      },
+      "storage.NetAppCapabilitiesShare": {
+        "type": "object",
+        "description": "Share capabilities",
+        "properties": {
+          "fileSize": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppCapabilitiesFileSize"
+              }
+            ],
+            "description": "File size constraints",
+            "readOnly": true
+          },
+          "maxItemsPerTiB": {
+            "type": "integer",
+            "description": "Maximum number of shares per TiB of service size",
+            "readOnly": true
+          },
+          "size": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppCapabilitiesSizeRange"
+              }
+            ],
+            "description": "Share size constraints",
+            "readOnly": true
+          },
+          "snapshot": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppCapabilitiesShareSnapshot"
+              }
+            ],
+            "description": "Share snapshot constraints",
+            "readOnly": true
+          },
+          "snapshotPolicy": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppCapabilitiesShareSnapshotPolicy"
+              }
+            ],
+            "description": "Share snapshot policy constraints",
+            "readOnly": true
+          },
+          "snapshotReserve": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppCapabilitiesShareSnapshotReserve"
+              }
+            ],
+            "description": "Share snapshot reserve constraints",
+            "readOnly": true
+          }
+        }
+      },
+      "storage.NetAppCapabilitiesShareReplica": {
+        "type": "object",
+        "description": "Share replica capabilities",
+        "properties": {
+          "fileSize": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppCapabilitiesFileSize"
+              }
+            ],
+            "description": "File size constraints",
+            "readOnly": true
+          },
+          "maxItemsPerTiB": {
+            "type": "integer",
+            "description": "Maximum number of share replicas per TiB of service size",
+            "readOnly": true
+          },
+          "size": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppCapabilitiesSizeRange"
+              }
+            ],
+            "description": "Share replica size constraints",
+            "readOnly": true
+          }
+        }
+      },
+      "storage.NetAppCapabilitiesShareSnapshot": {
+        "type": "object",
+        "description": "Share snapshot constraints",
+        "properties": {
+          "maxItems": {
+            "type": "integer",
+            "description": "Maximum number of snapshots per share",
+            "readOnly": true
+          }
+        }
+      },
+      "storage.NetAppCapabilitiesShareSnapshotPolicy": {
+        "type": "object",
+        "description": "Share snapshot policy constraints",
+        "properties": {
+          "maxItems": {
+            "type": "integer",
+            "description": "Maximum number of snapshot policies per share",
+            "readOnly": true
+          }
+        }
+      },
+      "storage.NetAppCapabilitiesShareSnapshotReserve": {
+        "type": "object",
+        "description": "Share snapshot reserve constraints",
+        "properties": {
+          "default": {
+            "type": "integer",
+            "description": "Default snapshot reserve percentage",
+            "readOnly": true
+          },
+          "max": {
+            "type": "integer",
+            "description": "Maximum snapshot reserve percentage",
+            "readOnly": true
+          },
+          "min": {
+            "type": "integer",
+            "description": "Minimum snapshot reserve percentage",
+            "readOnly": true
+          },
+          "unit": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppShareSnapshotReserveUnitEnum"
+              }
+            ],
+            "description": "Snapshot reserve unit",
+            "readOnly": true
+          }
+        }
+      },
+      "storage.NetAppCapabilitiesSizeRange": {
+        "type": "object",
+        "description": "Size constraints",
+        "properties": {
+          "granularity": {
+            "type": "integer",
+            "description": "Size granularity",
+            "readOnly": true
+          },
+          "max": {
+            "type": "integer",
+            "description": "Maximum size",
+            "readOnly": true
+          },
+          "min": {
+            "type": "integer",
+            "description": "Minimum size",
+            "readOnly": true
+          },
+          "unit": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppSizeUnitEnum"
+              }
+            ],
+            "description": "Size unit",
+            "readOnly": true
+          }
+        }
+      },
+      "storage.NetAppCapabilitiesSnapshotPolicy": {
+        "type": "object",
+        "description": "Snapshot policy capabilities",
+        "properties": {
+          "maxItems": {
+            "type": "integer",
+            "description": "Maximum number of snapshot policies",
+            "readOnly": true
+          },
+          "rules": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppCapabilitiesSnapshotPolicyRules"
+              }
+            ],
+            "description": "Snapshot policy rules constraints",
+            "readOnly": true
+          }
+        }
+      },
+      "storage.NetAppCapabilitiesSnapshotPolicyRules": {
+        "type": "object",
+        "description": "Snapshot policy rules constraints",
+        "properties": {
+          "maxItems": {
+            "type": "integer",
+            "description": "Maximum number of rules per snapshot policy",
+            "readOnly": true
+          },
+          "minItems": {
+            "type": "integer",
+            "description": "Minimum number of rules per snapshot policy",
+            "readOnly": true
+          },
+          "schedule": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppCapabilitiesSnapshotPolicySchedule"
+              }
+            ],
+            "description": "Snapshot policy rule schedule constraints",
+            "readOnly": true
+          }
+        }
+      },
+      "storage.NetAppCapabilitiesSnapshotPolicySchedule": {
+        "type": "object",
+        "description": "Snapshot policy schedule constraints",
+        "properties": {
+          "days": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppCapabilitiesSnapshotPolicyScheduleField"
+              }
+            ],
+            "description": "Days of the month constraints",
+            "readOnly": true
+          },
+          "hours": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppCapabilitiesSnapshotPolicyScheduleField"
+              }
+            ],
+            "description": "Hours constraints",
+            "readOnly": true
+          },
+          "minutes": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppCapabilitiesSnapshotPolicyScheduleField"
+              }
+            ],
+            "description": "Minutes constraints",
+            "readOnly": true
+          },
+          "months": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppCapabilitiesSnapshotPolicyScheduleField"
+              }
+            ],
+            "description": "Months constraints",
+            "readOnly": true
+          },
+          "timezone": {
+            "type": "string",
+            "description": "Timezone in which the schedule is evaluated",
+            "readOnly": true
+          },
+          "weekdays": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppCapabilitiesSnapshotPolicyScheduleField"
+              }
+            ],
+            "description": "Days of the week constraints",
+            "readOnly": true
+          }
+        }
+      },
+      "storage.NetAppCapabilitiesSnapshotPolicyScheduleField": {
+        "type": "object",
+        "description": "Snapshot policy schedule field constraints",
+        "properties": {
+          "items": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppCapabilitiesValueRange"
+              }
+            ],
+            "description": "Allowed value range of each item",
+            "readOnly": true
+          },
+          "maxItems": {
+            "type": "integer",
+            "description": "Maximum number of items",
+            "readOnly": true
+          },
+          "minItems": {
+            "type": "integer",
+            "description": "Minimum number of items",
+            "readOnly": true
+          },
+          "required": {
+            "type": "boolean",
+            "description": "Whether the field is required",
+            "readOnly": true
+          }
+        }
+      },
+      "storage.NetAppCapabilitiesValueRange": {
+        "type": "object",
+        "description": "Value range",
+        "properties": {
+          "max": {
+            "type": "integer",
+            "description": "Maximum value",
+            "readOnly": true
+          },
+          "min": {
+            "type": "integer",
+            "description": "Minimum value",
+            "readOnly": true
+          }
+        }
+      },
+      "storage.NetAppFeatureEnum": {
+        "type": "string",
+        "description": "Available features",
+        "enum": [
+          "ovhBackup",
+          "shareCreateFromSnapshot",
+          "shareReplication",
+          "shareRevertFromSnapshot",
+          "shareSnapshot",
+          "shareSnapshotReserve",
+          "snapshotPolicy"
+        ]
+      },
+      "storage.NetAppNetwork": {
+        "type": "object",
+        "description": "A network",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Network ID",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppNetworkStatusEnum"
+              }
+            ],
+            "description": "Network status",
+            "nullable": true,
+            "readOnly": true
+          },
+          "vRackServicesURN": {
+            "type": "string",
+            "description": "vRack Services URN the network is attached to",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "storage.NetAppNetworkEnum": {
+        "type": "string",
+        "description": "Network types",
+        "enum": [
+          "vRack"
+        ]
+      },
+      "storage.NetAppNetworkStatusEnum": {
+        "type": "string",
+        "description": "Network status",
+        "enum": [
+          "associated",
+          "associating",
+          "dissociating",
+          "to_configure"
+        ]
+      },
+      "storage.NetAppPerformanceUnitEnum": {
+        "type": "string",
+        "description": "Performance unit",
+        "enum": [
+          "IOPS",
+          "MiB/s"
+        ]
+      },
+      "storage.NetAppService": {
+        "type": "object",
+        "description": "A service",
+        "properties": {
+          "createdAt": {
+            "type": "string",
+            "description": "Service creation date",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "id": {
+            "type": "string",
+            "description": "Service ID",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "description": "Service name",
+            "readOnly": true
+          },
+          "performanceLevel": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppServicePerformanceLevelEnum"
+              }
+            ],
+            "description": "Service performance level",
+            "readOnly": true
+          },
+          "product": {
+            "type": "string",
+            "description": "Product name",
+            "readOnly": true
+          },
+          "quota": {
+            "type": "integer",
+            "description": "Service quota in GiB",
+            "readOnly": true
+          },
+          "region": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.RegionEnum"
+              }
+            ],
+            "description": "Service region",
+            "readOnly": true
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppServiceStatusEnum"
+              }
+            ],
+            "description": "Service status",
+            "readOnly": true
+          }
+        }
+      },
+      "storage.NetAppServicePerformanceLevelEnum": {
+        "type": "string",
+        "description": "Service performance level",
+        "enum": [
+          "premium"
+        ]
+      },
+      "storage.NetAppServiceProductUpdateOptions": {
+        "type": "object",
+        "description": "Service product update options",
+        "properties": {
+          "downgradeOptions": {
+            "type": "array",
+            "description": "Product downgrade option",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/storage.NetAppServiceProductUpdateUpgradeOrDowngradeOption"
+            },
+            "readOnly": true
+          },
+          "upgradeOptions": {
+            "type": "array",
+            "description": "Product upgrade option",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/storage.NetAppServiceProductUpdateUpgradeOrDowngradeOption"
+            },
+            "readOnly": true
+          }
+        }
+      },
+      "storage.NetAppServiceProductUpdateUpgradeOrDowngradeOption": {
+        "type": "object",
+        "description": "Service product upgrade or downgrade options",
+        "properties": {
+          "constraints": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppServiceProductUpdateUpgradeOrDowngradeOptionConstraints"
+              }
+            ],
+            "description": "Constraints associated with product update",
+            "readOnly": true
+          },
+          "performanceLevel": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppServicePerformanceLevelEnum"
+              }
+            ],
+            "description": "Service performance level",
+            "readOnly": true
+          },
+          "planCode": {
+            "type": "string",
+            "description": "Plan code associated with product",
+            "readOnly": true
+          },
+          "productName": {
+            "type": "string",
+            "description": "Product name",
+            "readOnly": true
+          },
+          "quota": {
+            "type": "integer",
+            "description": "Product quota in GiB",
+            "readOnly": true
+          }
+        }
+      },
+      "storage.NetAppServiceProductUpdateUpgradeOrDowngradeOptionConstraints": {
+        "type": "object",
+        "description": "Service product upgrade or downgrade option constraints",
+        "properties": {
+          "instantUpgrade": {
+            "type": "boolean",
+            "description": "Instant upgrade",
+            "readOnly": true
+          }
+        }
+      },
+      "storage.NetAppServiceStatusEnum": {
+        "type": "string",
+        "description": "Service status",
+        "enum": [
+          "creating",
+          "deleted",
+          "deleting",
+          "reopening",
+          "running",
+          "suspended",
+          "suspending",
+          "updating"
+        ]
+      },
+      "storage.NetAppServiceSummary": {
+        "type": "object",
+        "description": "A summarized representation of a service",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Service ID",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "description": "Service name",
+            "readOnly": true
+          }
+        }
+      },
+      "storage.NetAppServiceUpdate": {
+        "type": "object",
+        "description": "Service updatable properties",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "New service name. It must start with a letter and contain 2 to 64 letters, digits, spaces or the characters - _ / \\"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "storage.NetAppServiceWithIAM": {
+        "type": "object",
+        "description": "A service",
+        "properties": {
+          "createdAt": {
+            "type": "string",
+            "description": "Service creation date",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "iam": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/iam.ResourceMetadata"
+              }
+            ],
+            "description": "IAM resource metadata",
+            "nullable": true,
+            "readOnly": true
+          },
+          "id": {
+            "type": "string",
+            "description": "Service ID",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "description": "Service name",
+            "readOnly": true
+          },
+          "performanceLevel": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppServicePerformanceLevelEnum"
+              }
+            ],
+            "description": "Service performance level",
+            "readOnly": true
+          },
+          "product": {
+            "type": "string",
+            "description": "Product name",
+            "readOnly": true
+          },
+          "quota": {
+            "type": "integer",
+            "description": "Service quota in GiB",
+            "readOnly": true
+          },
+          "region": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.RegionEnum"
+              }
+            ],
+            "description": "Service region",
+            "readOnly": true
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppServiceStatusEnum"
+              }
+            ],
+            "description": "Service status",
+            "readOnly": true
+          }
+        }
+      },
+      "storage.NetAppShare": {
+        "type": "object",
+        "description": "A share",
+        "properties": {
+          "accessMode": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppShareAccessModeEnum"
+              }
+            ],
+            "description": "Share access mode",
+            "nullable": true,
+            "readOnly": true
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "Share creation date",
+            "nullable": true,
+            "format": "date-time",
+            "readOnly": true
+          },
+          "description": {
+            "type": "string",
+            "description": "Share description",
+            "nullable": true
+          },
+          "id": {
+            "type": "string",
+            "description": "Share ID",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "mountPointName": {
+            "type": "string",
+            "description": "User-defined name used to generate human readable access path for the share",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "description": "Share name",
+            "nullable": true
+          },
+          "protocol": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.ProtocolEnum"
+              }
+            ],
+            "description": "Share protocol",
+            "nullable": true
+          },
+          "size": {
+            "type": "integer",
+            "description": "Share size in GiB",
+            "nullable": true
+          },
+          "snapshotID": {
+            "type": "string",
+            "description": "Snapshot ID used to create the share",
+            "nullable": true
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppShareStatusEnum"
+              }
+            ],
+            "description": "Share status",
+            "nullable": true,
+            "readOnly": true
+          }
+        },
+        "required": [
+          "protocol",
+          "size"
+        ]
+      },
+      "storage.NetAppShareACLPermissionEnum": {
+        "type": "string",
+        "description": "ACL permission",
+        "enum": [
+          "ro",
+          "rw"
+        ]
+      },
+      "storage.NetAppShareACLRule": {
+        "type": "object",
+        "description": "A share ACL rule",
+        "properties": {
+          "accessLevel": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppShareACLPermissionEnum"
+              }
+            ],
+            "description": "Rule access level",
+            "nullable": true
+          },
+          "accessTo": {
+            "type": "string",
+            "description": "Rule destination",
+            "nullable": true
+          },
+          "accessType": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppShareACLTypeEnum"
+              }
+            ],
+            "description": "Rule access type",
+            "nullable": true,
+            "readOnly": true
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "Rule creation date",
+            "nullable": true,
+            "format": "date-time",
+            "readOnly": true
+          },
+          "id": {
+            "type": "string",
+            "description": "Rule ID",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppShareACLStatusEnum"
+              }
+            ],
+            "description": "Rule status",
+            "nullable": true,
+            "readOnly": true
+          }
+        },
+        "required": [
+          "accessLevel",
+          "accessTo"
+        ]
+      },
+      "storage.NetAppShareACLStatusEnum": {
+        "type": "string",
+        "description": "ACL status",
+        "enum": [
+          "active",
+          "applying",
+          "denying",
+          "error",
+          "queued_to_apply",
+          "queued_to_deny"
+        ]
+      },
+      "storage.NetAppShareACLTypeEnum": {
+        "type": "string",
+        "description": "ACL type",
+        "enum": [
+          "ip"
+        ]
+      },
+      "storage.NetAppShareAccessModeEnum": {
+        "type": "string",
+        "description": "Share access mode",
+        "enum": [
+          "ro",
+          "rw"
+        ]
+      },
+      "storage.NetAppShareAccessPath": {
+        "type": "object",
+        "description": "A share access path",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Access path ID",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "path": {
+            "type": "string",
+            "description": "Access path, in the form IP:/junction-path",
+            "readOnly": true
+          },
+          "preferred": {
+            "type": "boolean",
+            "description": "Is this the preferred access path?",
+            "readOnly": true
+          }
+        }
+      },
+      "storage.NetAppShareExtendOrShrink": {
+        "type": "object",
+        "description": "A share",
+        "properties": {
+          "size": {
+            "type": "integer",
+            "description": "Share size in GiB",
+            "nullable": true
+          }
+        },
+        "required": [
+          "size"
+        ]
+      },
+      "storage.NetAppShareForShareReplication": {
+        "type": "object",
+        "description": "A share used for share replication creation",
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "Share description"
+          },
+          "mountPointName": {
+            "type": "string",
+            "description": "User-defined name used to generate human readable access path for the share"
+          },
+          "name": {
+            "type": "string",
+            "description": "Share name"
+          },
+          "protocol": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.ProtocolEnum"
+              }
+            ],
+            "description": "Share protocol"
+          },
+          "size": {
+            "type": "integer",
+            "description": "Share size in GiB"
+          }
+        },
+        "required": [
+          "protocol",
+          "size"
+        ]
+      },
+      "storage.NetAppShareReplicaStateEnum": {
+        "type": "string",
+        "description": "Share replica state",
+        "enum": [
+          "active",
+          "error",
+          "in_sync",
+          "out_of_sync"
+        ]
+      },
+      "storage.NetAppShareReplication": {
+        "type": "object",
+        "description": "A share replication",
+        "properties": {
+          "createdAt": {
+            "type": "string",
+            "description": "Share replication creation date",
+            "nullable": true,
+            "format": "date-time",
+            "readOnly": true
+          },
+          "description": {
+            "type": "string",
+            "description": "Share replication description",
+            "nullable": true,
+            "readOnly": true
+          },
+          "destination": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppShareReplicationDestination"
+              }
+            ],
+            "description": "Share replication destination information",
+            "readOnly": true
+          },
+          "id": {
+            "type": "string",
+            "description": "Share replication ID",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "progress": {
+            "type": "integer",
+            "description": "Percentage of the source share’s data that has been successfully replicated to the destination share",
+            "nullable": true,
+            "readOnly": true
+          },
+          "replicaState": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppShareReplicaStateEnum"
+              }
+            ],
+            "description": "Share replica state",
+            "nullable": true,
+            "readOnly": true
+          },
+          "source": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppShareReplicationSource"
+              }
+            ],
+            "description": "Share replication source information",
+            "readOnly": true
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppShareReplicationStatusEnum"
+              }
+            ],
+            "description": "Share replication status",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "storage.NetAppShareReplicationAccept": {
+        "type": "object",
+        "description": "A share replication acceptation",
+        "properties": {
+          "share": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppShareForShareReplication"
+              }
+            ],
+            "description": "Replication share"
+          }
+        }
+      },
+      "storage.NetAppShareReplicationCreate": {
+        "type": "object",
+        "description": "A share replication creation input",
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "Share replication description",
+            "nullable": true
+          },
+          "destinationServiceId": {
+            "type": "string",
+            "description": "Replication service ID (destination)",
+            "format": "uuid"
+          },
+          "sourceShareId": {
+            "type": "string",
+            "description": "Replication share ID (source)",
+            "format": "uuid"
+          }
+        }
+      },
+      "storage.NetAppShareReplicationDestination": {
+        "type": "object",
+        "description": "A share replication destination",
+        "properties": {
+          "serviceID": {
+            "type": "string",
+            "description": "Service ID",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "shareID": {
+            "type": "string",
+            "description": "Share ID",
+            "nullable": true,
+            "format": "uuid",
+            "readOnly": true
+          }
+        }
+      },
+      "storage.NetAppShareReplicationServicesCompatibility": {
+        "type": "object",
+        "description": "Result of checking if a service can be a share replication destination",
+        "properties": {
+          "compatible": {
+            "type": "boolean",
+            "description": "Whether service can be used as destination",
+            "readOnly": true
+          },
+          "reason": {
+            "type": "string",
+            "description": "Indicates why service can't be used as destination if applicable",
+            "nullable": true,
+            "readOnly": true
+          },
+          "service": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppServiceSummary"
+              }
+            ],
+            "description": "Summarized properties of the checked service",
+            "readOnly": true
+          }
+        }
+      },
+      "storage.NetAppShareReplicationSource": {
+        "type": "object",
+        "description": "A share replication source",
+        "properties": {
+          "serviceID": {
+            "type": "string",
+            "description": "Service ID",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "shareID": {
+            "type": "string",
+            "description": "Share ID",
+            "format": "uuid",
+            "readOnly": true
+          }
+        }
+      },
+      "storage.NetAppShareReplicationStatusEnum": {
+        "type": "string",
+        "description": "Share replication status",
+        "enum": [
+          "accepted",
+          "completed",
+          "cutover",
+          "cutting_over",
+          "deleted",
+          "deleting",
+          "error",
+          "pending"
+        ]
+      },
+      "storage.NetAppShareRevertToSnapshot": {
+        "type": "object",
+        "description": "A share",
+        "properties": {
+          "snapshotID": {
+            "type": "string",
+            "description": "Latest share snapshot",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "snapshotID"
+        ]
+      },
+      "storage.NetAppShareSnapshot": {
+        "type": "object",
+        "description": "A share snapshot",
+        "properties": {
+          "createdAt": {
+            "type": "string",
+            "description": "Snapshot creation date",
+            "nullable": true,
+            "format": "date-time",
+            "readOnly": true
+          },
+          "description": {
+            "type": "string",
+            "description": "Snapshot description",
+            "nullable": true
+          },
+          "id": {
+            "type": "string",
+            "description": "Snapshot ID",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "description": "Snapshot name",
+            "nullable": true
+          },
+          "path": {
+            "type": "string",
+            "description": "Snapshot path",
+            "nullable": true,
+            "readOnly": true
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppSnapshotStatusEnum"
+              }
+            ],
+            "description": "Snapshot status",
+            "nullable": true,
+            "readOnly": true
+          },
+          "type": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppSnapshotTypeEnum"
+              }
+            ],
+            "description": "Snapshot type",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "storage.NetAppShareSnapshotPolicy": {
+        "type": "object",
+        "description": "A snapshot policy",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Snapshot policy ID",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppShareSnapshotPolicyStatusEnum"
+              }
+            ],
+            "description": "Association status between the share and the snapshot policy",
+            "readOnly": true
+          }
+        }
+      },
+      "storage.NetAppShareSnapshotPolicyStatusEnum": {
+        "type": "string",
+        "description": "Association status between the share and the snapshot policy",
+        "enum": [
+          "active",
+          "error",
+          "updating"
+        ]
+      },
+      "storage.NetAppShareSnapshotPolicyUpdate": {
+        "type": "object",
+        "description": "A snapshot policy",
+        "properties": {
+          "snapshotPolicyID": {
+            "type": "string",
+            "description": "Snapshot policy ID",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "snapshotPolicyID"
+        ]
+      },
+      "storage.NetAppShareSnapshotReserve": {
+        "type": "object",
+        "description": "Snapshot reserve properties",
+        "properties": {
+          "percent": {
+            "type": "integer",
+            "description": "Share space percentage reserved for snapshots, 5 by default",
+            "readOnly": true
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppShareSnapshotReserveStatusEnum"
+              }
+            ],
+            "description": "Status",
+            "readOnly": true
+          }
+        }
+      },
+      "storage.NetAppShareSnapshotReserveStatusEnum": {
+        "type": "string",
+        "description": "Snapshot reserve properties status",
+        "enum": [
+          "active",
+          "error",
+          "updating"
+        ]
+      },
+      "storage.NetAppShareSnapshotReserveUnitEnum": {
+        "type": "string",
+        "description": "Share snapshot reserve unit",
+        "enum": [
+          "percent"
+        ]
+      },
+      "storage.NetAppShareSnapshotReserveUpdate": {
+        "type": "object",
+        "description": "A snapshot policy",
+        "properties": {
+          "percent": {
+            "type": "integer",
+            "description": "Share space percentage reserved for snapshots"
+          }
+        },
+        "required": [
+          "percent"
+        ]
+      },
+      "storage.NetAppShareSnapshotUpdate": {
+        "type": "object",
+        "description": "Share snapshot updatable properties",
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "New snapshot description",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "description": "New snapshot name",
+            "nullable": true
+          }
+        }
+      },
+      "storage.NetAppShareStatusEnum": {
+        "type": "string",
+        "description": "Share status",
+        "enum": [
+          "available",
+          "awaiting_replication",
+          "creating",
+          "creating_from_snapshot",
+          "deleted",
+          "deleting",
+          "error",
+          "error_deleting",
+          "extending",
+          "extending_error",
+          "inactive",
+          "manage_error",
+          "manage_starting",
+          "migrating",
+          "migrating_to",
+          "replication_change",
+          "reverting",
+          "reverting_error",
+          "shrinking",
+          "shrinking_error",
+          "shrinking_possible_data_loss_error",
+          "unmanage_error",
+          "unmanage_starting",
+          "unmanaged"
+        ]
+      },
+      "storage.NetAppShareUpdate": {
+        "type": "object",
+        "description": "NetApp share updatable properties",
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "New share description",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "description": "New share name",
+            "nullable": true
+          }
+        }
+      },
+      "storage.NetAppSizeUnitEnum": {
+        "type": "string",
+        "description": "Size unit",
+        "enum": [
+          "GiB",
+          "TiB"
+        ]
+      },
+      "storage.NetAppSnapshotPolicy": {
+        "type": "object",
+        "description": "A snapshot policy",
+        "properties": {
+          "createdAt": {
+            "type": "string",
+            "description": "Snapshot policy creation date",
+            "nullable": true,
+            "format": "date-time",
+            "readOnly": true
+          },
+          "description": {
+            "type": "string",
+            "description": "Snapshot policy description",
+            "nullable": true
+          },
+          "id": {
+            "type": "string",
+            "description": "Snapshot policy ID",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "isDefault": {
+            "type": "boolean",
+            "description": "Is this the default snapshot policy?",
+            "nullable": true,
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "description": "Snapshot policy name",
+            "nullable": true
+          },
+          "rules": {
+            "type": "array",
+            "description": "Snapshot policy rules, 1 to 4",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/storage.NetAppSnapshotPolicyRule"
+            }
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppSnapshotPolicyStatusEnum"
+              }
+            ],
+            "description": "Snapshot policy status",
+            "nullable": true,
+            "readOnly": true
+          }
+        },
+        "required": [
+          "rules"
+        ]
+      },
+      "storage.NetAppSnapshotPolicyRule": {
+        "type": "object",
+        "description": "A snapshot policy rule",
+        "properties": {
+          "copies": {
+            "type": "integer",
+            "description": "Number of snapshot copies to keep",
+            "nullable": true
+          },
+          "prefix": {
+            "type": "string",
+            "description": "Prefix to use for snapshots, unique among the rules of the policy",
+            "nullable": true
+          },
+          "schedule": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppSnapshotPolicySchedule"
+              }
+            ],
+            "description": "Snapshot policy schedule",
+            "nullable": true
+          }
+        },
+        "required": [
+          "copies",
+          "prefix",
+          "schedule"
+        ]
+      },
+      "storage.NetAppSnapshotPolicySchedule": {
+        "type": "object",
+        "description": "A snapshot policy schedule",
+        "properties": {
+          "days": {
+            "type": "array",
+            "description": "The days of the month the schedule runs (1 through 31). Empty for all.",
+            "nullable": true,
+            "items": {
+              "type": "integer"
+            }
+          },
+          "hours": {
+            "type": "array",
+            "description": "The hours of the day the schedule runs (0 through 23). Empty for all.",
+            "nullable": true,
+            "items": {
+              "type": "integer"
+            }
+          },
+          "minutes": {
+            "type": "array",
+            "description": "The minutes the schedule runs (0 through 59). Required to have at least one value.",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "months": {
+            "type": "array",
+            "description": "The months of the year the schedule runs (1 through 12). Empty for all.",
+            "nullable": true,
+            "items": {
+              "type": "integer"
+            }
+          },
+          "weekdays": {
+            "type": "array",
+            "description": "The days of the week the schedule runs (0 through 6, where 0 is Sunday and 6 is Saturday). Empty for all.",
+            "nullable": true,
+            "items": {
+              "type": "integer"
+            }
+          }
+        },
+        "required": [
+          "minutes"
+        ]
+      },
+      "storage.NetAppSnapshotPolicyStatusEnum": {
+        "type": "string",
+        "description": "Snapshot policy status",
+        "enum": [
+          "available",
+          "creating",
+          "deleting",
+          "error",
+          "updating"
+        ]
+      },
+      "storage.NetAppSnapshotPolicyUpdate": {
+        "type": "object",
+        "description": "Snapshot policy updatable properties",
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "New snapshot policy description",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "description": "New snapshot policy name",
+            "nullable": true
+          }
+        }
+      },
+      "storage.NetAppSnapshotStatusEnum": {
+        "type": "string",
+        "description": "Snapshot status",
+        "enum": [
+          "available",
+          "creating",
+          "deleting",
+          "error",
+          "error_deleting",
+          "manage_error",
+          "manage_starting",
+          "restoring",
+          "unmanage_error",
+          "unmanage_starting"
+        ]
+      },
+      "storage.NetAppSnapshotTypeEnum": {
+        "type": "string",
+        "description": "Snapshot type",
+        "enum": [
+          "automatic",
+          "manual",
+          "system"
+        ]
+      },
+      "storage.ProtocolEnum": {
+        "type": "string",
+        "description": "Storage protocol",
+        "enum": [
+          "NFS"
+        ]
+      },
+      "storage.RegionEnum": {
+        "type": "string",
+        "description": "Region of customer's service",
+        "enum": [
+          "ca-east-bhs",
+          "eu-west-gra",
+          "eu-west-lim",
+          "eu-west-rbx",
+          "eu-west-sbg",
+          "us-east-vin"
+        ]
+      },
+      "storage.nasha.ACLCreate": {
+        "type": "object",
+        "description": "ACL creation payload",
+        "properties": {
+          "accessLevel": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppShareACLPermissionEnum"
+              }
+            ],
+            "description": "Access level (e.g. rw, ro)"
+          },
+          "accessTo": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ipv4Block"
+              }
+            ],
+            "description": "Access destination (IPv4 or CIDR)"
+          }
+        },
+        "required": [
+          "accessLevel",
+          "accessTo"
+        ]
+      },
+      "storage.nasha.ACLRule": {
+        "type": "object",
+        "description": "A share ACL rule",
+        "properties": {
+          "accessLevel": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppShareACLPermissionEnum"
+              }
+            ],
+            "description": "Rule access level",
+            "nullable": true,
+            "readOnly": true
+          },
+          "accessTo": {
+            "type": "string",
+            "description": "Rule destination",
+            "nullable": true,
+            "readOnly": true
+          },
+          "accessType": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppShareACLTypeEnum"
+              }
+            ],
+            "description": "Rule access type",
+            "nullable": true,
+            "readOnly": true
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "Rule creation date",
+            "nullable": true,
+            "format": "date-time",
+            "readOnly": true
+          },
+          "id": {
+            "type": "string",
+            "description": "ACL rule ID",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppShareACLStatusEnum"
+              }
+            ],
+            "description": "Rule status",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "storage.nasha.AccessPath": {
+        "type": "object",
+        "description": "A share access path (export location)",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Access path ID",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "path": {
+            "type": "string",
+            "description": "Export path",
+            "readOnly": true
+          },
+          "preferred": {
+            "type": "boolean",
+            "description": "Whether this path is preferred",
+            "readOnly": true
+          }
+        }
+      },
+      "storage.nasha.Network": {
+        "type": "object",
+        "description": "A network",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Network ID",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppNetworkStatusEnum"
+              }
+            ],
+            "description": "Network status",
+            "nullable": true,
+            "readOnly": true
+          },
+          "vRackServicesURN": {
+            "type": "string",
+            "description": "vRack Services URN the network is attached to",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "storage.nasha.Service": {
+        "type": "object",
+        "description": "A NAS HA service",
+        "properties": {
+          "apiPath": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.nasha.ServiceApiPathEnum"
+              }
+            ],
+            "description": "API path under which the service is managed",
+            "readOnly": true
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "Service creation date",
+            "nullable": true,
+            "format": "date-time",
+            "readOnly": true
+          },
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the service",
+            "readOnly": true
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.nasha.ServiceStatusEnum"
+              }
+            ],
+            "description": "Service status",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "storage.nasha.ServiceApiPathEnum": {
+        "type": "string",
+        "description": "API path under which a NAS-HA service is managed",
+        "enum": [
+          "/dedicated/nasha",
+          "/storage/nasha"
+        ]
+      },
+      "storage.nasha.ServiceStatusEnum": {
+        "type": "string",
+        "description": "Service status",
+        "enum": [
+          "creating",
+          "deleted",
+          "deleting",
+          "error",
+          "reopening",
+          "running",
+          "suspended",
+          "suspending"
+        ]
+      },
+      "storage.nasha.ServiceWithIAM": {
+        "type": "object",
+        "description": "A NAS HA service",
+        "properties": {
+          "apiPath": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.nasha.ServiceApiPathEnum"
+              }
+            ],
+            "description": "API path under which the service is managed",
+            "readOnly": true
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "Service creation date",
+            "nullable": true,
+            "format": "date-time",
+            "readOnly": true
+          },
+          "iam": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/iam.ResourceMetadata"
+              }
+            ],
+            "description": "IAM resource metadata",
+            "nullable": true,
+            "readOnly": true
+          },
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the service",
+            "readOnly": true
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.nasha.ServiceStatusEnum"
+              }
+            ],
+            "description": "Service status",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "storage.nasha.Share": {
+        "type": "object",
+        "description": "A share",
+        "properties": {
+          "createdAt": {
+            "type": "string",
+            "description": "Share creation date",
+            "nullable": true,
+            "format": "date-time",
+            "readOnly": true
+          },
+          "description": {
+            "type": "string",
+            "description": "Share description",
+            "nullable": true,
+            "readOnly": true
+          },
+          "id": {
+            "type": "string",
+            "description": "Share ID",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "description": "Share name",
+            "nullable": true,
+            "readOnly": true
+          },
+          "protocol": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.ProtocolEnum"
+              }
+            ],
+            "description": "Share protocol",
+            "nullable": true,
+            "readOnly": true
+          },
+          "size": {
+            "type": "integer",
+            "description": "Share size in GiB",
+            "nullable": true,
+            "readOnly": true
+          },
+          "snapshotId": {
+            "type": "string",
+            "description": "Source snapshot ID used to create the share",
+            "nullable": true,
+            "readOnly": true
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/storage.NetAppShareStatusEnum"
+              }
+            ],
+            "description": "Share status",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "storage.nasha.ShareUpdate": {
+        "type": "object",
+        "description": "Share update payload",
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "Share description"
+          },
+          "name": {
+            "type": "string",
+            "description": "Share name"
+          }
+        }
+      },
+      "time": {
+        "type": "string",
+        "description": "Time (e.g., 15:04:05)",
+        "format": "time",
+        "example": "15:04:05"
+      }
+    },
+    "securitySchemes": {
+      "oAuth2AuthCode": {
+        "type": "oauth2",
+        "description": "Oauth2",
+        "x-client-id": "1bb9c7df371741c0",
+        "x-client-secret": "a5b4de870aca620d10fbf63cd18d205b",
+        "flows": {
+          "authorizationCode": {
+            "authorizationUrl": "https://auth.eu.ovhcloud.com/oauth2/authorize",
+            "tokenUrl": "https://auth.eu.ovhcloud.com/oauth2/token",
+            "scopes": {
+              "account/all": "Manage your account",
+              "all": "Manage your whole account and all your services",
+              "services/all": "Manage your services lifecycle and billing"
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/storage/nasha": {
+      "get": {
+        "summary": "List available services",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "iamTags",
+            "description": "Filter resources on IAM tags",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/iam.resource.TagFilter"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "nasHA:apiovh:storage/get",
+            "required": true
+          }
+        ],
+        "x-expanded-response": "void"
+      }
+    },
+    "/storage/nasha/{serviceName}": {
+      "get": {
+        "summary": "Void",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "The nasha storage id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "nasHA:apiovh:storage/get",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/storage/nasha/{serviceName}/changeContact": {
+      "post": {
+        "summary": "Change service contacts",
+        "description": "Change service contacts. Starts a procedure to change the admin, tech or billing contact of the service.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "The nasha storage id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "contactAdmin": {
+                    "type": "string",
+                    "description": "The contact to set as admin contact"
+                  },
+                  "contactBilling": {
+                    "type": "string",
+                    "description": "The contact to set as billing contact"
+                  },
+                  "contactTech": {
+                    "type": "string",
+                    "description": "The contact to set as tech contact"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "nasHA:apiovh:storage/changeContact",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/storage/nasha/{serviceName}/confirmTermination": {
+      "post": {
+        "summary": "Confirm service termination",
+        "description": "Confirm service termination. Terminates the service with the token sent by email to the admin contact. A reason, a future use and a comment can be given.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "The nasha storage id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "commentary": {
+                    "type": "string",
+                    "description": "Commentary about your termination request"
+                  },
+                  "futureUse": {
+                    "description": "What next after your termination request",
+                    "$ref": "#/components/schemas/service.TerminationFutureUseEnum"
+                  },
+                  "reason": {
+                    "description": "Reason of your termination request",
+                    "$ref": "#/components/schemas/service.TerminationReasonEnum"
+                  },
+                  "token": {
+                    "type": "string",
+                    "description": "The termination token sent by email to the admin contact"
+                  }
+                },
+                "required": [
+                  "token"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "nasHA:apiovh:storage/confirmTermination",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/storage/nasha/{serviceName}/serviceInfos": {
+      "get": {
+        "summary": "Get service information",
+        "description": "Get service information. Returns the status, creation and expiration dates, contacts and renewal settings of the service.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "The nasha storage id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/services.Service"
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "nasHA:apiovh:storage/serviceInfos/get",
+            "required": true
+          }
+        ]
+      },
+      "put": {
+        "summary": "Update service information",
+        "description": "Update service information. Updates the renewal settings of the service: automatic renewal, period, or deletion at expiration.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "The nasha storage id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/services.Service"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "nasHA:apiovh:storage/serviceInfos/edit",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/storage/nasha/{serviceName}/terminate": {
+      "post": {
+        "summary": "Request service termination",
+        "description": "Request service termination. Starts the termination of the service. The admin contact receives a token by email, to confirm with the `confirmTermination` call.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "The nasha storage id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "nasHA:apiovh:storage/terminate",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/storage/netapp": {
+      "get": {
+        "summary": "List Enterprise File Storage services",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "iamTags",
+            "description": "Filter resources on IAM tags",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/iam.resource.TagFilter"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/storage.NetAppServiceWithIAM"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "service management"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "File Storage",
+            "Enterprise File Storage",
+            "Service Management@@@10"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "storageNetApp:apiovh:get",
+            "required": true
+          }
+        ],
+        "x-expanded-response": "StorageNetAppServiceWithIAM"
+      }
+    },
+    "/storage/netapp/capabilities/product": {
+      "get": {
+        "summary": "Get product capabilities",
+        "description": "Returns product capabilities such as features, supported protocols, and limits.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/storage.NetAppCapabilitiesProduct"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "capabilities"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "File Storage",
+            "Enterprise File Storage",
+            "Capabilities@@@10"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ]
+      }
+    },
+    "/storage/netapp/{serviceName}": {
+      "get": {
+        "summary": "Get an Enterprise File Storage service",
+        "description": "Returns the service, including its region, performance level, quota and status.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/storage.NetAppServiceWithIAM"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "service management"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "File Storage",
+            "Enterprise File Storage",
+            "Service Management@@@20"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "storageNetApp:apiovh:get",
+            "required": true
+          }
+        ]
+      },
+      "put": {
+        "summary": "Update an Enterprise File Storage service",
+        "description": "Updates the service name, the only property that can be changed. The change applies immediately, whatever the service status.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/storage.NetAppServiceUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/storage.NetAppService"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "service management"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "File Storage",
+            "Enterprise File Storage",
+            "Service Management@@@80"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "storageNetApp:apiovh:edit",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/storage/netapp/{serviceName}/changeContact": {
+      "post": {
+        "summary": "Launch a contact change procedure",
+        "description": "Starts the change of the admin, tech or billing contact and returns the request IDs.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/services.changeContact"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "service management"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "File Storage",
+            "Enterprise File Storage",
+            "Service Management@@@50"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "storageNetApp:apiovh:changeContact",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/storage/netapp/{serviceName}/confirmTermination": {
+      "post": {
+        "summary": "Confirm service termination",
+        "description": "Confirms the termination with the emailed token and records your reason.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/services.confirmTermination"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "service management"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "File Storage",
+            "Enterprise File Storage",
+            "Service Management@@@70"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "storageNetApp:apiovh:confirmTermination",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/storage/netapp/{serviceName}/metricsToken": {
+      "get": {
+        "summary": "Get a metrics token",
+        "description": "Returns a new token and the endpoint used to query the service metrics. Each call creates a new token, valid until the returned expiry date.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/storage.MetricsToken"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "monitoring"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "File Storage",
+            "Enterprise File Storage",
+            "Monitoring@@@20"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "blue",
+            "label": "Beta version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "storageNetApp:apiovh:metricsToken/get",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/storage/netapp/{serviceName}/network": {
+      "get": {
+        "summary": "List networks",
+        "description": "Returns the networks of the service, with only their IDs unless `detail` is true. A service on the public network has no network, so the list is empty.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "detail",
+            "description": "Get detailed information about each network",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/storage.NetAppNetwork"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "network"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "File Storage",
+            "Enterprise File Storage",
+            "Network@@@10"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "storageNetApp:apiovh:network/get",
+            "required": true
+          }
+        ],
+        "x-response-identifier": "id",
+        "x-expanded-response": "StorageNetAppNetwork"
+      }
+    },
+    "/storage/netapp/{serviceName}/network/{networkId}": {
+      "get": {
+        "summary": "Get a network",
+        "description": "Returns the network status and the URN of the vRack Services it is attached to. The status moves to associated only after an endpoint is created on the vRack Services, and share access paths are returned only in that status.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "networkId",
+            "description": "Network ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/storage.NetAppNetwork"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "network"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "File Storage",
+            "Enterprise File Storage",
+            "Network@@@20"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "storageNetApp:apiovh:network/get",
+            "required": true
+          }
+        ],
+        "x-response-identifier": "id"
+      }
+    },
+    "/storage/netapp/{serviceName}/productUpdateOptions": {
+      "get": {
+        "summary": "List upgrade and downgrade options",
+        "description": "Returns the product offers this service can change to (upgrade or downgrade), including plan code, quota, performance level, and the constraints that apply to the change.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/storage.NetAppServiceProductUpdateOptions"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "service management"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "File Storage",
+            "Enterprise File Storage",
+            "Service Management@@@30"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "blue",
+            "label": "Beta version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "storageNetApp:apiovh:productUpdateOptions/get",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/storage/netapp/{serviceName}/serviceInfos": {
+      "get": {
+        "summary": "Get service information",
+        "description": "Returns contacts, creation and expiration dates, and renewal settings.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/services.Service"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "service management"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "File Storage",
+            "Enterprise File Storage",
+            "Service Management@@@40"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "storageNetApp:apiovh:serviceInfos/get",
+            "required": true
+          }
+        ]
+      },
+      "put": {
+        "summary": "Update service information",
+        "description": "Changes how the service renews; `renew` is the only editable field.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/services.Service"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        },
+        "tags": [
+          "service management"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "File Storage",
+            "Enterprise File Storage",
+            "Service Management@@@90"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "storageNetApp:apiovh:serviceInfos/edit",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/storage/netapp/{serviceName}/share": {
+      "get": {
+        "summary": "List shares",
+        "description": "Returns the ID and name of each share of the service. Set `detail` to true to get all share properties.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "detail",
+            "description": "Get detailed information about each share",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "mountPointName",
+            "description": "If specified, returns only shares with given mount point name",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/storage.NetAppShare"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "share management"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "File Storage",
+            "Enterprise File Storage",
+            "Share Management@@@10"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "storageNetApp:apiovh:share/get",
+            "required": true
+          }
+        ],
+        "x-response-identifier": "id",
+        "x-expanded-response": "StorageNetAppShare"
+      },
+      "post": {
+        "summary": "Create a share",
+        "description": "Creates an NFS share, empty or from a manual snapshot, in which case the share must be at least the size of the snapshot. Creation is asynchronous: the share is returned with status creating, follow its status until available. The total size of the shares cannot exceed the service capacity.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/storage.NetAppShare"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/storage.NetAppShare"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "share management"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "File Storage",
+            "Enterprise File Storage",
+            "Share Management@@@30"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "storageNetApp:apiovh:share/create",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/storage/netapp/{serviceName}/share/{shareId}": {
+      "delete": {
+        "summary": "Delete a share",
+        "description": "Permanently deletes the share and its ACLs. Deletion is asynchronous. Delete the snapshots and replications of the share first.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "shareId",
+            "description": "Share ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        },
+        "tags": [
+          "share management"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "File Storage",
+            "Enterprise File Storage",
+            "Share Management@@@70"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "storageNetApp:apiovh:share/delete",
+            "required": true
+          }
+        ]
+      },
+      "get": {
+        "summary": "Get a share",
+        "description": "Returns the share properties, its status and its access mode. To get the paths used to mount the share, list its access paths.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "shareId",
+            "description": "Share ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/storage.NetAppShare"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "share management"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "File Storage",
+            "Enterprise File Storage",
+            "Share Management@@@20"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "storageNetApp:apiovh:share/get",
+            "required": true
+          }
+        ],
+        "x-response-identifier": "id"
+      },
+      "put": {
+        "summary": "Update a share",
+        "description": "Updates the share name and description. To change the size, use *Extend a share* or *Shrink a share*.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "shareId",
+            "description": "Share ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/storage.NetAppShareUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/storage.NetAppShare"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "share management"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "File Storage",
+            "Enterprise File Storage",
+            "Share Management@@@60"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "storageNetApp:apiovh:share/edit",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/storage/netapp/{serviceName}/share/{shareId}/accessPath": {
+      "get": {
+        "summary": "List access paths",
+        "description": "Returns the paths used to mount the share, with the preferred one first. The list stays empty until the network status of the service is associated.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "shareId",
+            "description": "Share ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/storage.NetAppShareAccessPath"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "access control"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "File Storage",
+            "Enterprise File Storage",
+            "Access Control@@@10"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "storageNetApp:apiovh:share/accessPath/get",
+            "required": true
+          }
+        ],
+        "x-response-identifier": "id",
+        "x-expanded-response": "StorageNetAppShareAccessPath"
+      }
+    },
+    "/storage/netapp/{serviceName}/share/{shareId}/accessPath/{accessPathId}": {
+      "get": {
+        "summary": "Get an access path",
+        "description": "Returns the path used to mount the share. The preferred path goes through the storage node that hosts the share.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "accessPathId",
+            "description": "Access path ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "shareId",
+            "description": "Share ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/storage.NetAppShareAccessPath"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "access control"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "File Storage",
+            "Enterprise File Storage",
+            "Access Control@@@30"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "storageNetApp:apiovh:share/accessPath/get",
+            "required": true
+          }
+        ],
+        "x-response-identifier": "id"
+      }
+    },
+    "/storage/netapp/{serviceName}/share/{shareId}/acl": {
+      "get": {
+        "summary": "List ACLs",
+        "description": "Returns the ACLs of the share, including those still being applied or removed. Check the status of each ACL to know whether it is in effect.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "shareId",
+            "description": "Share ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/storage.NetAppShareACLRule"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "access control"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "File Storage",
+            "Enterprise File Storage",
+            "Access Control@@@20"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "storageNetApp:apiovh:share/acl/get",
+            "required": true
+          }
+        ],
+        "x-response-identifier": "id",
+        "x-expanded-response": "StorageNetAppShareACLRule"
+      },
+      "post": {
+        "summary": "Create an ACL",
+        "description": "Grants an IPv4 address or IPv4 CIDR block read-only or read-write access to the share. Creation is asynchronous: the ACL is returned with status queued_to_apply, follow its status until active. The call is rejected while the share is being created, resized, reverted or replicated.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "shareId",
+            "description": "Share ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/storage.NetAppShareACLRule"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/storage.NetAppShareACLRule"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "access control"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "File Storage",
+            "Enterprise File Storage",
+            "Access Control@@@50"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "storageNetApp:apiovh:share/acl/create",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/storage/netapp/{serviceName}/share/{shareId}/acl/{aclRuleId}": {
+      "delete": {
+        "summary": "Delete an ACL",
+        "description": "Revokes access to the share. Clients already mounting the share using it lose access. Deletion is asynchronous: the ACL stays listed with status queued_to_deny or denying until it is removed.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "aclRuleId",
+            "description": "Acl rule ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "shareId",
+            "description": "Share ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        },
+        "tags": [
+          "access control"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "File Storage",
+            "Enterprise File Storage",
+            "Access Control@@@60"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "storageNetApp:apiovh:share/acl/delete",
+            "required": true
+          }
+        ]
+      },
+      "get": {
+        "summary": "Get an ACL",
+        "description": "Returns the ACL and its status. An ACL in error is not applied to the share: delete it and create it again.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "aclRuleId",
+            "description": "Acl rule ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "shareId",
+            "description": "Share ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/storage.NetAppShareACLRule"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "access control"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "File Storage",
+            "Enterprise File Storage",
+            "Access Control@@@40"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "storageNetApp:apiovh:share/acl/get",
+            "required": true
+          }
+        ],
+        "x-response-identifier": "id"
+      }
+    },
+    "/storage/netapp/{serviceName}/share/{shareId}/extend": {
+      "post": {
+        "summary": "Extend a share",
+        "description": "Increases the share to the given size in GB, which must be greater than its current size. The share must be available, and the change is asynchronous: its status moves to extending, then back to available, or to extending_error if it fails.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "shareId",
+            "description": "Share ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/storage.NetAppShareExtendOrShrink"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        },
+        "tags": [
+          "share management"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "File Storage",
+            "Enterprise File Storage",
+            "Share Management@@@40"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "storageNetApp:apiovh:share/extend",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/storage/netapp/{serviceName}/share/{shareId}/revert": {
+      "post": {
+        "summary": "Revert a share to its latest snapshot",
+        "description": "Restores the share content to the given snapshot, which must be the most recent snapshot of the share. Data written after this snapshot is permanently lost. The share and the snapshot must be available, and the revert is asynchronous: follow the share status until it is available, or reverting_error if it fails.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "shareId",
+            "description": "Share ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/storage.NetAppShareRevertToSnapshot"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        },
+        "tags": [
+          "snapshots"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "File Storage",
+            "Enterprise File Storage",
+            "Snapshots@@@50"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "blue",
+            "label": "Beta version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "storageNetApp:apiovh:share/revertToSnapshot",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/storage/netapp/{serviceName}/share/{shareId}/shrink": {
+      "post": {
+        "summary": "Shrink a share",
+        "description": "Reduces the share to the given size in GB, which must be smaller than its current size. The share must be available, and the change is asynchronous: follow the share status until it is available again. If the new size is smaller than the space already used, the share keeps its current size.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "shareId",
+            "description": "Share ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/storage.NetAppShareExtendOrShrink"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        },
+        "tags": [
+          "share management"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "File Storage",
+            "Enterprise File Storage",
+            "Share Management@@@50"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "storageNetApp:apiovh:share/shrink",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/storage/netapp/{serviceName}/share/{shareId}/snapshot": {
+      "get": {
+        "summary": "List snapshots",
+        "description": "Returns the ID and name of each snapshot of the share, including the snapshots taken automatically and by the system. Set `detail` to true to get all snapshot properties, such as their type and status.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "detail",
+            "description": "Get detailed information about each snapshot",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "shareId",
+            "description": "Share ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/storage.NetAppShareSnapshot"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "snapshots"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "File Storage",
+            "Enterprise File Storage",
+            "Snapshots@@@10"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "storageNetApp:apiovh:share/snapshot/get",
+            "required": true
+          }
+        ],
+        "x-response-identifier": "id",
+        "x-expanded-response": "StorageNetAppShareSnapshot"
+      },
+      "post": {
+        "summary": "Create a snapshot",
+        "description": "Creates a manual snapshot of the share. Creation is asynchronous: the snapshot is returned with status creating, follow its status until available. The share must be in status available.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "shareId",
+            "description": "Share ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/storage.NetAppShareSnapshot"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/storage.NetAppShareSnapshot"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "snapshots"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "File Storage",
+            "Enterprise File Storage",
+            "Snapshots@@@40"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "storageNetApp:apiovh:share/snapshot/create",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/storage/netapp/{serviceName}/share/{shareId}/snapshot/{snapshotId}": {
+      "delete": {
+        "summary": "Delete a snapshot",
+        "description": "Permanently deletes the snapshot. Deletion is asynchronous: follow the snapshot until it no longer exists. System snapshots cannot be deleted, and a manual snapshot must be in status available or error.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "shareId",
+            "description": "Share ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "snapshotId",
+            "description": "Snapshot ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        },
+        "tags": [
+          "snapshots"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "File Storage",
+            "Enterprise File Storage",
+            "Snapshots@@@70"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "storageNetApp:apiovh:share/snapshot/delete",
+            "required": true
+          }
+        ]
+      },
+      "get": {
+        "summary": "Get a snapshot",
+        "description": "Returns the snapshot properties, its status and its type: manual, automatic when taken by the snapshot policy, or system. Holding an automatic snapshot turns it into a manual snapshot with a new ID.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "shareId",
+            "description": "Share ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "snapshotId",
+            "description": "Snapshot ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/storage.NetAppShareSnapshot"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "snapshots"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "File Storage",
+            "Enterprise File Storage",
+            "Snapshots@@@20"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "storageNetApp:apiovh:share/snapshot/get",
+            "required": true
+          }
+        ],
+        "x-response-identifier": "id"
+      },
+      "put": {
+        "summary": "Update a snapshot",
+        "description": "Updates the snapshot name and description. Only manual snapshots can be updated: hold an automatic snapshot first.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "shareId",
+            "description": "Share ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "snapshotId",
+            "description": "Snapshot ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/storage.NetAppShareSnapshotUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/storage.NetAppShareSnapshot"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "snapshots"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "File Storage",
+            "Enterprise File Storage",
+            "Snapshots@@@80"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "storageNetApp:apiovh:share/snapshot/edit",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/storage/netapp/{serviceName}/share/{shareId}/snapshot/{snapshotId}/hold": {
+      "post": {
+        "summary": "Hold an automatic snapshot",
+        "description": "Converts an automatic snapshot into a manual snapshot with a new ID, which the snapshot policy no longer deletes. Holding is asynchronous: follow the status of the returned snapshot until it is available. A held snapshot will not be released and is kept until you delete it.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "shareId",
+            "description": "Share ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "snapshotId",
+            "description": "Snapshot ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/storage.NetAppShareSnapshot"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "snapshots"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "File Storage",
+            "Enterprise File Storage",
+            "Snapshots@@@60"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "blue",
+            "label": "Beta version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "storageNetApp:apiovh:share/snapshot/hold",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/storage/netapp/{serviceName}/share/{shareId}/snapshotPolicy": {
+      "get": {
+        "summary": "Get the share snapshot policy",
+        "description": "Returns the snapshot policy applied to the share and the status of its assignment. A share that was never assigned a policy uses the default snapshot policy of the service.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "shareId",
+            "description": "Share ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/storage.NetAppShareSnapshotPolicy"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "snapshot policies"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "File Storage",
+            "Enterprise File Storage",
+            "Snapshot Policies@@@30"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "storageNetApp:apiovh:share/snapshotPolicy/get",
+            "required": true
+          }
+        ]
+      },
+      "put": {
+        "summary": "Update the share snapshot policy",
+        "description": "Applies one of the snapshot policies of the service to the share. The share and the policy must be available, and the default policy cannot be assigned, so a share cannot be moved back to it. The update is asynchronous: follow the snapshot policy status of the share until active.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "shareId",
+            "description": "Share ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/storage.NetAppShareSnapshotPolicyUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        },
+        "tags": [
+          "snapshot policies"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "File Storage",
+            "Enterprise File Storage",
+            "Snapshot Policies@@@70"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "storageNetApp:apiovh:share/snapshotPolicy/edit",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/storage/netapp/{serviceName}/share/{shareId}/snapshotReserve": {
+      "get": {
+        "summary": "Get the snapshot reserve",
+        "description": "Returns the percentage of the share size reserved for snapshots and the status of its last update.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "shareId",
+            "description": "Share ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/storage.NetAppShareSnapshotReserve"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "snapshots"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "File Storage",
+            "Enterprise File Storage",
+            "Snapshots@@@30"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "storageNetApp:apiovh:share/snapshotReserve/get",
+            "required": true
+          }
+        ]
+      },
+      "put": {
+        "summary": "Update the snapshot reserve",
+        "description": "Changes the percentage of the share size reserved for snapshots without changing the share size, so a higher reserve leaves less space for data. The share must be available. The update is asynchronous: follow the snapshot reserve status until it returns to active.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "shareId",
+            "description": "Share ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/storage.NetAppShareSnapshotReserveUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        },
+        "tags": [
+          "snapshots"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "File Storage",
+            "Enterprise File Storage",
+            "Snapshots@@@90"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "storageNetApp:apiovh:share/snapshotReserve/edit",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/storage/netapp/{serviceName}/shareReplication": {
+      "get": {
+        "summary": "List share replications",
+        "description": "Returns the share replications of the service, whether this service is the source or the destination.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/storage.NetAppShareReplication"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "share replication"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "File Storage",
+            "Enterprise File Storage",
+            "Share Replication@@@10"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "blue",
+            "label": "Beta version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "storageNetApp:apiovh:shareReplication/get",
+            "required": true
+          }
+        ],
+        "x-response-identifier": "id",
+        "x-expanded-response": "StorageNetAppShareReplication"
+      },
+      "post": {
+        "summary": "Create a share replication",
+        "description": "Creates a share replication from a share of this service to the service given in `destinationServiceId`. It is returned with status pending, and the replication only starts after it is accepted on the destination service. To find a compatible destination, use *List compatible replication destinations*.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/storage.NetAppShareReplicationCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/storage.NetAppShareReplication"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "share replication"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "File Storage",
+            "Enterprise File Storage",
+            "Share Replication@@@40"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "blue",
+            "label": "Beta version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "storageNetApp:apiovh:shareReplication/create",
+            "required": true
+          },
+          {
+            "name": "storageNetApp:apiovh:shareReplication/accept",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/storage/netapp/{serviceName}/shareReplication/{shareReplicationId}": {
+      "delete": {
+        "summary": "Delete a share replication",
+        "description": "Deletes the share replication. Deletion is asynchronous and blocked while the replication is in status cutting_over, deleting or error. If the replication was accepted, the destination share is deleted with it.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "shareReplicationId",
+            "description": "Share replication ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        },
+        "tags": [
+          "share replication"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "File Storage",
+            "Enterprise File Storage",
+            "Share Replication@@@70"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "blue",
+            "label": "Beta version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "storageNetApp:apiovh:shareReplication/delete",
+            "required": true
+          }
+        ]
+      },
+      "get": {
+        "summary": "Get a share replication",
+        "description": "Returns the source, destination, status and progress of the replication, in percent.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "shareReplicationId",
+            "description": "Share replication ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/storage.NetAppShareReplication"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "share replication"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "File Storage",
+            "Enterprise File Storage",
+            "Share Replication@@@20"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "blue",
+            "label": "Beta version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "storageNetApp:apiovh:shareReplication/get",
+            "required": true
+          }
+        ],
+        "x-response-identifier": "id"
+      }
+    },
+    "/storage/netapp/{serviceName}/shareReplication/{shareReplicationId}/accept": {
+      "post": {
+        "summary": "Accept a share replication",
+        "description": "Accepts the share replication and creates the destination share on this service, with the name, size and protocol given in the body. The replication must be in status pending. Acceptance is asynchronous: the replication is returned with status accepted, follow its progress until the replica state is in_sync.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "shareReplicationId",
+            "description": "Share replication ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/storage.NetAppShareReplicationAccept"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/storage.NetAppShareReplication"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "share replication"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "File Storage",
+            "Enterprise File Storage",
+            "Share Replication@@@50"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "blue",
+            "label": "Beta version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "storageNetApp:apiovh:shareReplication/accept",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/storage/netapp/{serviceName}/shareReplication/{shareReplicationId}/cutover": {
+      "post": {
+        "summary": "Cut over a share replication",
+        "description": "Cuts over the share replication: the destination share becomes the primary, the replication stops, and the source and destination data diverge after it, so the operation cannot be undone. The call must be made on the destination service, and the replication must be in status accepted. The cutover is asynchronous: follow the status of the share replication until it is completed.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "shareReplicationId",
+            "description": "Share replication ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/storage.NetAppShareReplication"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "share replication"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "File Storage",
+            "Enterprise File Storage",
+            "Share Replication@@@60"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "blue",
+            "label": "Beta version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "storageNetApp:apiovh:shareReplication/cutover",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/storage/netapp/{serviceName}/shareReplicationServicesCompatibility": {
+      "get": {
+        "summary": "List compatible replication destinations",
+        "description": "Returns, for each service on which you are allowed to accept share replications, whether it can be a destination for share replications from this service, and the reason when it cannot. A destination is compatible when it is in the same region as the source service, and when the source service uses a public network while the destination uses a vRack network. Set `compatibleOnly` to true to return only compatible destinations.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "compatibleOnly",
+            "description": "If set to true, only services compatible as share replication destinations for the given source are returned",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/storage.NetAppShareReplicationServicesCompatibility"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "share replication"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "File Storage",
+            "Enterprise File Storage",
+            "Share Replication@@@30"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "blue",
+            "label": "Beta version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "storageNetApp:apiovh:shareReplicationServicesCompatibility/get",
+            "required": true
+          },
+          {
+            "name": "storageNetApp:apiovh:shareReplication/accept",
+            "description": "Needed on a destination EFS service for it to be listed in the response body",
+            "required": false
+          }
+        ]
+      }
+    },
+    "/storage/netapp/{serviceName}/snapshotPolicy": {
+      "get": {
+        "summary": "List snapshot policies",
+        "description": "Returns the snapshot policies, including the default one. Each item contains only the policy ID and name: get a snapshot policy to read its rules and status.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/storage.NetAppSnapshotPolicy"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "snapshot policies"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "File Storage",
+            "Enterprise File Storage",
+            "Snapshot Policies@@@10"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "storageNetApp:apiovh:snapshotPolicy/get",
+            "required": true
+          }
+        ],
+        "x-response-identifier": "id",
+        "x-expanded-response": "StorageNetAppSnapshotPolicy"
+      },
+      "post": {
+        "summary": "Create a snapshot policy",
+        "description": "Creates a policy made of rules, each with a schedule, a snapshot name prefix and a number of copies to keep. Creation is asynchronous: follow the snapshot policy status until it is available. The policy takes effect only once it is assigned to a share.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/storage.NetAppSnapshotPolicy"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/storage.NetAppSnapshotPolicy"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "snapshot policies"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "File Storage",
+            "Enterprise File Storage",
+            "Snapshot Policies@@@40"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "storageNetApp:apiovh:snapshotPolicy/create",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/storage/netapp/{serviceName}/snapshotPolicy/{snapshotPolicyId}": {
+      "delete": {
+        "summary": "Delete a snapshot policy",
+        "description": "Deletes the snapshot policy and its schedules. A policy applied to a share cannot be deleted: apply another non-default policy to the share first. The default policy cannot be deleted, and deletion is asynchronous: follow the snapshot policy status until the policy is no longer found.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "snapshotPolicyId",
+            "description": "Snapshot policy ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        },
+        "tags": [
+          "snapshot policies"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "File Storage",
+            "Enterprise File Storage",
+            "Snapshot Policies@@@50"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "storageNetApp:apiovh:snapshotPolicy/delete",
+            "required": true
+          }
+        ]
+      },
+      "get": {
+        "summary": "Get a snapshot policy",
+        "description": "Returns the snapshot policy with its rules and status. A policy can be updated, deleted or assigned to a share only when its status is available.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "snapshotPolicyId",
+            "description": "Snapshot policy ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/storage.NetAppSnapshotPolicy"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "snapshot policies"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "File Storage",
+            "Enterprise File Storage",
+            "Snapshot Policies@@@20"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "storageNetApp:apiovh:snapshotPolicy/get",
+            "required": true
+          }
+        ],
+        "x-response-identifier": "id"
+      },
+      "put": {
+        "summary": "Update a snapshot policy",
+        "description": "Updates the policy name and description. Rules cannot be changed: create a new policy instead. The policy must be available, and the default policy cannot be updated.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "snapshotPolicyId",
+            "description": "Snapshot policy ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/storage.NetAppSnapshotPolicyUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        },
+        "tags": [
+          "snapshot policies"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "File Storage",
+            "Enterprise File Storage",
+            "Snapshot Policies@@@60"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "storageNetApp:apiovh:snapshotPolicy/edit",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/storage/netapp/{serviceName}/terminate": {
+      "post": {
+        "summary": "Ask for the termination of your service",
+        "description": "Emails a termination token to the admin contact, to use with *Confirm service termination*.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "service management"
+        ],
+        "x-developer-hub-navigation": [
+          [
+            "Storage & Backup",
+            "File Storage",
+            "Enterprise File Storage",
+            "Service Management@@@60"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "storageNetApp:apiovh:terminate",
+            "required": true
+          }
+        ]
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "access control",
+      "x-tag-expanded": false,
+      "description": "Set of operations used to manage share access paths and ACLs."
+    },
+    {
+      "name": "capabilities",
+      "x-tag-expanded": false,
+      "description": "Missing description"
+    },
+    {
+      "name": "monitoring",
+      "x-tag-expanded": false,
+      "description": "Set of operations used to access service metrics."
+    },
+    {
+      "name": "network",
+      "x-tag-expanded": false,
+      "description": "Set of operations used to manage networks attached to the service."
+    },
+    {
+      "name": "service management",
+      "x-tag-expanded": false,
+      "description": "Set of operations used to manage the service lifecycle, contacts and billing."
+    },
+    {
+      "name": "share management",
+      "x-tag-expanded": false,
+      "description": "Set of operations used to manage shares and their capacity."
+    },
+    {
+      "name": "share replication",
+      "x-tag-expanded": false,
+      "description": "Set of operations used to migrate share data across different services."
+    },
+    {
+      "name": "snapshot policies",
+      "x-tag-expanded": false,
+      "description": "Set of operations used to define snapshot policies and assign them to shares."
+    },
+    {
+      "name": "snapshots",
+      "x-tag-expanded": false,
+      "description": "Set of operations used to manage share snapshots and their reserve space."
+    }
+  ]
+}

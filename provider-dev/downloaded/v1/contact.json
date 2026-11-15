@@ -1,0 +1,245 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "OVHcloud API specification",
+    "description": "Specification for OVHcloud API",
+    "version": "1.0",
+    "contact": {
+      "name": "OVH",
+      "email": "api@ml.ovh.net"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.eu.ovhcloud.com/v1"
+    }
+  ],
+  "components": {
+    "schemas": {
+      "any": {
+        "description": "Can be anything (text, int, bool, json, html, etc.)",
+        "example": "This is a content of any type !"
+      },
+      "complexType.SafeKeyValue_string": {
+        "type": "object",
+        "description": "Key and value, with proper key strings",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          }
+        }
+      },
+      "contact.FormCharacteristic": {
+        "type": "object",
+        "description": "Form characteristics",
+        "properties": {
+          "keys": {
+            "type": "array",
+            "description": "Form keys to send",
+            "items": {
+              "$ref": "#/components/schemas/contact.KeyFormCharacteristic"
+            }
+          },
+          "type": {
+            "type": "string",
+            "description": "Form type"
+          }
+        }
+      },
+      "contact.KeyFormCharacteristic": {
+        "type": "object",
+        "description": "Form key description",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "Key name"
+          },
+          "required": {
+            "type": "boolean",
+            "description": "Key required or not"
+          }
+        }
+      },
+      "duration": {
+        "type": "string",
+        "description": "Duration (e.g., P1Y2M3DT4H6M9S)",
+        "example": "P1Y2M3DT4H6M9S"
+      },
+      "email": {
+        "type": "string",
+        "description": "Email address (e.g., api@ml.ovh.net)",
+        "format": "email",
+        "example": "api@ml.ovh.net"
+      },
+      "internationalPhoneNumber": {
+        "type": "string",
+        "description": "International phone number",
+        "format": "phone-number"
+      },
+      "ip": {
+        "type": "string",
+        "description": "IP address (e.g., 192.0.2.0)",
+        "format": "ipv4",
+        "example": "192.0.2.0"
+      },
+      "ipBlock": {
+        "type": "string",
+        "description": "IP (v4 or v6) CIDR notation (e.g., 192.0.2.0/24)",
+        "format": "ip-block",
+        "example": "192.0.2.0/24"
+      },
+      "ipInterface": {
+        "type": "string",
+        "description": "IP address (e.g., 192.0.2.0)",
+        "format": "ipv4",
+        "example": "192.0.2.0"
+      },
+      "ipv4": {
+        "type": "string",
+        "description": "IPv4 address (e.g., 192.0.2.0)",
+        "format": "ipv4",
+        "example": "192.0.2.0"
+      },
+      "ipv4Block": {
+        "type": "string",
+        "description": "IPv4 CIDR notation (e.g., 192.0.2.0/24)",
+        "format": "ipv4-block",
+        "example": "192.0.2.0/24"
+      },
+      "ipv6": {
+        "type": "string",
+        "description": "IPv6 address (e.g., 2001:41d0:1:1994::1)",
+        "format": "ipv6",
+        "example": "2001:41d0:1:1994::1"
+      },
+      "ipv6Block": {
+        "type": "string",
+        "description": "IPv6 CIDR notation (e.g., 2001:41d0::/128)",
+        "format": "ipv6-block",
+        "example": "2001:41d0::/128"
+      },
+      "macAddress": {
+        "type": "string",
+        "description": "MAC address (e.g., 00:00:5e:00:53:01)",
+        "format": "mac-address",
+        "example": "00:00:5e:00:53:01"
+      },
+      "phoneNumber": {
+        "type": "string",
+        "description": "Phone number",
+        "format": "phone-number"
+      },
+      "time": {
+        "type": "string",
+        "description": "Time (e.g., 15:04:05)",
+        "format": "time",
+        "example": "15:04:05"
+      }
+    },
+    "securitySchemes": {
+      "oAuth2AuthCode": {
+        "type": "oauth2",
+        "description": "Oauth2",
+        "x-client-id": "1bb9c7df371741c0",
+        "x-client-secret": "a5b4de870aca620d10fbf63cd18d205b",
+        "flows": {
+          "authorizationCode": {
+            "authorizationUrl": "https://auth.eu.ovhcloud.com/oauth2/authorize",
+            "tokenUrl": "https://auth.eu.ovhcloud.com/oauth2/token",
+            "scopes": {
+              "account/all": "Manage your account",
+              "all": "Manage your whole account and all your services",
+              "services/all": "Manage your services lifecycle and billing"
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/contact/form": {
+      "get": {
+        "summary": "Get form characteristics",
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/contact.FormCharacteristic"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Account",
+            "Profile"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ]
+      }
+    },
+    "/contact/form/send": {
+      "post": {
+        "summary": "Send form following characteristics of /contact/form",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "form": {
+                    "type": "array",
+                    "description": "Form informations",
+                    "items": {
+                      "$ref": "#/components/schemas/complexType.SafeKeyValue_string"
+                    }
+                  },
+                  "type": {
+                    "type": "string",
+                    "description": "Form type"
+                  }
+                },
+                "required": [
+                  "form",
+                  "type"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Account",
+            "Profile"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,671 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "OVHcloud API specification",
+    "description": "Specification for OVHcloud API",
+    "version": "1.0",
+    "contact": {
+      "name": "OVH",
+      "email": "api@ml.ovh.net"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.eu.ovhcloud.com/v1"
+    }
+  ],
+  "components": {
+    "schemas": {
+      "any": {
+        "description": "Can be anything (text, int, bool, json, html, etc.)",
+        "example": "This is a content of any type !"
+      },
+      "coreTypes.CountryEnum": {
+        "type": "string",
+        "description": "ISO country codes",
+        "enum": [
+          "ac",
+          "ad",
+          "ae",
+          "af",
+          "ag",
+          "ai",
+          "al",
+          "am",
+          "an",
+          "ao",
+          "aq",
+          "ar",
+          "as",
+          "at",
+          "au",
+          "aw",
+          "ax",
+          "az",
+          "ba",
+          "bb",
+          "bd",
+          "be",
+          "bf",
+          "bg",
+          "bh",
+          "bi",
+          "bj",
+          "bl",
+          "bm",
+          "bn",
+          "bo",
+          "bq",
+          "br",
+          "bs",
+          "bt",
+          "bv",
+          "bw",
+          "by",
+          "bz",
+          "ca",
+          "cc",
+          "cd",
+          "cf",
+          "cg",
+          "ch",
+          "ci",
+          "ck",
+          "cl",
+          "cm",
+          "cn",
+          "co",
+          "cr",
+          "cs",
+          "cu",
+          "cv",
+          "cw",
+          "cx",
+          "cy",
+          "cz",
+          "de",
+          "dj",
+          "dk",
+          "dm",
+          "do",
+          "dz",
+          "ec",
+          "ee",
+          "eg",
+          "eh",
+          "er",
+          "es",
+          "et",
+          "fc",
+          "fd",
+          "fi",
+          "fj",
+          "fk",
+          "fm",
+          "fo",
+          "fr",
+          "fx",
+          "ga",
+          "gb",
+          "gd",
+          "ge",
+          "gf",
+          "gg",
+          "gh",
+          "gi",
+          "gl",
+          "gm",
+          "gn",
+          "gp",
+          "gq",
+          "gr",
+          "gs",
+          "gt",
+          "gu",
+          "gw",
+          "gy",
+          "hk",
+          "hm",
+          "hn",
+          "hr",
+          "ht",
+          "hu",
+          "id",
+          "ie",
+          "il",
+          "im",
+          "in",
+          "io",
+          "iq",
+          "ir",
+          "is",
+          "it",
+          "je",
+          "jm",
+          "jo",
+          "jp",
+          "ke",
+          "kg",
+          "kh",
+          "ki",
+          "km",
+          "kn",
+          "kp",
+          "kr",
+          "kw",
+          "ky",
+          "kz",
+          "la",
+          "lb",
+          "lc",
+          "li",
+          "lk",
+          "lr",
+          "ls",
+          "lt",
+          "lu",
+          "lv",
+          "ly",
+          "ma",
+          "mc",
+          "md",
+          "me",
+          "mf",
+          "mg",
+          "mh",
+          "mk",
+          "ml",
+          "mm",
+          "mn",
+          "mo",
+          "mp",
+          "mq",
+          "mr",
+          "ms",
+          "mt",
+          "mu",
+          "mv",
+          "mw",
+          "mx",
+          "my",
+          "mz",
+          "na",
+          "nc",
+          "ne",
+          "nf",
+          "ng",
+          "ni",
+          "nl",
+          "no",
+          "np",
+          "nr",
+          "nu",
+          "nz",
+          "om",
+          "pa",
+          "pe",
+          "pf",
+          "pg",
+          "ph",
+          "pk",
+          "pl",
+          "pm",
+          "pn",
+          "pr",
+          "ps",
+          "pt",
+          "pw",
+          "py",
+          "qa",
+          "qc",
+          "re",
+          "ro",
+          "rs",
+          "ru",
+          "rw",
+          "sa",
+          "sb",
+          "sc",
+          "sd",
+          "se",
+          "sg",
+          "sh",
+          "si",
+          "sj",
+          "sk",
+          "sl",
+          "sm",
+          "sn",
+          "so",
+          "sr",
+          "ss",
+          "st",
+          "sv",
+          "sx",
+          "sy",
+          "sz",
+          "tc",
+          "td",
+          "tf",
+          "tg",
+          "th",
+          "tj",
+          "tk",
+          "tl",
+          "tm",
+          "tn",
+          "to",
+          "tp",
+          "tr",
+          "tt",
+          "tv",
+          "tw",
+          "tz",
+          "ua",
+          "ug",
+          "uk",
+          "um",
+          "us",
+          "uy",
+          "uz",
+          "va",
+          "vc",
+          "ve",
+          "vg",
+          "vi",
+          "vn",
+          "vu",
+          "we",
+          "wf",
+          "ws",
+          "ye",
+          "yt",
+          "yu",
+          "za",
+          "zm",
+          "zw"
+        ]
+      },
+      "duration": {
+        "type": "string",
+        "description": "Duration (e.g., P1Y2M3DT4H6M9S)",
+        "example": "P1Y2M3DT4H6M9S"
+      },
+      "email": {
+        "type": "string",
+        "description": "Email address (e.g., api@ml.ovh.net)",
+        "format": "email",
+        "example": "api@ml.ovh.net"
+      },
+      "internationalPhoneNumber": {
+        "type": "string",
+        "description": "International phone number",
+        "format": "phone-number"
+      },
+      "ip": {
+        "type": "string",
+        "description": "IP address (e.g., 192.0.2.0)",
+        "format": "ipv4",
+        "example": "192.0.2.0"
+      },
+      "ipBlock": {
+        "type": "string",
+        "description": "IP (v4 or v6) CIDR notation (e.g., 192.0.2.0/24)",
+        "format": "ip-block",
+        "example": "192.0.2.0/24"
+      },
+      "ipInterface": {
+        "type": "string",
+        "description": "IP address (e.g., 192.0.2.0)",
+        "format": "ipv4",
+        "example": "192.0.2.0"
+      },
+      "ipv4": {
+        "type": "string",
+        "description": "IPv4 address (e.g., 192.0.2.0)",
+        "format": "ipv4",
+        "example": "192.0.2.0"
+      },
+      "ipv4Block": {
+        "type": "string",
+        "description": "IPv4 CIDR notation (e.g., 192.0.2.0/24)",
+        "format": "ipv4-block",
+        "example": "192.0.2.0/24"
+      },
+      "ipv6": {
+        "type": "string",
+        "description": "IPv6 address (e.g., 2001:41d0:1:1994::1)",
+        "format": "ipv6",
+        "example": "2001:41d0:1:1994::1"
+      },
+      "ipv6Block": {
+        "type": "string",
+        "description": "IPv6 CIDR notation (e.g., 2001:41d0::/128)",
+        "format": "ipv6-block",
+        "example": "2001:41d0::/128"
+      },
+      "macAddress": {
+        "type": "string",
+        "description": "MAC address (e.g., 00:00:5e:00:53:01)",
+        "format": "mac-address",
+        "example": "00:00:5e:00:53:01"
+      },
+      "phoneNumber": {
+        "type": "string",
+        "description": "Phone number",
+        "format": "phone-number"
+      },
+      "supply.MondialRelay": {
+        "type": "object",
+        "description": "Mondial Relay Point Details",
+        "properties": {
+          "address": {
+            "type": "string",
+            "description": "Relay point address"
+          },
+          "city": {
+            "type": "string",
+            "description": "City"
+          },
+          "closing": {
+            "type": "array",
+            "description": "Relay point closing dates",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/supply.MondialRelayClosingPeriod"
+            }
+          },
+          "country": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/coreTypes.CountryEnum"
+              }
+            ],
+            "description": "Relay country"
+          },
+          "distance": {
+            "type": "number",
+            "description": "Distance between address and relay point",
+            "nullable": true
+          },
+          "id": {
+            "type": "string",
+            "description": "Mondial Relay point ID"
+          },
+          "lat": {
+            "type": "number",
+            "description": "Relay point latitude"
+          },
+          "lng": {
+            "type": "number",
+            "description": "Relay point longitude"
+          },
+          "mapUrl": {
+            "type": "string",
+            "description": "URL of short map",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "description": "Relay point name"
+          },
+          "opening": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/supply.MondialRelayOpening"
+              }
+            ],
+            "description": "Relay point opening hours"
+          },
+          "pictureUrl": {
+            "type": "string",
+            "description": "Relay point picture\\s URL",
+            "nullable": true
+          },
+          "zipcode": {
+            "type": "string",
+            "description": "Zipcode"
+          }
+        }
+      },
+      "supply.MondialRelayClosingPeriod": {
+        "type": "object",
+        "description": "Closing period for mondial relay point",
+        "properties": {
+          "end": {
+            "type": "string",
+            "description": "Ending of closing period",
+            "format": "date-time"
+          },
+          "start": {
+            "type": "string",
+            "description": "Beginning of closing period",
+            "format": "date-time"
+          }
+        }
+      },
+      "supply.MondialRelayDayPeriod": {
+        "type": "object",
+        "description": "Opening range for mondial relay point",
+        "properties": {
+          "end": {
+            "type": "string",
+            "description": "Ending time (00:00 format)"
+          },
+          "start": {
+            "type": "string",
+            "description": "Starting time (00:00 format)"
+          }
+        }
+      },
+      "supply.MondialRelayOpening": {
+        "type": "object",
+        "description": "Day with schedule for mondial relay point opening",
+        "properties": {
+          "friday": {
+            "type": "array",
+            "description": "Opening range",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/supply.MondialRelayDayPeriod"
+            }
+          },
+          "monday": {
+            "type": "array",
+            "description": "Opening range",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/supply.MondialRelayDayPeriod"
+            }
+          },
+          "saturday": {
+            "type": "array",
+            "description": "Opening range",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/supply.MondialRelayDayPeriod"
+            }
+          },
+          "sunday": {
+            "type": "array",
+            "description": "Opening range",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/supply.MondialRelayDayPeriod"
+            }
+          },
+          "thursday": {
+            "type": "array",
+            "description": "Opening range",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/supply.MondialRelayDayPeriod"
+            }
+          },
+          "tuesday": {
+            "type": "array",
+            "description": "Opening range",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/supply.MondialRelayDayPeriod"
+            }
+          },
+          "wednesday": {
+            "type": "array",
+            "description": "Opening range",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/supply.MondialRelayDayPeriod"
+            }
+          }
+        }
+      },
+      "supply.MondialRelayResult": {
+        "type": "object",
+        "description": "Status and Mondial Relay Point Details",
+        "properties": {
+          "referenceAddress": {
+            "type": "string",
+            "description": "Reference address for finding RelayPoints"
+          },
+          "relayPoints": {
+            "type": "array",
+            "description": "Array of relay points",
+            "items": {
+              "$ref": "#/components/schemas/supply.MondialRelay"
+            }
+          }
+        }
+      },
+      "supply.MondialRelayReturn": {
+        "type": "object",
+        "description": "Status and Mondial Relay Point Details",
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Error",
+            "nullable": true
+          },
+          "result": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/supply.MondialRelayResult"
+              }
+            ],
+            "description": "Relay points list and reference address",
+            "nullable": true
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/supply.Status"
+              }
+            ],
+            "description": "Request status"
+          }
+        }
+      },
+      "supply.Status": {
+        "type": "string",
+        "description": "Request status",
+        "enum": [
+          "error",
+          "ok",
+          "pending"
+        ]
+      },
+      "time": {
+        "type": "string",
+        "description": "Time (e.g., 15:04:05)",
+        "format": "time",
+        "example": "15:04:05"
+      }
+    },
+    "securitySchemes": {
+      "oAuth2AuthCode": {
+        "type": "oauth2",
+        "description": "Oauth2",
+        "x-client-id": "1bb9c7df371741c0",
+        "x-client-secret": "a5b4de870aca620d10fbf63cd18d205b",
+        "flows": {
+          "authorizationCode": {
+            "authorizationUrl": "https://auth.eu.ovhcloud.com/oauth2/authorize",
+            "tokenUrl": "https://auth.eu.ovhcloud.com/oauth2/token",
+            "scopes": {
+              "account/all": "Manage your account",
+              "all": "Manage your whole account and all your services",
+              "services/all": "Manage your services lifecycle and billing"
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/supply/mondialRelay": {
+      "post": {
+        "summary": "Find the 10 nearest MondialRelay points from address or city.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "address": {
+                    "type": "string",
+                    "description": "Address"
+                  },
+                  "city": {
+                    "type": "string",
+                    "description": "City"
+                  },
+                  "country": {
+                    "description": "ISO country code",
+                    "$ref": "#/components/schemas/coreTypes.CountryEnum"
+                  },
+                  "zipcode": {
+                    "type": "string",
+                    "description": "Zip Code"
+                  }
+                },
+                "required": [
+                  "country"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/supply.MondialRelayReturn"
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "account:apiovh:supplyMondialRelay/create",
+            "required": true
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,3499 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "OVHcloud API specification",
+    "description": "Specification for OVHcloud API",
+    "version": "1.0",
+    "contact": {
+      "name": "OVH",
+      "email": "api@ml.ovh.net"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.eu.ovhcloud.com/v1"
+    }
+  ],
+  "components": {
+    "schemas": {
+      "any": {
+        "description": "Can be anything (text, int, bool, json, html, etc.)",
+        "example": "This is a content of any type !"
+      },
+      "duration": {
+        "type": "string",
+        "description": "Duration (e.g., P1Y2M3DT4H6M9S)",
+        "example": "P1Y2M3DT4H6M9S"
+      },
+      "email": {
+        "type": "string",
+        "description": "Email address (e.g., api@ml.ovh.net)",
+        "format": "email",
+        "example": "api@ml.ovh.net"
+      },
+      "horizonView.AccessPointTypeEnum": {
+        "type": "string",
+        "description": "Access Point type the customer can deploy",
+        "enum": [
+          "privateAccessPoint",
+          "publicAccessPoint"
+        ]
+      },
+      "horizonView.CustomerNetwork": {
+        "type": "object",
+        "description": "You can reach from your virtual desktops, your customer network ",
+        "properties": {
+          "customerNetworkId": {
+            "type": "integer",
+            "description": "Customer Network id",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of your network",
+            "readOnly": true
+          },
+          "network": {
+            "type": "string",
+            "description": "Customer network",
+            "readOnly": true
+          }
+        }
+      },
+      "horizonView.CustomerNetworkPool": {
+        "type": "object",
+        "description": "You can reach from your virtual desktops, your customer network ",
+        "properties": {
+          "customerNetworkId": {
+            "type": "integer",
+            "description": "Customer Network id",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of your network",
+            "readOnly": true
+          },
+          "network": {
+            "type": "string",
+            "description": "Customer network",
+            "readOnly": true
+          }
+        }
+      },
+      "horizonView.CustomerUser": {
+        "type": "object",
+        "description": "Horizon As A Service Customer  User",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Email of your HaaS User",
+            "nullable": true,
+            "readOnly": true
+          },
+          "id": {
+            "type": "integer",
+            "description": "Customer id",
+            "readOnly": true
+          },
+          "username": {
+            "type": "string",
+            "description": "Customer username of your HaaS User",
+            "readOnly": true
+          }
+        }
+      },
+      "horizonView.Datacenter": {
+        "type": "object",
+        "description": "Cloud Desktop Infrastructure Datacenter",
+        "properties": {
+          "activeDirectoryIP": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ip"
+              }
+            ],
+            "description": "IP of the VDI Active Directory",
+            "readOnly": true
+          },
+          "adminDomain": {
+            "type": "string",
+            "description": "Domain of the admin infrastructure",
+            "readOnly": true
+          },
+          "adminNetworkNextHop": {
+            "type": "string",
+            "description": "Next hop to contact the private admin network",
+            "readOnly": true
+          },
+          "adminPrivateNetwork": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ipBlock"
+              }
+            ],
+            "description": "Private network of the admin infrastructure",
+            "readOnly": true
+          },
+          "customerIntercoIP": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ip"
+              }
+            ],
+            "description": "Customer interco IP allows you to communicate between your private infrastructure and your CDI infrastructure throw the vrack.",
+            "readOnly": true
+          },
+          "customerIntercoMask": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ip"
+              }
+            ],
+            "description": "Customer interco netmask allows you to communicate between your private infrastructure and your CDI infrastructure throw the vrack.",
+            "readOnly": true
+          },
+          "customerIntercoVlanId": {
+            "type": "integer",
+            "description": "Customer interco vlan allows you to communicate between your private infrastructure and your CDI infrastructure throw the vrack.",
+            "readOnly": true
+          },
+          "datacenterId": {
+            "type": "integer",
+            "description": "Datacenter ids",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the datacenter",
+            "readOnly": true
+          },
+          "serviceName": {
+            "type": "string",
+            "description": "Domain of your Horizon",
+            "readOnly": true
+          }
+        }
+      },
+      "horizonView.DatacenterWithIAM": {
+        "type": "object",
+        "description": "Cloud Desktop Infrastructure Datacenter",
+        "properties": {
+          "activeDirectoryIP": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ip"
+              }
+            ],
+            "description": "IP of the VDI Active Directory",
+            "readOnly": true
+          },
+          "adminDomain": {
+            "type": "string",
+            "description": "Domain of the admin infrastructure",
+            "readOnly": true
+          },
+          "adminNetworkNextHop": {
+            "type": "string",
+            "description": "Next hop to contact the private admin network",
+            "readOnly": true
+          },
+          "adminPrivateNetwork": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ipBlock"
+              }
+            ],
+            "description": "Private network of the admin infrastructure",
+            "readOnly": true
+          },
+          "customerIntercoIP": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ip"
+              }
+            ],
+            "description": "Customer interco IP allows you to communicate between your private infrastructure and your CDI infrastructure throw the vrack.",
+            "readOnly": true
+          },
+          "customerIntercoMask": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ip"
+              }
+            ],
+            "description": "Customer interco netmask allows you to communicate between your private infrastructure and your CDI infrastructure throw the vrack.",
+            "readOnly": true
+          },
+          "customerIntercoVlanId": {
+            "type": "integer",
+            "description": "Customer interco vlan allows you to communicate between your private infrastructure and your CDI infrastructure throw the vrack.",
+            "readOnly": true
+          },
+          "datacenterId": {
+            "type": "integer",
+            "description": "Datacenter ids",
+            "readOnly": true
+          },
+          "iam": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/iam.ResourceMetadata"
+              }
+            ],
+            "description": "IAM resource metadata",
+            "nullable": true,
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the datacenter",
+            "readOnly": true
+          },
+          "serviceName": {
+            "type": "string",
+            "description": "Domain of your Horizon",
+            "readOnly": true
+          }
+        }
+      },
+      "horizonView.DedicatedHorizon": {
+        "type": "object",
+        "description": "Horizon View as a Service",
+        "properties": {
+          "masterZone": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/horizonView.Zone"
+              }
+            ],
+            "description": "The location of your administration servers in our datacenter",
+            "readOnly": true
+          },
+          "privateCloudName": {
+            "type": "string",
+            "description": "Your Horizon Dedicated Cloud ",
+            "readOnly": true
+          },
+          "privateCloudZone": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/horizonView.Zone"
+              }
+            ],
+            "description": "The location of your datacenter",
+            "readOnly": true
+          },
+          "publicUrl": {
+            "type": "string",
+            "description": "Url of your Dedicated Horizon",
+            "readOnly": true
+          },
+          "state": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/horizonView.StateEnum"
+              }
+            ],
+            "description": "Current state of your Dedicated Horizon",
+            "readOnly": true
+          },
+          "storageAccelerator": {
+            "type": "boolean",
+            "description": "View Storage Accelerator for Vcenter",
+            "readOnly": true
+          },
+          "version": {
+            "type": "string",
+            "description": "Version of your Dedicated Horizon",
+            "readOnly": true
+          }
+        }
+      },
+      "horizonView.DomainTrust": {
+        "type": "object",
+        "description": "List all Active Directories linked to your CDI Active Directory",
+        "properties": {
+          "activeDirectoryIP": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ip"
+              }
+            ],
+            "description": "IP of your Active Directory",
+            "readOnly": true
+          },
+          "dns1": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ip"
+              }
+            ],
+            "description": "IP of your first DNS",
+            "nullable": true,
+            "readOnly": true
+          },
+          "dns2": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ip"
+              }
+            ],
+            "description": "IP of your second DNS",
+            "nullable": true,
+            "readOnly": true
+          },
+          "domain": {
+            "type": "string",
+            "description": "Name of your private domain",
+            "readOnly": true
+          },
+          "domainTrustId": {
+            "type": "integer",
+            "description": "Domain trust id",
+            "readOnly": true
+          }
+        }
+      },
+      "horizonView.Pool": {
+        "type": "object",
+        "description": "All informations about access point",
+        "properties": {
+          "accessPointId": {
+            "type": "integer",
+            "description": "Pool id",
+            "readOnly": true
+          },
+          "dhcpNetmask": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ip"
+              }
+            ],
+            "description": "DHCP netmask in this port group",
+            "readOnly": true
+          },
+          "dhcpNetwork": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ip"
+              }
+            ],
+            "description": "DHCP network in this port group",
+            "readOnly": true
+          },
+          "externalUrl": {
+            "type": "string",
+            "description": "External url of your access point",
+            "readOnly": true
+          },
+          "intercoNextHop": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ip"
+              }
+            ],
+            "description": "Next hop IP to reach virtual desktops network for public Access Point",
+            "nullable": true,
+            "readOnly": true
+          },
+          "intercoPrivateNextHop": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ip"
+              }
+            ],
+            "description": "Next hop IP to reach virtual desktops network for private Access Point",
+            "nullable": true,
+            "readOnly": true
+          },
+          "portGroupId": {
+            "type": "string",
+            "description": "Port group id",
+            "readOnly": true
+          },
+          "state": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/horizonView.StateEnum"
+              }
+            ],
+            "description": "Network state",
+            "readOnly": true
+          },
+          "twoFA": {
+            "type": "boolean",
+            "description": "Two factor authentication",
+            "readOnly": true
+          },
+          "type": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/horizonView.PoolType"
+              }
+            ],
+            "description": "Pool type",
+            "readOnly": true
+          }
+        }
+      },
+      "horizonView.PoolType": {
+        "type": "string",
+        "description": "Pool type the customer can deploy",
+        "enum": [
+          "hybridPool",
+          "privatePool",
+          "publicPool"
+        ]
+      },
+      "horizonView.StateEnum": {
+        "type": "string",
+        "description": "All states a dedicated horizon  can be in",
+        "enum": [
+          "available",
+          "creating",
+          "delivered",
+          "disabled",
+          "error",
+          "reserved"
+        ]
+      },
+      "horizonView.Task": {
+        "type": "object",
+        "description": "Operation on a Horizon View component",
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "Current progress description",
+            "nullable": true,
+            "readOnly": true
+          },
+          "lastModificationDate": {
+            "type": "string",
+            "description": "Task last modification date",
+            "nullable": true,
+            "format": "date-time",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "description": "Task name",
+            "readOnly": true
+          },
+          "progress": {
+            "type": "integer",
+            "description": "Current progress",
+            "readOnly": true
+          },
+          "state": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/horizonView.TaskStateEnum"
+              }
+            ],
+            "description": "Current Task state",
+            "readOnly": true
+          },
+          "taskId": {
+            "type": "integer",
+            "description": "Task id",
+            "readOnly": true
+          }
+        }
+      },
+      "horizonView.TaskStateEnum": {
+        "type": "string",
+        "description": "All states a Horizon View  Task can be in",
+        "enum": [
+          "canceled",
+          "doing",
+          "done",
+          "error",
+          "fixing",
+          "toCancel",
+          "toCreate",
+          "todo",
+          "unknown",
+          "waitingForChilds",
+          "waitingTodo"
+        ]
+      },
+      "horizonView.User": {
+        "type": "object",
+        "description": "Horizon As A Service User",
+        "properties": {
+          "username": {
+            "type": "string",
+            "description": "Username of your HaaS User",
+            "readOnly": true
+          }
+        }
+      },
+      "horizonView.Zone": {
+        "type": "string",
+        "description": "All zones a Cloud Desktop Infrastructure can be in",
+        "enum": [
+          "Beauharnois",
+          "Roubaix",
+          "Strasbourg"
+        ]
+      },
+      "iam.ResourceMetadata": {
+        "type": "object",
+        "description": "IAM resource metadata embedded in services models",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "description": "Resource display name",
+            "nullable": true,
+            "readOnly": true
+          },
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the resource",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "state": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/iam.ResourceMetadata.StateEnum"
+              }
+            ],
+            "description": "Resource state",
+            "nullable": true,
+            "readOnly": true
+          },
+          "tags": {
+            "type": "object",
+            "description": "Resource tags. Tags that were internally computed are prefixed with ovh:",
+            "nullable": true,
+            "additionalProperties": {
+              "type": "string"
+            },
+            "readOnly": true
+          },
+          "urn": {
+            "type": "string",
+            "description": "Unique resource name used in policies",
+            "readOnly": true
+          }
+        }
+      },
+      "iam.ResourceMetadata.StateEnum": {
+        "type": "string",
+        "description": "Resource state",
+        "enum": [
+          "EXPIRED",
+          "IN_CREATION",
+          "OK",
+          "SUSPENDED"
+        ]
+      },
+      "iam.resource.TagFilter": {
+        "type": "object",
+        "description": "Resource tag filter",
+        "properties": {
+          "operator": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/iam.resource.TagFilter.OperatorEnum"
+              }
+            ],
+            "description": "Operator to use in order to filter on the value (defaults to 'EQ')",
+            "nullable": true,
+            "readOnly": true
+          },
+          "value": {
+            "type": "string",
+            "description": "Value to use in order to filter tags",
+            "readOnly": true
+          }
+        }
+      },
+      "iam.resource.TagFilter.OperatorEnum": {
+        "type": "string",
+        "description": "Operator that can be used in order to filter resources tags",
+        "enum": [
+          "EQ",
+          "EXISTS",
+          "ILIKE",
+          "LIKE",
+          "NEQ",
+          "NEXISTS"
+        ]
+      },
+      "internationalPhoneNumber": {
+        "type": "string",
+        "description": "International phone number",
+        "format": "phone-number"
+      },
+      "ip": {
+        "type": "string",
+        "description": "IP address (e.g., 192.0.2.0)",
+        "format": "ipv4",
+        "example": "192.0.2.0"
+      },
+      "ipBlock": {
+        "type": "string",
+        "description": "IP (v4 or v6) CIDR notation (e.g., 192.0.2.0/24)",
+        "format": "ip-block",
+        "example": "192.0.2.0/24"
+      },
+      "ipInterface": {
+        "type": "string",
+        "description": "IP address (e.g., 192.0.2.0)",
+        "format": "ipv4",
+        "example": "192.0.2.0"
+      },
+      "ipv4": {
+        "type": "string",
+        "description": "IPv4 address (e.g., 192.0.2.0)",
+        "format": "ipv4",
+        "example": "192.0.2.0"
+      },
+      "ipv4Block": {
+        "type": "string",
+        "description": "IPv4 CIDR notation (e.g., 192.0.2.0/24)",
+        "format": "ipv4-block",
+        "example": "192.0.2.0/24"
+      },
+      "ipv6": {
+        "type": "string",
+        "description": "IPv6 address (e.g., 2001:41d0:1:1994::1)",
+        "format": "ipv6",
+        "example": "2001:41d0:1:1994::1"
+      },
+      "ipv6Block": {
+        "type": "string",
+        "description": "IPv6 CIDR notation (e.g., 2001:41d0::/128)",
+        "format": "ipv6-block",
+        "example": "2001:41d0::/128"
+      },
+      "macAddress": {
+        "type": "string",
+        "description": "MAC address (e.g., 00:00:5e:00:53:01)",
+        "format": "mac-address",
+        "example": "00:00:5e:00:53:01"
+      },
+      "phoneNumber": {
+        "type": "string",
+        "description": "Phone number",
+        "format": "phone-number"
+      },
+      "service.RenewType": {
+        "type": "object",
+        "description": "Map a possible renew for a specific service",
+        "properties": {
+          "automatic": {
+            "type": "boolean",
+            "description": "The service is automatically renewed"
+          },
+          "deleteAtExpiration": {
+            "type": "boolean",
+            "description": "The service will be deleted at expiration"
+          },
+          "forced": {
+            "type": "boolean",
+            "description": "The service forced to be renewed"
+          },
+          "manualPayment": {
+            "type": "boolean",
+            "description": "The service needs to be manually renewed and paid",
+            "nullable": true
+          },
+          "period": {
+            "type": "integer",
+            "description": "period of renew in month",
+            "nullable": true
+          }
+        }
+      },
+      "service.RenewalTypeEnum": {
+        "type": "string",
+        "description": "Detailed renewal type of a service",
+        "enum": [
+          "automaticForcedProduct",
+          "automaticV2012",
+          "automaticV2014",
+          "automaticV2016",
+          "automaticV2024",
+          "manual",
+          "oneShot",
+          "option"
+        ]
+      },
+      "service.StateEnum": {
+        "type": "string",
+        "enum": [
+          "autorenewInProgress",
+          "expired",
+          "inCreation",
+          "ok",
+          "pendingDebt",
+          "unPaid"
+        ]
+      },
+      "service.TerminationFutureUseEnum": {
+        "type": "string",
+        "description": "All future uses you can provide for a service termination",
+        "enum": [
+          "NOT_REPLACING_SERVICE",
+          "OTHER",
+          "SUBSCRIBE_AN_OTHER_SERVICE",
+          "SUBSCRIBE_OTHER_KIND_OF_SERVICE_WITH_COMPETITOR",
+          "SUBSCRIBE_SIMILAR_SERVICE_WITH_COMPETITOR"
+        ]
+      },
+      "service.TerminationReasonEnum": {
+        "type": "string",
+        "description": "All reasons you can provide for a service termination",
+        "enum": [
+          "FEATURES_DONT_SUIT_ME",
+          "LACK_OF_PERFORMANCES",
+          "MIGRATED_TO_ANOTHER_OVH_PRODUCT",
+          "MIGRATED_TO_COMPETITOR",
+          "NOT_ENOUGH_RECOGNITION",
+          "NOT_NEEDED_ANYMORE",
+          "NOT_RELIABLE",
+          "NO_ANSWER",
+          "OTHER",
+          "PRODUCT_DIMENSION_DONT_SUIT_ME",
+          "PRODUCT_TOOLS_DONT_SUIT_ME",
+          "TOO_EXPENSIVE",
+          "TOO_HARD_TO_USE",
+          "UNSATIFIED_BY_CUSTOMER_SUPPORT"
+        ]
+      },
+      "services.Service": {
+        "type": "object",
+        "description": "Details about a Service",
+        "properties": {
+          "canDeleteAtExpiration": {
+            "type": "boolean",
+            "description": "Indicates that the service can be set up to be deleted at expiration",
+            "readOnly": true
+          },
+          "contactAdmin": {
+            "type": "string",
+            "readOnly": true
+          },
+          "contactBilling": {
+            "type": "string",
+            "readOnly": true
+          },
+          "contactTech": {
+            "type": "string",
+            "readOnly": true
+          },
+          "creation": {
+            "type": "string",
+            "format": "date",
+            "readOnly": true
+          },
+          "domain": {
+            "type": "string",
+            "readOnly": true
+          },
+          "engagedUpTo": {
+            "type": "string",
+            "nullable": true,
+            "format": "date",
+            "readOnly": true
+          },
+          "expiration": {
+            "type": "string",
+            "format": "date",
+            "readOnly": true
+          },
+          "possibleRenewPeriod": {
+            "type": "array",
+            "description": "All the possible renew period of your service in month",
+            "nullable": true,
+            "items": {
+              "type": "integer"
+            },
+            "readOnly": true
+          },
+          "renew": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/service.RenewType"
+              }
+            ],
+            "description": "Way of handling the renew",
+            "nullable": true
+          },
+          "renewalType": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/service.RenewalTypeEnum"
+              }
+            ],
+            "readOnly": true
+          },
+          "serviceId": {
+            "type": "integer",
+            "readOnly": true
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/service.StateEnum"
+              }
+            ],
+            "readOnly": true
+          }
+        }
+      },
+      "time": {
+        "type": "string",
+        "description": "Time (e.g., 15:04:05)",
+        "format": "time",
+        "example": "15:04:05"
+      }
+    },
+    "securitySchemes": {
+      "oAuth2AuthCode": {
+        "type": "oauth2",
+        "description": "Oauth2",
+        "x-client-id": "1bb9c7df371741c0",
+        "x-client-secret": "a5b4de870aca620d10fbf63cd18d205b",
+        "flows": {
+          "authorizationCode": {
+            "authorizationUrl": "https://auth.eu.ovhcloud.com/oauth2/authorize",
+            "tokenUrl": "https://auth.eu.ovhcloud.com/oauth2/token",
+            "scopes": {
+              "account/all": "Manage your account",
+              "all": "Manage your whole account and all your services",
+              "services/all": "Manage your services lifecycle and billing"
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/horizonView": {
+      "get": {
+        "summary": "Horizon View as a Service",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "iamTags",
+            "description": "Filter resources on IAM tags",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/iam.resource.TagFilter"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "horizonView:apiovh:get",
+            "required": true
+          }
+        ],
+        "x-expanded-response": "HorizonViewDatacenterWithIAM"
+      }
+    },
+    "/horizonView/{serviceName}": {
+      "get": {
+        "summary": "Get this object properties",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Domain of the service",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/horizonView.DatacenterWithIAM"
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "horizonView:apiovh:get",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/horizonView/{serviceName}/accessPoint": {
+      "get": {
+        "summary": "Pool associated with this Datacenter",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Domain of the service",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "horizonView:apiovh:accessPoint/get",
+            "required": true
+          }
+        ],
+        "x-expanded-response": "HorizonViewPool"
+      },
+      "post": {
+        "summary": "Add new access point to create a new network",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Domain of the service",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "poolType": {
+                    "description": "The type of pool you want to deploy. ",
+                    "$ref": "#/components/schemas/horizonView.PoolType"
+                  },
+                  "privateBlock": {
+                    "description": "You can customize your pool by choosing the private network (Ex : 10.0.0.0/16)",
+                    "$ref": "#/components/schemas/ipBlock"
+                  },
+                  "privateVlan": {
+                    "type": "integer",
+                    "description": "You can customize your pool by choosing its private Vlan ID. (smaller than 4095) "
+                  },
+                  "vrouterPoolPublicIp": {
+                    "description": "You need to use a public Ip if you want to deploy a public pool. ",
+                    "$ref": "#/components/schemas/ip"
+                  }
+                },
+                "required": [
+                  "poolType"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/horizonView.Task"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "horizonView:apiovh:accessPoint/create",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/horizonView/{serviceName}/accessPoint/{accessPointId}": {
+      "delete": {
+        "summary": "Delete this access point ",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "accessPointId",
+            "description": "Pool id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Domain of the service",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/horizonView.Task"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "horizonView:apiovh:accessPoint/delete",
+            "required": true
+          }
+        ]
+      },
+      "get": {
+        "summary": "Get this object properties",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "accessPointId",
+            "description": "Pool id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Domain of the service",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/horizonView.Pool"
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "horizonView:apiovh:accessPoint/get",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/horizonView/{serviceName}/accessPoint/{accessPointId}/changeSessionTimeout": {
+      "post": {
+        "summary": "Manage your session Timeout on Unified Access Gateway",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "accessPointId",
+            "description": "Pool id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Domain of the service",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "expiration": {
+                    "type": "integer",
+                    "description": "Timeout (in hour)"
+                  },
+                  "onSingleAP": {
+                    "description": "Update timeout session on a single Unified Access Gateway (only for hybrid Pool)",
+                    "$ref": "#/components/schemas/horizonView.AccessPointTypeEnum"
+                  }
+                },
+                "required": [
+                  "expiration"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/horizonView.Task"
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "horizonView:apiovh:accessPoint/changeSessionTimeout",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/horizonView/{serviceName}/accessPoint/{accessPointId}/customerNetwork": {
+      "get": {
+        "summary": "You can reach from the Desktops your private network",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "accessPointId",
+            "description": "Pool id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Domain of the service",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "horizonView:apiovh:accessPoint/customerNetwork/get",
+            "required": true
+          }
+        ],
+        "x-expanded-response": "HorizonViewCustomerNetworkPool"
+      },
+      "post": {
+        "summary": "Add a new network ",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "accessPointId",
+            "description": "Pool id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Domain of the service",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "network": {
+                    "description": "The private network you want to reach.",
+                    "$ref": "#/components/schemas/ipBlock"
+                  }
+                },
+                "required": [
+                  "network"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/horizonView.Task"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "horizonView:apiovh:accessPoint/customerNetwork/create",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/horizonView/{serviceName}/accessPoint/{accessPointId}/customerNetwork/{customerNetworkId}": {
+      "delete": {
+        "summary": "Delete this Customer Network",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "accessPointId",
+            "description": "Pool id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "customerNetworkId",
+            "description": "Customer Network id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Domain of the service",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/horizonView.Task"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "horizonView:apiovh:accessPoint/customerNetwork/delete",
+            "required": true
+          }
+        ]
+      },
+      "get": {
+        "summary": "Get this object properties",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "accessPointId",
+            "description": "Pool id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "customerNetworkId",
+            "description": "Customer Network id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Domain of the service",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/horizonView.CustomerNetworkPool"
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "horizonView:apiovh:accessPoint/customerNetwork/get",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/horizonView/{serviceName}/accessPoint/{accessPointId}/disableTwoFA": {
+      "post": {
+        "summary": "Disable two factor authentication on your pool",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "accessPointId",
+            "description": "Pool id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Domain of the service",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/horizonView.Task"
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "horizonView:apiovh:accessPoint/disableTwoFA/create",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/horizonView/{serviceName}/accessPoint/{accessPointId}/disableWindowsUsernameOption": {
+      "post": {
+        "summary": "Disable windows Username option on Unified Access Gateway",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "accessPointId",
+            "description": "Pool id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Domain of the service",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "onSingleAP": {
+                    "description": "Disable windows Username option on a single Unified Access Gateway (only for hybrid Pool)",
+                    "$ref": "#/components/schemas/horizonView.AccessPointTypeEnum"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/horizonView.Task"
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "horizonView:apiovh:accessPoint/disableWindowsUsernameOption",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/horizonView/{serviceName}/accessPoint/{accessPointId}/enableTwoFA": {
+      "post": {
+        "summary": "Enable two factor authentication on your pool",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "accessPointId",
+            "description": "Pool id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Domain of the service",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "onSingleAP": {
+                    "description": "Enable the 2FA on a single Access Point (only for hybrid Pool)",
+                    "$ref": "#/components/schemas/horizonView.AccessPointTypeEnum"
+                  },
+                  "radiusIp": {
+                    "description": "The server radius IP",
+                    "$ref": "#/components/schemas/ipv4"
+                  },
+                  "secret": {
+                    "type": "string",
+                    "description": "The secret password for the two factor authentication",
+                    "format": "password"
+                  }
+                },
+                "required": [
+                  "radiusIp",
+                  "secret"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/horizonView.Task"
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "horizonView:apiovh:accessPoint/enableTwoFA",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/horizonView/{serviceName}/accessPoint/{accessPointId}/enableWindowsUsernameOption": {
+      "post": {
+        "summary": "Enable windows Username option on Unified Access Gateway",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "accessPointId",
+            "description": "Pool id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Domain of the service",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "onSingleAP": {
+                    "description": "Enable windows Username option on a single Unified Access Gateway (only for hybrid Pool)",
+                    "$ref": "#/components/schemas/horizonView.AccessPointTypeEnum"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/horizonView.Task"
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "horizonView:apiovh:accessPoint/enableWindowsUsernameOption",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/horizonView/{serviceName}/confirmTermination": {
+      "post": {
+        "summary": "Confirm service termination",
+        "description": "Confirm service termination. Terminates the service with the token sent by email to the admin contact. A reason, a future use and a comment can be given.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Domain of the service",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "commentary": {
+                    "type": "string",
+                    "description": "Commentary about your termination request"
+                  },
+                  "futureUse": {
+                    "description": "What next after your termination request",
+                    "$ref": "#/components/schemas/service.TerminationFutureUseEnum"
+                  },
+                  "reason": {
+                    "description": "Reason of your termination request",
+                    "$ref": "#/components/schemas/service.TerminationReasonEnum"
+                  },
+                  "token": {
+                    "type": "string",
+                    "description": "The termination token sent by email to the admin contact"
+                  }
+                },
+                "required": [
+                  "token"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "horizonView:apiovh:confirmTermination",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/horizonView/{serviceName}/customerNetwork": {
+      "get": {
+        "summary": "You can reach from the Desktops your private network",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Domain of the service",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "horizonView:apiovh:customerNetwork/get",
+            "required": true
+          }
+        ],
+        "x-expanded-response": "HorizonViewCustomerNetwork"
+      },
+      "post": {
+        "summary": "Add a new network ",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Domain of the service",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Name your network"
+                  },
+                  "network": {
+                    "description": "The private network you want to reach.",
+                    "$ref": "#/components/schemas/ipBlock"
+                  }
+                },
+                "required": [
+                  "name",
+                  "network"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/horizonView.Task"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "horizonView:apiovh:customerNetwork/create",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/horizonView/{serviceName}/customerNetwork/{customerNetworkId}": {
+      "delete": {
+        "summary": "Delete this Customer Network",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "customerNetworkId",
+            "description": "Customer Network id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Domain of the service",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/horizonView.Task"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "horizonView:apiovh:customerNetwork/delete",
+            "required": true
+          }
+        ]
+      },
+      "get": {
+        "summary": "Get this object properties",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "customerNetworkId",
+            "description": "Customer Network id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Domain of the service",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/horizonView.CustomerNetwork"
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "horizonView:apiovh:customerNetwork/get",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/horizonView/{serviceName}/dedicatedHorizon": {
+      "get": {
+        "summary": "Get this object properties",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Domain of the service",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/horizonView.DedicatedHorizon"
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "horizonView:apiovh:dedicatedHorizon/get",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/horizonView/{serviceName}/dedicatedHorizon/customerUser": {
+      "get": {
+        "summary": "Account to access to your pool",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Domain of the service",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "horizonView:apiovh:dedicatedHorizon/customerUser/get",
+            "required": true
+          }
+        ],
+        "x-expanded-response": "HorizonViewCustomerUser"
+      },
+      "post": {
+        "summary": "Create a new customer user ",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Domain of the service",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "description": "Email for your new user in Active diRectory."
+                  },
+                  "password": {
+                    "type": "string",
+                    "description": "New password for this Horizon View user. It must fits your HaaS password policy. If this field is empty, a random password will be generated and sent to your  email.",
+                    "format": "password"
+                  },
+                  "username": {
+                    "type": "string",
+                    "description": "Username for your new user in Active Directory."
+                  }
+                },
+                "required": [
+                  "username"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/horizonView.Task"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "horizonView:apiovh:dedicatedHorizon/customerUser/create",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/horizonView/{serviceName}/dedicatedHorizon/customerUser/{username}": {
+      "delete": {
+        "summary": "Delete this Customer User",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Domain of the service",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "username",
+            "description": "Customer username of your HaaS User",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/horizonView.Task"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "horizonView:apiovh:dedicatedHorizon/customerUser/delete",
+            "required": true
+          }
+        ]
+      },
+      "get": {
+        "summary": "Get this object properties",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Domain of the service",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "username",
+            "description": "Customer username of your HaaS User",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/horizonView.CustomerUser"
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "horizonView:apiovh:dedicatedHorizon/customerUser/get",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/horizonView/{serviceName}/dedicatedHorizon/customerUser/{username}/changePassword": {
+      "post": {
+        "summary": "Change Horizon View Customer  user password",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Domain of the service",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "username",
+            "description": "Customer username of your HaaS User",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "password": {
+                    "type": "string",
+                    "description": "New password for this Horizon View user. It must fits your HaaS password policy. If this field is empty, a random password will be generated and sent to you by email.",
+                    "format": "password"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/horizonView.Task"
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "horizonView:apiovh:dedicatedHorizon/customerUser/changePassword",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/horizonView/{serviceName}/dedicatedHorizon/disableStorageAccelerator": {
+      "post": {
+        "summary": "Disable the View Storage Accelerator option on VCenter",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Domain of the service",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/horizonView.Task"
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "horizonView:apiovh:dedicatedHorizon/disableStorageAccelerator",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/horizonView/{serviceName}/dedicatedHorizon/enableStorageAccelerator": {
+      "post": {
+        "summary": "Enable the View Storage Accelerator option on VCenter",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Domain of the service",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/horizonView.Task"
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "horizonView:apiovh:dedicatedHorizon/enableStorageAccelerator",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/horizonView/{serviceName}/dedicatedHorizon/task": {
+      "get": {
+        "summary": "Tasks associated with this Dedicated Horizon",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Domain of the service",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "state",
+            "description": "Filter the value of state property (=)",
+            "schema": {
+              "$ref": "#/components/schemas/horizonView.TaskStateEnum"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "horizonView:apiovh:dedicatedHorizon/task/get",
+            "required": true
+          }
+        ],
+        "x-expanded-response": "HorizonViewTask"
+      }
+    },
+    "/horizonView/{serviceName}/dedicatedHorizon/task/{taskId}": {
+      "get": {
+        "summary": "Get this object properties",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Domain of the service",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "taskId",
+            "description": "Task id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/horizonView.Task"
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "horizonView:apiovh:dedicatedHorizon/task/get",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/horizonView/{serviceName}/dedicatedHorizon/user": {
+      "get": {
+        "summary": "Get this object properties",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Domain of the service",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/horizonView.User"
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "horizonView:apiovh:dedicatedHorizon/user/get",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/horizonView/{serviceName}/dedicatedHorizon/user/changePassword": {
+      "post": {
+        "summary": "Change Horizon View user password",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Domain of the service",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "password": {
+                    "type": "string",
+                    "description": "New password for this Horizon View user. It must fits your HaaS password policy. If this field is empty, a random password will be generated and sent to you by email.",
+                    "format": "password"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/horizonView.Task"
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "horizonView:apiovh:dedicatedHorizon/user/changePassword",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/horizonView/{serviceName}/dedicatedHorizon/user/changeProperties": {
+      "post": {
+        "summary": "Change horizon view user properties",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Domain of the service",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "description": "Change email of your admin user"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/horizonView.Task"
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "horizonView:apiovh:dedicatedHorizon/user/changeProperties",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/horizonView/{serviceName}/domainTrust": {
+      "get": {
+        "summary": "List all Active Directories linked to your CDI Active Directory",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Domain of the service",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "horizonView:apiovh:domainTrust/get",
+            "required": true
+          }
+        ],
+        "x-expanded-response": "HorizonViewDomainTrust"
+      },
+      "post": {
+        "summary": "Link your Active Directory to your CDI Active Directory",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Domain of the service",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "activeDirectoryIP": {
+                    "description": "IP of your Active Directory",
+                    "$ref": "#/components/schemas/ip"
+                  },
+                  "dns1": {
+                    "description": "IP of your first DNS",
+                    "$ref": "#/components/schemas/ip"
+                  },
+                  "dns2": {
+                    "description": "IP of your second DNS",
+                    "$ref": "#/components/schemas/ip"
+                  },
+                  "domain": {
+                    "type": "string",
+                    "description": "Domain of your active directory (for example domain.local)"
+                  }
+                },
+                "required": [
+                  "activeDirectoryIP",
+                  "domain"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/horizonView.Task"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "horizonView:apiovh:domainTrust/create",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/horizonView/{serviceName}/domainTrust/{domainTrustId}": {
+      "get": {
+        "summary": "Get this object properties",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "domainTrustId",
+            "description": "Domain trust id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Domain of the service",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/horizonView.DomainTrust"
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "horizonView:apiovh:domainTrust/get",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/horizonView/{serviceName}/domainTrust/{domainTrustId}/addChildDomain": {
+      "post": {
+        "summary": "Add a child domain for this domain.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "domainTrustId",
+            "description": "Domain trust id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Domain of the service",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "activeDirectoryIP": {
+                    "description": "IP of your Active Directory",
+                    "$ref": "#/components/schemas/ipv4"
+                  },
+                  "domain": {
+                    "type": "string",
+                    "description": "Name of your private domain"
+                  },
+                  "passphrase": {
+                    "type": "string",
+                    "description": "Shared passphrase to create the Active Directory trust",
+                    "format": "password"
+                  },
+                  "serviceAccountPassword": {
+                    "type": "string",
+                    "description": "Password of the horizonUI service account",
+                    "format": "password"
+                  }
+                },
+                "required": [
+                  "activeDirectoryIP",
+                  "domain",
+                  "passphrase",
+                  "serviceAccountPassword"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/horizonView.Task"
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "horizonView:apiovh:domainTrust/addChildDomain",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/horizonView/{serviceName}/domainTrust/{domainTrustId}/addDomainController": {
+      "post": {
+        "summary": "Add a Domain Controller for this domain.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "domainTrustId",
+            "description": "Domain trust id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Domain of the service",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "domain": {
+                    "type": "string",
+                    "description": "Name of your Domain Controller (example : domain.local)"
+                  },
+                  "domainControllerIp": {
+                    "description": "IP of your Domain Controller",
+                    "$ref": "#/components/schemas/ip"
+                  }
+                },
+                "required": [
+                  "domain",
+                  "domainControllerIp"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/horizonView.Task"
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "horizonView:apiovh:domainTrust/addDomainController",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/horizonView/{serviceName}/domainTrust/{domainTrustId}/addDomainUserOnComposer": {
+      "post": {
+        "summary": "Add a domain user to add your desktop in your Active Directory",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "domainTrustId",
+            "description": "Domain trust id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Domain of the service",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "domain": {
+                    "type": "string",
+                    "description": "Name of your Domain (example : domain.local)"
+                  },
+                  "password": {
+                    "type": "string",
+                    "description": "Password of the user",
+                    "format": "password"
+                  },
+                  "username": {
+                    "type": "string",
+                    "description": "Name of the User who is going to add the Desktop in your Active Directory"
+                  }
+                },
+                "required": [
+                  "domain",
+                  "password",
+                  "username"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/horizonView.Task"
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "horizonView:apiovh:domainTrust/addDomainUserOnComposer",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/horizonView/{serviceName}/domainTrust/{domainTrustId}/createTrust": {
+      "post": {
+        "summary": "Change Horizon View user password",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "domainTrustId",
+            "description": "Domain trust id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Domain of the service",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "passphrase": {
+                    "type": "string",
+                    "description": "Shared passphrase to create the Active Directory trust",
+                    "format": "password"
+                  },
+                  "serviceAccountPassword": {
+                    "type": "string",
+                    "description": "Password of the horizonUI service account",
+                    "format": "password"
+                  }
+                },
+                "required": [
+                  "passphrase",
+                  "serviceAccountPassword"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/horizonView.Task"
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "horizonView:apiovh:domainTrust/createTrust",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/horizonView/{serviceName}/serviceInfos": {
+      "get": {
+        "summary": "Get service information",
+        "description": "Get service information. Returns the status, creation and expiration dates, contacts and renewal settings of the service.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Domain of the service",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/services.Service"
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "horizonView:apiovh:serviceInfos/get",
+            "required": true
+          }
+        ]
+      },
+      "put": {
+        "summary": "Update service information",
+        "description": "Update service information. Updates the renewal settings of the service: automatic renewal, period, or deletion at expiration.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Domain of the service",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/services.Service"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "horizonView:apiovh:serviceInfos/edit",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/horizonView/{serviceName}/terminate": {
+      "post": {
+        "summary": "Request service termination",
+        "description": "Request service termination. Starts the termination of the service. The admin contact receives a token by email, to confirm with the `confirmTermination` call.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Domain of the service",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "horizonView:apiovh:terminate",
+            "required": true
+          }
+        ]
+      }
+    }
+  }
+}

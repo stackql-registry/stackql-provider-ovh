@@ -1,0 +1,177 @@
+--- 
+title: line_last_registrations
+hide_title: false
+hide_table_of_contents: false
+keywords:
+  - line_last_registrations
+  - telephony
+  - ovh
+  - infrastructure-as-code
+  - configuration-as-data
+  - cloud inventory
+description: Query, deploy and manage ovh resources using SQL
+custom_edit_url: null
+image: /img/stackql-ovh-provider-featured-image.png
+---
+
+import CopyableCode from '@site/src/components/CopyableCode/CopyableCode';
+import CodeBlock from '@theme/CodeBlock';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+Creates, updates, deletes, gets or lists a <code>line_last_registrations</code> resource.
+
+## Overview
+<table><tbody>
+<tr><td><b>Name</b></td><td><CopyableCode code="line_last_registrations" /></td></tr>
+<tr><td><b>Type</b></td><td>Resource</td></tr>
+<tr><td><b>Id</b></td><td><CopyableCode code="ovh.telephony.line_last_registrations" /></td></tr>
+</tbody></table>
+
+## Fields
+
+The following fields are returned by `SELECT` queries:
+
+<Tabs
+    defaultValue="list"
+    values={[
+        { label: 'list', value: 'list' }
+    ]}
+>
+<TabItem value="list">
+
+Informations about a SIP registration (i.e. IP, port, User-Agent...)
+
+<table>
+<thead>
+    <tr>
+    <th>Name</th>
+    <th>Datatype</th>
+    <th>Description</th>
+    </tr>
+</thead>
+<tbody>
+<tr>
+    <td><CopyableCode code="datetime" /></td>
+    <td><code>string (date-time)</code></td>
+    <td>SIP registration's date</td>
+</tr>
+<tr>
+    <td><CopyableCode code="domain" /></td>
+    <td><code>string</code></td>
+    <td>SIP registration's domain</td>
+</tr>
+<tr>
+    <td><CopyableCode code="ip" /></td>
+    <td><code>string (ipv4)</code></td>
+    <td>SIP registration's IP (example: 192.0.2.0)</td>
+</tr>
+<tr>
+    <td><CopyableCode code="local_ip" /></td>
+    <td><code>string (ipv4)</code></td>
+    <td>SIP registration's local device IP (example: 192.0.2.0) (wire: localIp)</td>
+</tr>
+<tr>
+    <td><CopyableCode code="local_port" /></td>
+    <td><code>integer</code></td>
+    <td>SIP registration's local device port (wire: localPort)</td>
+</tr>
+<tr>
+    <td><CopyableCode code="port" /></td>
+    <td><code>integer</code></td>
+    <td>SIP registration's port</td>
+</tr>
+<tr>
+    <td><CopyableCode code="user_agent" /></td>
+    <td><code>string</code></td>
+    <td>SIP registration's User-Agent (wire: userAgent)</td>
+</tr>
+</tbody>
+</table>
+</TabItem>
+</Tabs>
+
+## Methods
+
+The following methods are available for this resource:
+
+<table>
+<thead>
+    <tr>
+    <th>Name</th>
+    <th>Accessible by</th>
+    <th>Required Params</th>
+    <th>Optional Params</th>
+    <th>Description</th>
+    </tr>
+</thead>
+<tbody>
+<tr>
+    <td><a href="#list"><CopyableCode code="list" /></a></td>
+    <td><CopyableCode code="select" /></td>
+    <td><a href="#parameter-billing_account"><code>billing_account</code></a>, <a href="#parameter-service_name"><code>service_name</code></a></td>
+    <td></td>
+    <td>List last registrations</td>
+</tr>
+</tbody>
+</table>
+
+## Parameters
+
+Parameters can be passed in the `WHERE` clause of a query. Check the [Methods](#methods) section to see which parameters are required or optional for each operation.
+
+<table>
+<thead>
+    <tr>
+    <th>Name</th>
+    <th>Datatype</th>
+    <th>Description</th>
+    </tr>
+</thead>
+<tbody>
+<tr id="parameter-api_host">
+    <td><CopyableCode code="api_host" /></td>
+    <td><code>string</code></td>
+    <td>The OVHcloud API host. Selected by OVH_ENDPOINT (ovh-eu, ovh-ca or ovh-us; default ovh-eu). (default: api.eu.ovhcloud.com, x-stackQL-envVarSelector: &#123;"envVar":"OVH_ENDPOINT","default":"ovh-eu","values":&#123;"ovh-eu":"api.eu.ovhcloud.com","ovh-ca":"api.ca.ovhcloud.com","ovh-us":"api.us.ovhcloud.com"&#125;&#125;)</td>
+</tr>
+<tr id="parameter-billing_account">
+    <td><CopyableCode code="billing_account" /></td>
+    <td><code>string</code></td>
+    <td>The name of your billingAccount (wire: billingAccount)</td>
+</tr>
+<tr id="parameter-service_name">
+    <td><CopyableCode code="service_name" /></td>
+    <td><code>string</code></td>
+    <td> (wire: serviceName)</td>
+</tr>
+</tbody>
+</table>
+
+## `SELECT` examples
+
+<Tabs
+    defaultValue="list"
+    values={[
+        { label: 'list', value: 'list' }
+    ]}
+>
+<TabItem value="list">
+
+List last registrations
+
+```sql
+SELECT
+datetime,
+domain,
+ip,
+local_ip,
+local_port,
+port,
+user_agent
+FROM ovh.telephony.line_last_registrations
+WHERE billing_account = '{{ billing_account }}' -- required
+AND service_name = '{{ service_name }}' -- required
+;
+```
+</TabItem>
+</Tabs>

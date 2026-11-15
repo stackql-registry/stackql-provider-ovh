@@ -1,44 +1,49 @@
 #!/usr/bin/env node
 
-// Splits the pinned spec into per-service StackQL service specs.
+// Splits the pinned OVHcloud family documents into per-service StackQL
+// service specs under provider-dev/source.
 //
-// The service for each path comes from the ordered path rules in
-// provider-dev/config/service_names.json (first match wins; a path that
-// matches no rule FAILS the run without writing - add a rule). A rule with
-// "excluded": true classifies the path for the inventory but does not emit
-// the service (a service whose every operation is skip-coded fails the
-// meta-route walk, so it must not ship).
+// OVHcloud publishes one OpenAPI document per API family and version; each
+// pinned document (provider-dev/downloaded/<version>/<family>.json) is split
+// on its own with provider-utils split(), so components are pruned to what a
+// service references and two families never share (or collide on) a schema
+// name. Most families become one service; the two Public Cloud families are
+// sub-split by product.
 //
-// provider-utils split() cleans its output dir on every call, so the spec is
-// split into a temp dir and the requested service specs are copied into
-// --output-dir (all services by default, or a --services subset).
+// The service for each path comes from the ordered rules in
+// provider-dev/config/service_names.json, matched against the qualified path
+// (/v1/... or /v2/...); first match wins; a path that matches no rule FAILS
+// the run without writing - add a rule. A rule with "excluded": true
+// classifies the path for the inventory but does not emit the service.
 //
-// When SCOPE_PREFIX is set in lib/spec_helpers.mjs (an API whose paths mostly
-// share one scoping prefix such as /v1/organizations/{orgId}), every service
-// spec is rebased onto the server template in provider-dev/config/servers.json:
-// paths lose the prefix and its path parameter, and the server variable
-// carries x-stackQL-envVar so stackql resolves it from the environment. Paths
-// outside the prefix (ROOT_PATHS) keep their full key and are pinned back to
-// the bare API base by post_process.mjs (normalize strips path-level servers).
+// What the split does to each service document:
+//   - operationIds: the vendor leaves most v1 operations without one;
+//     a deterministic id is synthesised from the verb and qualified path
+//     (provider-utils generate and the bare-array wrap both key on it).
+//   - servers: the server template of the service's kind from
+//     provider-dev/config/servers.json. Every template carries the api_host
+//     variable (x-stackQL-envVarSelector on OVH_ENDPOINT).
+//   - Public Cloud project scoping: paths under the scope prefix
+//     (/v1/cloud/project/{serviceName}, /v2/publicCloud/project/{projectId})
+//     lose the prefix and its path parameter; the project is the server
+//     variable (x-stackQL-envVar OVH_CLOUD_PROJECT_SERVICE). Paths of a
+//     scoped service outside the prefix ("root paths") keep their key and
+//     are marked x-stackQL-serverKind, which post_process.mjs turns into a
+//     path-level servers override (normalize strips path-level servers).
 //
 // Usage:
-//   node bin/split.mjs --provider-name <name> \
-//     [--api-doc provider-dev/downloaded/<spec>] \
-//     [--output-dir provider-dev/source] \
-//     [--services a,b,c] [--overwrite] [--verbose]
+//   node bin/split.mjs [--output-dir provider-dev/source] [--services a,b,c]
+//                      [--overwrite] [--verbose]
 
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import yaml from 'js-yaml';
 import { providerdev } from '@stackql/provider-utils';
 import {
-  PROVIDER_NAME, SPEC_FILE, SCOPE_PREFIX, ROOT_PATHS,
-  makeServiceResolver, loadSpec, rebaseScopedPaths
+  PROVIDER_NAME, PROVIDER_TITLE, SOURCE_DIR, HTTP_VERBS, SCOPES,
+  makeServiceResolver, loadServers, loadPinnedDocs, qualify, synthesizeOperationId, servicePathKey
 } from '../provider-dev/scripts/lib/spec_helpers.mjs';
-
-const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 const args = process.argv.slice(2);
 const getArg = (flag) => {
@@ -47,19 +52,20 @@ const getArg = (flag) => {
 };
 
 const providerName = getArg('--provider-name') || PROVIDER_NAME;
-const apiDoc = getArg('--api-doc') || path.join(repoRoot, 'provider-dev', 'downloaded', SPEC_FILE);
-const outputDir = getArg('--output-dir') || path.join(repoRoot, 'provider-dev', 'source');
+const outputDir = getArg('--output-dir') ? path.resolve(getArg('--output-dir')) : SOURCE_DIR;
 const servicesFilter = getArg('--services') ? getArg('--services').split(',').map((s) => s.trim()) : null;
 const overwrite = args.includes('--overwrite');
 const verbose = args.includes('--verbose');
 
-if (!fs.existsSync(apiDoc)) {
-  console.error(`Error: spec not found at ${apiDoc} (run npm run fetch-spec first)`);
+let pinned;
+try {
+  pinned = loadPinnedDocs();
+} catch (err) {
+  console.error(`Error: ${err.message}`);
   process.exit(1);
 }
-const { resolveService, excludedServices } = makeServiceResolver();
-const serversPath = path.join(repoRoot, 'provider-dev', 'config', 'servers.json');
-const servers = JSON.parse(fs.readFileSync(serversPath, 'utf8'));
+const { resolveRule, excludedServices, services: serviceMeta, scopeOfService } = makeServiceResolver();
+const servers = loadServers();
 
 // Prepare the output directory, preserving non-spec files (e.g. .gitkeep)
 fs.mkdirSync(outputDir, { recursive: true });
@@ -69,72 +75,139 @@ if (existing.length > 0 && !overwrite) {
   process.exit(1);
 }
 
-// provider-utils split() accepts a JSON or YAML document; load through the
-// shared helper so a YAML upstream is handled the same way everywhere.
-loadSpec(apiDoc); // fail early on an unreadable document
-
-const unmapped = new Set();
-const svcDiscriminatorFn = (pathKey) => {
-  const service = resolveService(pathKey);
-  if (!service) {
-    unmapped.add(pathKey);
-    return 'unmapped_service';
-  }
-  return service;
+// provider-utils split() logs every hundred operations; keep the run readable
+const quiet = (fn) => async (...a) => {
+  if (verbose) return fn(...a);
+  const { log, info } = console;
+  console.log = () => {}; console.info = () => {};
+  const write = process.stdout.write.bind(process.stdout);
+  process.stdout.write = () => true;
+  try { return await fn(...a); } finally { console.log = log; console.info = info; process.stdout.write = write; }
 };
+const splitQuiet = quiet(providerdev.split);
 
-const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'stackql-split-'));
-const written = [];
-const skipped = [];
+const errors = [];
+const unmapped = new Set();
+const outputs = new Map(); // service -> { doc, source, counts }
+const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'stackql-split-'));
+
 try {
-  const result = await providerdev.split({
-    apiDoc,
-    providerName,
-    outputDir: tmpDir,
-    svcDiscriminator: 'function',
-    svcDiscriminatorFn,
-    overwrite: true,
-    verbose,
-    svcNameOverrides: {}
-  });
-  if (!result) {
-    console.error('Error: split failed');
-    process.exit(1);
-  }
-  if (unmapped.size > 0) {
-    console.error('Error: paths with no service rule in provider-dev/config/service_names.json:');
-    for (const t of [...unmapped].sort()) console.error(`  ${t}`);
-    process.exit(1);
-  }
+  for (const { key, version, family, doc } of pinned) {
+    const pathKeys = Object.keys(doc.paths || {});
+    if (pathKeys.length === 0) continue; // a family that declares schemas only (v1 /products)
 
-  // Clear previous service specs only after the split and config validated
-  for (const f of existing) {
-    fs.rmSync(path.join(outputDir, f));
-  }
-  for (const outFile of fs.readdirSync(tmpDir)) {
-    const service = outFile.replace(/\.(yaml|yml|json)$/, '');
-    if (excludedServices.has(service)) { skipped.push(service); continue; }
-    if (servicesFilter && !servicesFilter.includes(service)) continue;
-    const doc = yaml.load(fs.readFileSync(path.join(tmpDir, outFile), 'utf8'));
-    let note = '';
-    if (SCOPE_PREFIX) {
-      const { rebased, kept } = rebaseScopedPaths(doc, servers);
-      note = ` (${rebased} paths rebased under ${SCOPE_PREFIX}${kept ? `, ${kept} root paths kept` : ''})`;
-    } else {
-      // no scoping prefix: every service uses the fixed server list verbatim
-      doc.servers = JSON.parse(JSON.stringify(servers));
+    // operationIds, before the split copies operations into services
+    let synthesized = 0;
+    const seenIds = new Set();
+    for (const pathKey of pathKeys) {
+      for (const verb of HTTP_VERBS) {
+        const op = doc.paths[pathKey][verb];
+        if (!op) continue;
+        if (!op.operationId) { op.operationId = synthesizeOperationId(verb, qualify(version, pathKey)); synthesized++; }
+        if (seenIds.has(op.operationId)) errors.push(`${key}: duplicate operationId ${op.operationId}`);
+        seenIds.add(op.operationId);
+      }
     }
-    fs.writeFileSync(path.join(outputDir, outFile), yaml.dump(doc, { lineWidth: -1, noRefs: true }));
-    written.push(`${outFile}${note}`);
+
+    const tmpDoc = path.join(tmpRoot, `${key}.json`);
+    const tmpOut = path.join(tmpRoot, `${key}.out`);
+    fs.writeFileSync(tmpDoc, JSON.stringify(doc));
+    const svcDiscriminatorFn = (pathKey) => {
+      const rule = resolveRule(qualify(version, pathKey));
+      if (!rule) {
+        unmapped.add(qualify(version, pathKey));
+        return 'unmapped_service';
+      }
+      return rule.service;
+    };
+    const ok = await splitQuiet({
+      apiDoc: tmpDoc,
+      providerName,
+      outputDir: tmpOut,
+      svcDiscriminator: 'function',
+      svcDiscriminatorFn,
+      overwrite: true,
+      verbose: false,
+      svcNameOverrides: {}
+    });
+    if (!ok) { errors.push(`${key}: provider-utils split failed`); continue; }
+
+    for (const outFile of fs.readdirSync(tmpOut).sort()) {
+      const service = outFile.replace(/\.(yaml|yml|json)$/, '');
+      if (service === 'unmapped_service') continue;
+      if (outputs.has(service)) {
+        errors.push(`service ${service} is produced by two family documents (${outputs.get(service).source} and ${key}) - a service draws from one document`);
+        continue;
+      }
+      const svcDoc = yaml.load(fs.readFileSync(path.join(tmpOut, outFile), 'utf8'));
+      const scopeName = scopeOfService[service] || null;
+      const scope = scopeName ? SCOPES[scopeName] : null;
+      const kind = scopeName || version;
+      if (!servers[kind]) { errors.push(`service ${service}: no server kind "${kind}" in provider-dev/config/servers.json`); continue; }
+
+      // rebase the path keys onto the service's server
+      const newPaths = {};
+      let rebased = 0, roots = 0;
+      for (const [pathKey, pathItem] of Object.entries(svcDoc.paths || {})) {
+        const { key: newKey, root } = servicePathKey(qualify(version, pathKey), scopeName);
+        if (newKey in newPaths) { errors.push(`service ${service}: rebase collision on ${newKey}`); continue; }
+        if (scope && !root) {
+          const dropScopeParam = (params) => (params || []).filter((p) => !(p && p.in === 'path' && p.name === scope.param));
+          if (pathItem.parameters) pathItem.parameters = dropScopeParam(pathItem.parameters);
+          for (const verb of HTTP_VERBS) {
+            if (pathItem[verb] && pathItem[verb].parameters) pathItem[verb].parameters = dropScopeParam(pathItem[verb].parameters);
+          }
+          rebased++;
+        } else if (scope && root) {
+          // a root path of a scoped service: pinned to the unscoped server of
+          // its version by post_process.mjs
+          pathItem['x-stackQL-serverKind'] = version;
+          roots++;
+        }
+        newPaths[newKey] = pathItem;
+      }
+      svcDoc.paths = newPaths;
+      svcDoc.servers = JSON.parse(JSON.stringify(servers[kind]));
+      const meta = serviceMeta[service];
+      if (!meta) { errors.push(`service ${service}: no title/description in provider-dev/config/service_names.json "services"`); continue; }
+      svcDoc.info = {
+        title: `${PROVIDER_TITLE} ${meta.title} API`,
+        description: meta.description,
+        version: doc.info?.version || '1.0',
+        'x-stackQL-apiVersion': version,
+        'x-stackQL-specFamily': `${version}${family}`
+      };
+      delete svcDoc.tags;
+      delete svcDoc.security;
+      outputs.set(service, { doc: svcDoc, source: key, paths: Object.keys(newPaths).length, rebased, roots, synthesized, kind });
+    }
   }
 } finally {
-  fs.rmSync(tmpDir, { recursive: true, force: true });
+  fs.rmSync(tmpRoot, { recursive: true, force: true });
 }
 
-console.log(`Split completed: ${written.length} service specs written to ${outputDir}`);
-for (const f of written.sort()) console.log(`  ${f}`);
-if (skipped.length) console.log(`Excluded services (every operation skip-coded, not emitted): ${skipped.sort().join(', ')}`);
-if (SCOPE_PREFIX) {
-  const v = Object.entries(servers[0].variables || {}).map(([k, x]) => `${k} via x-stackQL-envVar ${x['x-stackQL-envVar']}`).join(', ');
-  console.log(`Server template: ${servers[0].url} (${v}; root paths ${ROOT_PATHS.join(', ') || '-'} pinned to the API base in post_process)`);
+if (unmapped.size > 0) {
+  errors.push('paths with no service rule in provider-dev/config/service_names.json:');
+  for (const t of [...unmapped].sort()) errors.push(`  ${t}`);
 }
+if (errors.length > 0) {
+  console.error(`FAILED with ${errors.length} error(s), nothing written:`);
+  for (const e of errors) console.error(`  ${e}`);
+  process.exit(1);
+}
+
+// Clear previous service specs only after every document split and validated
+for (const f of existing) fs.rmSync(path.join(outputDir, f));
+const written = [];
+const skipped = [];
+for (const service of [...outputs.keys()].sort()) {
+  if (excludedServices.has(service)) { skipped.push(service); continue; }
+  if (servicesFilter && !servicesFilter.includes(service)) continue;
+  const o = outputs.get(service);
+  fs.writeFileSync(path.join(outputDir, `${service}.yaml`), yaml.dump(o.doc, { lineWidth: -1, noRefs: true }));
+  written.push(`${service}.yaml  <- ${o.source}  (${o.paths} paths, server ${o.kind}${o.rebased ? `, ${o.rebased} rebased` : ''}${o.roots ? `, ${o.roots} root paths` : ''})`);
+}
+
+console.log(`Split completed: ${written.length} service specs written to ${path.relative(process.cwd(), outputDir)} from ${pinned.length} pinned documents`);
+for (const f of written) console.log(`  ${f}`);
+if (skipped.length) console.log(`Excluded services (every operation skip-coded, not emitted): ${skipped.sort().join(', ')}`);

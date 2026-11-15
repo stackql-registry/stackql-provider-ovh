@@ -1,4 +1,1002 @@
 {
-  "description": "Service split for the myprovider provider. Ordered path rules (JavaScript regex against the full path key), first match wins; every operation path must match a rule or bin/split.mjs and build_inventory.mjs fail without writing. Aim for 8-20 services named for what a user would look for (projects, config, network, secrets, ...), not the vendor's controller names. A rule with \"excluded\": true classifies the path for the inventory but the service is never emitted (use it for a service whose every operation is skip-coded).",
-  "rules": []
+  "description": "Service split for the ovh provider. Ordered rules (JavaScript regex against the qualified path: the vendor path prefixed with the API version, e.g. /v1/cloud/project/{serviceName}/instance), first match wins; every operation path must match a rule or bin/split.mjs and build_inventory.mjs fail without writing. Each rule names the service, the naming prefix stripped before resource names are derived (\"prefix\"), the resource the prefix itself maps to (\"root\", needed only when a path equals the prefix or the prefix plus one parameter) and, for Public Cloud project paths, the scope (\"scope\", a key of SCOPES in lib/spec_helpers.mjs and of servers.json) whose server template carries the project variable. One service per API family; the two Public Cloud families are sub-split by product. \"services\" carries the title and description written into each service document. A rule with \"excluded\": true classifies the path for the inventory but the service is never emitted.",
+  "rules": [
+    {
+      "pathRegex": "^/v1/cloud/project/\\{serviceName\\}/(database)(/|$)",
+      "service": "cloud_database",
+      "prefix": "/v1/cloud/project/{serviceName}/database",
+      "scope": "cloud_project"
+    },
+    {
+      "pathRegex": "^/v1/cloud/project/\\{serviceName\\}/(ai)(/|$)",
+      "service": "cloud_ai",
+      "prefix": "/v1/cloud/project/{serviceName}/ai",
+      "scope": "cloud_project"
+    },
+    {
+      "pathRegex": "^/v1/cloud/project/\\{serviceName\\}/(kube)(/|$)",
+      "service": "cloud_kube",
+      "prefix": "/v1/cloud/project/{serviceName}/kube",
+      "scope": "cloud_project",
+      "root": "clusters"
+    },
+    {
+      "pathRegex": "^/v1/cloud/project/\\{serviceName\\}/(capabilities/kube)(/|$)",
+      "service": "cloud_kube",
+      "prefix": "/v1/cloud/project/{serviceName}",
+      "scope": "cloud_project"
+    },
+    {
+      "pathRegex": "^/v1/cloud/project/\\{serviceName\\}/(containerRegistry)(/|$)",
+      "service": "cloud_container_registry",
+      "prefix": "/v1/cloud/project/{serviceName}/containerRegistry",
+      "scope": "cloud_project",
+      "root": "registries"
+    },
+    {
+      "pathRegex": "^/v1/cloud/project/\\{serviceName\\}/(capabilities/containerRegistry)(/|$)",
+      "service": "cloud_container_registry",
+      "prefix": "/v1/cloud/project/{serviceName}",
+      "scope": "cloud_project"
+    },
+    {
+      "pathRegex": "^/v1/cloud/project/\\{serviceName\\}/(network|ip|loadbalancer|capabilities/loadbalancer)(/|$)",
+      "service": "cloud_network",
+      "prefix": "/v1/cloud/project/{serviceName}",
+      "scope": "cloud_project"
+    },
+    {
+      "pathRegex": "^/v1/cloud/project/\\{serviceName\\}/region/\\{regionName\\}/(network|gateway|floatingip|loadbalancing)(/|$)",
+      "service": "cloud_network",
+      "prefix": "/v1/cloud/project/{serviceName}",
+      "scope": "cloud_project"
+    },
+    {
+      "pathRegex": "^/v1/cloud/project/\\{serviceName\\}/(storage|volume)(/|$)",
+      "service": "cloud_storage",
+      "prefix": "/v1/cloud/project/{serviceName}",
+      "scope": "cloud_project"
+    },
+    {
+      "pathRegex": "^/v1/cloud/project/\\{serviceName\\}/region/\\{regionName\\}/(storage|coldArchive|share|shareNetwork|volume|volumeBackup|volumeType)(/|$)",
+      "service": "cloud_storage",
+      "prefix": "/v1/cloud/project/{serviceName}",
+      "scope": "cloud_project"
+    },
+    {
+      "pathRegex": "^/v1/cloud/project/\\{serviceName\\}(/|$)",
+      "service": "cloud",
+      "prefix": "/v1/cloud/project/{serviceName}",
+      "scope": "cloud_project",
+      "root": "projects"
+    },
+    {
+      "pathRegex": "^/v1/cloud(/|$)",
+      "service": "cloud",
+      "prefix": "/v1/cloud"
+    },
+    {
+      "pathRegex": "^/v1/allDom(/|$)",
+      "service": "all_dom",
+      "prefix": "/v1/allDom",
+      "root": "all_doms"
+    },
+    {
+      "pathRegex": "^/v1/auth(/|$)",
+      "service": "auth",
+      "prefix": "/v1/auth"
+    },
+    {
+      "pathRegex": "^/v1/cdn/dedicated(/|$)",
+      "service": "cdn_dedicated",
+      "prefix": "/v1/cdn/dedicated",
+      "root": "cdns"
+    },
+    {
+      "pathRegex": "^/v1/cluster/hadoop(/|$)",
+      "service": "cluster_hadoop",
+      "prefix": "/v1/cluster/hadoop",
+      "root": "clusters"
+    },
+    {
+      "pathRegex": "^/v1/connectivity(/|$)",
+      "service": "connectivity",
+      "prefix": "/v1/connectivity"
+    },
+    {
+      "pathRegex": "^/v1/contact(/|$)",
+      "service": "contact",
+      "prefix": "/v1/contact"
+    },
+    {
+      "pathRegex": "^/v1/dbaas/logs(/|$)",
+      "service": "dbaas_logs",
+      "prefix": "/v1/dbaas/logs",
+      "root": "services"
+    },
+    {
+      "pathRegex": "^/v1/dedicated/ceph(/|$)",
+      "service": "dedicated_ceph",
+      "prefix": "/v1/dedicated/ceph",
+      "root": "clusters"
+    },
+    {
+      "pathRegex": "^/v1/dedicated/cluster(/|$)",
+      "service": "dedicated_cluster",
+      "prefix": "/v1/dedicated/cluster",
+      "root": "clusters"
+    },
+    {
+      "pathRegex": "^/v1/dedicated/housing(/|$)",
+      "service": "dedicated_housing",
+      "prefix": "/v1/dedicated/housing",
+      "root": "housings"
+    },
+    {
+      "pathRegex": "^/v1/dedicated/installationTemplate(/|$)",
+      "service": "dedicated_installation_template",
+      "prefix": "/v1/dedicated/installationTemplate",
+      "root": "templates"
+    },
+    {
+      "pathRegex": "^/v1/dedicated/nasha(/|$)",
+      "service": "dedicated_nasha",
+      "prefix": "/v1/dedicated/nasha",
+      "root": "nashas"
+    },
+    {
+      "pathRegex": "^/v1/dedicated/server(/|$)",
+      "service": "dedicated_server",
+      "prefix": "/v1/dedicated/server",
+      "root": "servers"
+    },
+    {
+      "pathRegex": "^/v1/dedicatedCloud(/|$)",
+      "service": "dedicated_cloud",
+      "prefix": "/v1/dedicatedCloud",
+      "root": "dedicated_clouds"
+    },
+    {
+      "pathRegex": "^/v1/domain(/|$)",
+      "service": "domain",
+      "prefix": "/v1/domain",
+      "root": "domains"
+    },
+    {
+      "pathRegex": "^/v1/email/domain(/|$)",
+      "service": "email_domain",
+      "prefix": "/v1/email/domain",
+      "root": "domains"
+    },
+    {
+      "pathRegex": "^/v1/email/exchange(/|$)",
+      "service": "email_exchange",
+      "prefix": "/v1/email/exchange",
+      "root": "organizations"
+    },
+    {
+      "pathRegex": "^/v1/email/mxplan(/|$)",
+      "service": "email_mxplan",
+      "prefix": "/v1/email/mxplan",
+      "root": "services"
+    },
+    {
+      "pathRegex": "^/v1/email/pro(/|$)",
+      "service": "email_pro",
+      "prefix": "/v1/email/pro",
+      "root": "services"
+    },
+    {
+      "pathRegex": "^/v1/freefax(/|$)",
+      "service": "freefax",
+      "prefix": "/v1/freefax",
+      "root": "freefaxes"
+    },
+    {
+      "pathRegex": "^/v1/horizonView(/|$)",
+      "service": "horizon_view",
+      "prefix": "/v1/horizonView",
+      "root": "horizon_views"
+    },
+    {
+      "pathRegex": "^/v1/hosting/privateDatabase(/|$)",
+      "service": "hosting_private_database",
+      "prefix": "/v1/hosting/privateDatabase",
+      "root": "private_databases"
+    },
+    {
+      "pathRegex": "^/v1/hosting/web(/|$)",
+      "service": "hosting_web",
+      "prefix": "/v1/hosting/web",
+      "root": "hostings"
+    },
+    {
+      "pathRegex": "^/v1/ip(/|$)",
+      "service": "ip",
+      "prefix": "/v1/ip",
+      "root": "ips"
+    },
+    {
+      "pathRegex": "^/v1/ipLoadbalancing(/|$)",
+      "service": "ip_loadbalancing",
+      "prefix": "/v1/ipLoadbalancing",
+      "root": "loadbalancers"
+    },
+    {
+      "pathRegex": "^/v1/license/cloudLinux(/|$)",
+      "service": "license_cloud_linux",
+      "prefix": "/v1/license/cloudLinux",
+      "root": "licenses"
+    },
+    {
+      "pathRegex": "^/v1/license/cpanel(/|$)",
+      "service": "license_cpanel",
+      "prefix": "/v1/license/cpanel",
+      "root": "licenses"
+    },
+    {
+      "pathRegex": "^/v1/license/directadmin(/|$)",
+      "service": "license_directadmin",
+      "prefix": "/v1/license/directadmin",
+      "root": "licenses"
+    },
+    {
+      "pathRegex": "^/v1/license/hycu(/|$)",
+      "service": "license_hycu",
+      "prefix": "/v1/license/hycu",
+      "root": "licenses"
+    },
+    {
+      "pathRegex": "^/v1/license/office(/|$)",
+      "service": "license_office",
+      "prefix": "/v1/license/office",
+      "root": "licenses"
+    },
+    {
+      "pathRegex": "^/v1/license/officePrepaid(/|$)",
+      "service": "license_office_prepaid",
+      "prefix": "/v1/license/officePrepaid",
+      "root": "licenses"
+    },
+    {
+      "pathRegex": "^/v1/license/plesk(/|$)",
+      "service": "license_plesk",
+      "prefix": "/v1/license/plesk",
+      "root": "licenses"
+    },
+    {
+      "pathRegex": "^/v1/license/redhat(/|$)",
+      "service": "license_redhat",
+      "prefix": "/v1/license/redhat",
+      "root": "licenses"
+    },
+    {
+      "pathRegex": "^/v1/license/sqlserver(/|$)",
+      "service": "license_sqlserver",
+      "prefix": "/v1/license/sqlserver",
+      "root": "licenses"
+    },
+    {
+      "pathRegex": "^/v1/license/virtuozzo(/|$)",
+      "service": "license_virtuozzo",
+      "prefix": "/v1/license/virtuozzo",
+      "root": "licenses"
+    },
+    {
+      "pathRegex": "^/v1/license/windows(/|$)",
+      "service": "license_windows",
+      "prefix": "/v1/license/windows",
+      "root": "licenses"
+    },
+    {
+      "pathRegex": "^/v1/license/worklight(/|$)",
+      "service": "license_worklight",
+      "prefix": "/v1/license/worklight",
+      "root": "licenses"
+    },
+    {
+      "pathRegex": "^/v1/me(/|$)",
+      "service": "me",
+      "prefix": "/v1/me",
+      "root": "accounts"
+    },
+    {
+      "pathRegex": "^/v1/metrics(/|$)",
+      "service": "metrics",
+      "prefix": "/v1/metrics",
+      "root": "services"
+    },
+    {
+      "pathRegex": "^/v1/msServices(/|$)",
+      "service": "ms_services",
+      "prefix": "/v1/msServices",
+      "root": "services"
+    },
+    {
+      "pathRegex": "^/v1/newAccount(/|$)",
+      "service": "new_account",
+      "prefix": "/v1/newAccount",
+      "root": "accounts"
+    },
+    {
+      "pathRegex": "^/v1/nutanix(/|$)",
+      "service": "nutanix",
+      "prefix": "/v1/nutanix",
+      "root": "clusters"
+    },
+    {
+      "pathRegex": "^/v1/order(/|$)",
+      "service": "order",
+      "prefix": "/v1/order"
+    },
+    {
+      "pathRegex": "^/v1/overTheBox(/|$)",
+      "service": "over_the_box",
+      "prefix": "/v1/overTheBox",
+      "root": "services"
+    },
+    {
+      "pathRegex": "^/v1/ovhCloudConnect(/|$)",
+      "service": "ovh_cloud_connect",
+      "prefix": "/v1/ovhCloudConnect",
+      "root": "services"
+    },
+    {
+      "pathRegex": "^/v1/pack/siptrunk(/|$)",
+      "service": "pack_siptrunk",
+      "prefix": "/v1/pack/siptrunk",
+      "root": "packs"
+    },
+    {
+      "pathRegex": "^/v1/pack/xdsl(/|$)",
+      "service": "pack_xdsl",
+      "prefix": "/v1/pack/xdsl",
+      "root": "packs"
+    },
+    {
+      "pathRegex": "^/v1/partner(/|$)",
+      "service": "partner",
+      "prefix": "/v1/partner",
+      "root": "partners"
+    },
+    {
+      "pathRegex": "^/v1/price(/|$)",
+      "service": "price",
+      "prefix": "/v1/price"
+    },
+    {
+      "pathRegex": "^/v1/saas/csp2(/|$)",
+      "service": "saas_csp2",
+      "prefix": "/v1/saas/csp2",
+      "root": "services"
+    },
+    {
+      "pathRegex": "^/v1/secret(/|$)",
+      "service": "secret",
+      "prefix": "/v1/secret"
+    },
+    {
+      "pathRegex": "^/v1/service(/|$)",
+      "service": "service",
+      "prefix": "/v1/service",
+      "root": "services"
+    },
+    {
+      "pathRegex": "^/v1/services(/|$)",
+      "service": "services",
+      "prefix": "/v1/services",
+      "root": "services"
+    },
+    {
+      "pathRegex": "^/v1/sms(/|$)",
+      "service": "sms",
+      "prefix": "/v1/sms",
+      "root": "accounts"
+    },
+    {
+      "pathRegex": "^/v1/ssl(/|$)",
+      "service": "ssl",
+      "prefix": "/v1/ssl",
+      "root": "certificates"
+    },
+    {
+      "pathRegex": "^/v1/sslGateway(/|$)",
+      "service": "ssl_gateway",
+      "prefix": "/v1/sslGateway",
+      "root": "gateways"
+    },
+    {
+      "pathRegex": "^/v1/stack/mis(/|$)",
+      "service": "stack_mis",
+      "prefix": "/v1/stack/mis",
+      "root": "services"
+    },
+    {
+      "pathRegex": "^/v1/startup(/|$)",
+      "service": "startup",
+      "prefix": "/v1/startup",
+      "root": "startups"
+    },
+    {
+      "pathRegex": "^/v1/storage(/|$)",
+      "service": "storage",
+      "prefix": "/v1/storage"
+    },
+    {
+      "pathRegex": "^/v1/supply/mondialRelay(/|$)",
+      "service": "supply_mondial_relay",
+      "prefix": "/v1/supply/mondialRelay",
+      "root": "relay_points"
+    },
+    {
+      "pathRegex": "^/v1/support(/|$)",
+      "service": "support",
+      "prefix": "/v1/support"
+    },
+    {
+      "pathRegex": "^/v1/telephony(/|$)",
+      "service": "telephony",
+      "prefix": "/v1/telephony",
+      "root": "billing_accounts"
+    },
+    {
+      "pathRegex": "^/v1/veeam/veeamEnterprise(/|$)",
+      "service": "veeam_enterprise",
+      "prefix": "/v1/veeam/veeamEnterprise",
+      "root": "services"
+    },
+    {
+      "pathRegex": "^/v1/veeamCloudConnect(/|$)",
+      "service": "veeam_cloud_connect",
+      "prefix": "/v1/veeamCloudConnect",
+      "root": "services"
+    },
+    {
+      "pathRegex": "^/v1/vip(/|$)",
+      "service": "vip",
+      "prefix": "/v1/vip",
+      "root": "vips"
+    },
+    {
+      "pathRegex": "^/v1/vps(/|$)",
+      "service": "vps",
+      "prefix": "/v1/vps",
+      "root": "vps"
+    },
+    {
+      "pathRegex": "^/v1/vrack(/|$)",
+      "service": "vrack",
+      "prefix": "/v1/vrack",
+      "root": "vracks"
+    },
+    {
+      "pathRegex": "^/v1/xdsl(/|$)",
+      "service": "xdsl",
+      "prefix": "/v1/xdsl",
+      "root": "accesses"
+    },
+    {
+      "pathRegex": "^/v2/publicCloud/project/\\{projectId\\}/(managedAnalytics)(/|$)",
+      "service": "public_cloud_analytics",
+      "prefix": "/v2/publicCloud/project/{projectId}/managedAnalytics",
+      "scope": "public_cloud_project"
+    },
+    {
+      "pathRegex": "^/v2/publicCloud/project/\\{projectId\\}/(managedDatabase)(/|$)",
+      "service": "public_cloud_database",
+      "prefix": "/v2/publicCloud/project/{projectId}/managedDatabase",
+      "scope": "public_cloud_project"
+    },
+    {
+      "pathRegex": "^/v2/publicCloud/project/\\{projectId\\}/(storage)(/|$)",
+      "service": "public_cloud_storage",
+      "prefix": "/v2/publicCloud/project/{projectId}/storage",
+      "scope": "public_cloud_project"
+    },
+    {
+      "pathRegex": "^/v2/publicCloud/project/\\{projectId\\}/(managedKubernetes|rancher)(/|$)",
+      "service": "public_cloud_kubernetes",
+      "prefix": "/v2/publicCloud/project/{projectId}",
+      "scope": "public_cloud_project"
+    },
+    {
+      "pathRegex": "^/v2/publicCloud/project/\\{projectId\\}/(loadbalancer|publicIp|network|gateway|privateEndpoint|securityGroup)(/|$)",
+      "service": "public_cloud_network",
+      "prefix": "/v2/publicCloud/project/{projectId}",
+      "scope": "public_cloud_project"
+    },
+    {
+      "pathRegex": "^/v2/publicCloud/project/\\{projectId\\}(/|$)",
+      "service": "public_cloud",
+      "prefix": "/v2/publicCloud/project/{projectId}",
+      "scope": "public_cloud_project",
+      "root": "projects"
+    },
+    {
+      "pathRegex": "^/v2/publicCloud(/|$)",
+      "service": "public_cloud",
+      "prefix": "/v2/publicCloud"
+    },
+    {
+      "pathRegex": "^/v2/account(/|$)",
+      "service": "account",
+      "prefix": "/v2/account"
+    },
+    {
+      "pathRegex": "^/v2/backupServices(/|$)",
+      "service": "backup_services",
+      "prefix": "/v2/backupServices"
+    },
+    {
+      "pathRegex": "^/v2/commercialCatalog(/|$)",
+      "service": "commercial_catalog",
+      "prefix": "/v2/commercialCatalog"
+    },
+    {
+      "pathRegex": "^/v2/dedicated/server(/|$)",
+      "service": "dedicated_server_v2",
+      "prefix": "/v2/dedicated/server",
+      "root": "servers"
+    },
+    {
+      "pathRegex": "^/v2/domain(/|$)",
+      "service": "domain_v2",
+      "prefix": "/v2/domain"
+    },
+    {
+      "pathRegex": "^/v2/finops(/|$)",
+      "service": "finops",
+      "prefix": "/v2/finops"
+    },
+    {
+      "pathRegex": "^/v2/iam(/|$)",
+      "service": "iam",
+      "prefix": "/v2/iam"
+    },
+    {
+      "pathRegex": "^/v2/location(/|$)",
+      "service": "location",
+      "prefix": "/v2/location",
+      "root": "locations"
+    },
+    {
+      "pathRegex": "^/v2/managedCMS(/|$)",
+      "service": "managed_cms",
+      "prefix": "/v2/managedCMS"
+    },
+    {
+      "pathRegex": "^/v2/networkDefense(/|$)",
+      "service": "network_defense",
+      "prefix": "/v2/networkDefense"
+    },
+    {
+      "pathRegex": "^/v2/notification(/|$)",
+      "service": "notification",
+      "prefix": "/v2/notification"
+    },
+    {
+      "pathRegex": "^/v2/okms(/|$)",
+      "service": "okms",
+      "prefix": "/v2/okms"
+    },
+    {
+      "pathRegex": "^/v2/videocenter(/|$)",
+      "service": "videocenter",
+      "prefix": "/v2/videocenter"
+    },
+    {
+      "pathRegex": "^/v2/vmwareCloudDirector(/|$)",
+      "service": "vmware_cloud_director",
+      "prefix": "/v2/vmwareCloudDirector"
+    },
+    {
+      "pathRegex": "^/v2/vrackServices(/|$)",
+      "service": "vrack_services",
+      "prefix": "/v2/vrackServices"
+    },
+    {
+      "pathRegex": "^/v2/webhosting(/|$)",
+      "service": "webhosting",
+      "prefix": "/v2/webhosting"
+    },
+    {
+      "pathRegex": "^/v2/zimbra(/|$)",
+      "service": "zimbra",
+      "prefix": "/v2/zimbra"
+    }
+  ],
+  "services": {
+    "account": {
+      "title": "Account (v2)",
+      "description": "Account level API v2 resources."
+    },
+    "all_dom": {
+      "title": "AllDom",
+      "description": "AllDom domain name packs: packs, their domains and service information."
+    },
+    "auth": {
+      "title": "Authentication",
+      "description": "API authentication: credential requests, the current credential, API server time and logout."
+    },
+    "backup_services": {
+      "title": "Backup Services",
+      "description": "Backup Services: tenants, vaults, backup agents, policies and reference data."
+    },
+    "cdn_dedicated": {
+      "title": "CDN Infrastructure",
+      "description": "CDN Infrastructure services: domains, backends, cache rules, quotas, SSL and points of presence."
+    },
+    "cloud": {
+      "title": "Public Cloud",
+      "description": "Public Cloud projects and their core compute surface: projects, instances, flavors, images, SSH keys, regions, quotas, users, usage and billing, operations and project lifecycle actions."
+    },
+    "cloud_ai": {
+      "title": "Public Cloud AI",
+      "description": "AI and machine learning products of a Public Cloud project: AI Training jobs, AI Notebooks, AI Deploy apps, registries, tokens and capabilities."
+    },
+    "cloud_container_registry": {
+      "title": "Public Cloud Managed Private Registry",
+      "description": "Managed Private Registry for a Public Cloud project: registries, users, plans, IP restrictions and OIDC."
+    },
+    "cloud_database": {
+      "title": "Public Cloud Databases",
+      "description": "Managed databases for a Public Cloud project (MySQL, PostgreSQL, MongoDB, Valkey, Kafka, OpenSearch and others): clusters, users, backups, integrations and capabilities."
+    },
+    "cloud_kube": {
+      "title": "Public Cloud Managed Kubernetes",
+      "description": "Managed Kubernetes Service for a Public Cloud project: clusters, node pools, nodes, OIDC, IP restrictions and capabilities."
+    },
+    "cloud_network": {
+      "title": "Public Cloud Network",
+      "description": "Networking for a Public Cloud project: private networks and subnets, gateways, floating and failover IPs, and load balancers (Octavia load balancers, listeners, pools, health monitors)."
+    },
+    "cloud_storage": {
+      "title": "Public Cloud Storage",
+      "description": "Storage for a Public Cloud project: object storage containers (Swift and S3), cold archive, block storage volumes and their backups and snapshots, and file shares."
+    },
+    "cluster_hadoop": {
+      "title": "Hadoop Clusters",
+      "description": "Hadoop cluster services: nodes, roles, network ACLs, users and tasks."
+    },
+    "commercial_catalog": {
+      "title": "Commercial Catalog",
+      "description": "The commercial catalog of offers."
+    },
+    "connectivity": {
+      "title": "Connectivity",
+      "description": "Connectivity eligibility tests, maintenance and monitoring for network access offers."
+    },
+    "contact": {
+      "title": "Contact",
+      "description": "Contact forms."
+    },
+    "dbaas_logs": {
+      "title": "Logs Data Platform",
+      "description": "Logs Data Platform services: streams, dashboards, indices, aliases, inputs, roles, tokens and clusters."
+    },
+    "dedicated_ceph": {
+      "title": "Cloud Disk Array",
+      "description": "Cloud Disk Array (Ceph) clusters: pools, users, ACLs, CephFS and tasks."
+    },
+    "dedicated_cloud": {
+      "title": "Hosted Private Cloud",
+      "description": "Hosted Private Cloud (VMware on OVHcloud): datacenters, hosts, filers, users, security options, backup, disaster recovery and tasks."
+    },
+    "dedicated_cluster": {
+      "title": "Dedicated Clusters",
+      "description": "Dedicated server clusters and their availabilities."
+    },
+    "dedicated_housing": {
+      "title": "Housing",
+      "description": "Housing bays: features, backup FTP, tasks and service information."
+    },
+    "dedicated_installation_template": {
+      "title": "Dedicated Server Installation Templates",
+      "description": "Operating system installation templates for dedicated servers."
+    },
+    "dedicated_nasha": {
+      "title": "NAS-HA",
+      "description": "NAS-HA services: partitions, access rules, snapshots, quotas and tasks."
+    },
+    "dedicated_server": {
+      "title": "Dedicated Servers",
+      "description": "Bare metal dedicated servers: servers, hardware specifications, installations, network interfaces, IPMI, interventions, backup storage, features and tasks."
+    },
+    "dedicated_server_v2": {
+      "title": "Dedicated Servers (v2)",
+      "description": "Dedicated servers through API v2."
+    },
+    "domain": {
+      "title": "Domain Names",
+      "description": "Domain names and DNS zones: domains, name servers, DNSSEC, contacts, zones, records, redirections and tasks."
+    },
+    "domain_v2": {
+      "title": "Domain Names (v2)",
+      "description": "Domain names and AllDom packs through API v2."
+    },
+    "email_domain": {
+      "title": "Email Domains",
+      "description": "MX Plan email on a domain: accounts, mailing lists, redirections, responders, ACLs and delegated accounts."
+    },
+    "email_exchange": {
+      "title": "Exchange",
+      "description": "Microsoft Exchange organizations and services: accounts, domains, mailing lists, shared accounts, resources, public folders and tasks."
+    },
+    "email_mxplan": {
+      "title": "MX Plan",
+      "description": "MX Plan services: accounts, domains, external contacts and tasks."
+    },
+    "email_pro": {
+      "title": "Email Pro",
+      "description": "Email Pro services: accounts, domains, external contacts and tasks."
+    },
+    "finops": {
+      "title": "FinOps",
+      "description": "FinOps exports of billing data to object storage buckets."
+    },
+    "freefax": {
+      "title": "Freefax",
+      "description": "Freefax lines: settings, voicemail and directory."
+    },
+    "horizon_view": {
+      "title": "Horizon View",
+      "description": "VMware Horizon View (virtual desktop) services: access points, domain trusts, users and tasks."
+    },
+    "hosting_private_database": {
+      "title": "Web Cloud Databases",
+      "description": "Web Cloud Databases (private SQL): databases, users, grants, dumps, whitelists, configuration and tasks."
+    },
+    "hosting_web": {
+      "title": "Web Hosting",
+      "description": "Web hosting plans: attached domains, databases, FTP users, crons, modules, SSL, CDN, runtimes, environment variables and tasks."
+    },
+    "iam": {
+      "title": "Identity and Access Management",
+      "description": "IAM: policies, resources, resource groups, permissions groups, reference actions, authorization checks and logs."
+    },
+    "ip": {
+      "title": "IP Addresses",
+      "description": "IP addresses and blocks: reverse DNS, firewall, mitigation, game firewall, moves, licenses and tasks."
+    },
+    "ip_loadbalancing": {
+      "title": "Load Balancer",
+      "description": "OVHcloud Load Balancer (IPLB) services: frontends, farms, servers, routes, SSL certificates, vRack networks, zones and tasks."
+    },
+    "license_cloud_linux": {
+      "title": "CloudLinux Licenses",
+      "description": "CloudLinux licenses."
+    },
+    "license_cpanel": {
+      "title": "cPanel Licenses",
+      "description": "cPanel licenses."
+    },
+    "license_directadmin": {
+      "title": "DirectAdmin Licenses",
+      "description": "DirectAdmin licenses."
+    },
+    "license_hycu": {
+      "title": "HYCU Licenses",
+      "description": "HYCU licenses."
+    },
+    "license_office": {
+      "title": "Microsoft Office Licenses",
+      "description": "Microsoft Office license tenants: domains, users and usage statistics."
+    },
+    "license_office_prepaid": {
+      "title": "Microsoft Office Prepaid Licenses",
+      "description": "Microsoft Office prepaid licenses."
+    },
+    "license_plesk": {
+      "title": "Plesk Licenses",
+      "description": "Plesk licenses and their options."
+    },
+    "license_redhat": {
+      "title": "Red Hat Licenses",
+      "description": "Red Hat licenses."
+    },
+    "license_sqlserver": {
+      "title": "SQL Server Licenses",
+      "description": "Microsoft SQL Server licenses."
+    },
+    "license_virtuozzo": {
+      "title": "Virtuozzo Licenses",
+      "description": "Virtuozzo licenses and their options."
+    },
+    "license_windows": {
+      "title": "Windows Licenses",
+      "description": "Microsoft Windows licenses and their options."
+    },
+    "license_worklight": {
+      "title": "Worklight Licenses",
+      "description": "IBM Worklight licenses."
+    },
+    "location": {
+      "title": "Locations",
+      "description": "OVHcloud locations: regions, availability zones and their attributes."
+    },
+    "managed_cms": {
+      "title": "Managed CMS",
+      "description": "Managed CMS (WordPress) resources, websites and tasks."
+    },
+    "me": {
+      "title": "Account",
+      "description": "The customer account: identity (users, groups, providers), API applications and credentials, OAuth2 clients, SSH keys, bills, orders, payment methods, contacts, agreements, notifications and access restrictions."
+    },
+    "metrics": {
+      "title": "Metrics Data Platform",
+      "description": "Metrics Data Platform services, consumption and tokens."
+    },
+    "ms_services": {
+      "title": "Microsoft Services",
+      "description": "Microsoft services (Active Directory, SharePoint, Exchange): accounts, UPN suffixes, synchronisation and tasks."
+    },
+    "network_defense": {
+      "title": "Network Defense",
+      "description": "Network Defense (anti-DDoS): events, traffic and reference data."
+    },
+    "new_account": {
+      "title": "New Account",
+      "description": "Customer account creation and its reference data (countries, legal forms, creation rules, contracts)."
+    },
+    "notification": {
+      "title": "Notifications",
+      "description": "Notification contact means, routing rules and history."
+    },
+    "nutanix": {
+      "title": "Nutanix",
+      "description": "Nutanix on OVHcloud clusters, availabilities and requirements."
+    },
+    "okms": {
+      "title": "Key Management Service",
+      "description": "OVHcloud Key Management Service (OKMS): resources, service keys, credentials and secrets."
+    },
+    "order": {
+      "title": "Orders",
+      "description": "Ordering: carts and cart items, product catalogs, service upgrades and product order options."
+    },
+    "over_the_box": {
+      "title": "OverTheBox",
+      "description": "OverTheBox services: devices, remote accesses, backups, logs and tasks."
+    },
+    "ovh_cloud_connect": {
+      "title": "OVHcloud Connect",
+      "description": "OVHcloud Connect services: point of presence and datacenter configurations, interfaces, service keys and tasks."
+    },
+    "pack_siptrunk": {
+      "title": "SIP Trunk Packs",
+      "description": "SIP trunk packs."
+    },
+    "pack_xdsl": {
+      "title": "xDSL Packs",
+      "description": "xDSL packs and the services they bundle (domains, email, hosted email, VoIP lines, ...)."
+    },
+    "partner": {
+      "title": "Partner",
+      "description": "Partner program registration."
+    },
+    "price": {
+      "title": "Prices",
+      "description": "Legacy price lists."
+    },
+    "public_cloud": {
+      "title": "Public Cloud (v2)",
+      "description": "Public Cloud projects through API v2: projects, compute instances, SSH keys, key management, AI endpoints, quotas and reference data."
+    },
+    "public_cloud_analytics": {
+      "title": "Public Cloud Analytics (v2)",
+      "description": "Managed analytics services of a Public Cloud project through API v2 (Kafka, OpenSearch, ClickHouse, Grafana and others)."
+    },
+    "public_cloud_database": {
+      "title": "Public Cloud Databases (v2)",
+      "description": "Managed databases of a Public Cloud project through API v2 (MySQL, PostgreSQL, MongoDB, Valkey)."
+    },
+    "public_cloud_kubernetes": {
+      "title": "Public Cloud Managed Kubernetes (v2)",
+      "description": "Managed Kubernetes and Managed Rancher Service of a Public Cloud project through API v2."
+    },
+    "public_cloud_network": {
+      "title": "Public Cloud Network (v2)",
+      "description": "Networking of a Public Cloud project through API v2: networks, gateways, public IPs, load balancers, security groups and private endpoints."
+    },
+    "public_cloud_storage": {
+      "title": "Public Cloud Storage (v2)",
+      "description": "Storage of a Public Cloud project through API v2: object storage, block volumes, file shares and backups."
+    },
+    "saas_csp2": {
+      "title": "Microsoft 365 (CSP2)",
+      "description": "Microsoft 365 CSP2 tenants: subscriptions, usage statistics and tasks."
+    },
+    "secret": {
+      "title": "Secret",
+      "description": "One-time secret retrieval."
+    },
+    "service": {
+      "title": "Service (legacy)",
+      "description": "Legacy service management: services, renewals, reopening, suspension and termination."
+    },
+    "services": {
+      "title": "Services",
+      "description": "Service management and billing: services, engagement, renewal and termination, consumption, options, upgrades and detachment."
+    },
+    "sms": {
+      "title": "SMS",
+      "description": "SMS accounts: senders, outgoing and incoming messages, jobs, phonebooks, templates, users, HLR lookups and virtual numbers."
+    },
+    "ssl": {
+      "title": "SSL Certificates",
+      "description": "SSL certificates and their tasks."
+    },
+    "ssl_gateway": {
+      "title": "SSL Gateway",
+      "description": "SSL Gateway services: domains, servers, NAT IPs and tasks."
+    },
+    "stack_mis": {
+      "title": "Managed Infrastructure Stack",
+      "description": "Managed infrastructure stack services."
+    },
+    "startup": {
+      "title": "Startup Program",
+      "description": "Startup program registration."
+    },
+    "storage": {
+      "title": "Enterprise File Storage",
+      "description": "Enterprise File Storage (NetApp) services: volumes, snapshots, snapshot policies, access rules and shares."
+    },
+    "supply_mondial_relay": {
+      "title": "Mondial Relay",
+      "description": "Mondial Relay pick-up point search."
+    },
+    "support": {
+      "title": "Support",
+      "description": "Support tickets and their messages."
+    },
+    "telephony": {
+      "title": "Telephony",
+      "description": "VoIP telephony: billing accounts, lines, numbers, phones, call queues, conferences, fax, voicemail, portability, trunks and consumption."
+    },
+    "veeam_cloud_connect": {
+      "title": "Veeam Cloud Connect",
+      "description": "Veeam Cloud Connect services: backup repositories and tasks."
+    },
+    "veeam_enterprise": {
+      "title": "Veeam Enterprise",
+      "description": "Veeam Backup and Replication Enterprise licenses."
+    },
+    "videocenter": {
+      "title": "Video Center",
+      "description": "Video Center resources."
+    },
+    "vip": {
+      "title": "VIP Support",
+      "description": "VIP support services."
+    },
+    "vmware_cloud_director": {
+      "title": "VMware Cloud Director",
+      "description": "Managed VMware Cloud Director: organizations, virtual datacenters, compute and storage, backup and migration."
+    },
+    "vps": {
+      "title": "VPS",
+      "description": "Virtual private servers: servers, disks, IPs, snapshots, automated backups, options, images, templates and tasks."
+    },
+    "vrack": {
+      "title": "vRack",
+      "description": "vRack private networks and the services attached to them (dedicated servers, cloud projects, IP blocks, load balancers, ...)."
+    },
+    "vrack_services": {
+      "title": "vRack Services",
+      "description": "vRack Services resources (subnets, service endpoints) and reference data."
+    },
+    "webhosting": {
+      "title": "Web Hosting (v2)",
+      "description": "Web hosting resources through API v2: websites and attached domains."
+    },
+    "xdsl": {
+      "title": "xDSL",
+      "description": "xDSL and fibre accesses: lines, modems, IPs, incidents, diagnostics, email accounts and tasks."
+    },
+    "zimbra": {
+      "title": "Zimbra",
+      "description": "Zimbra email platforms: organizations, domains, accounts, aliases, redirections and mailing lists."
+    }
+  }
 }

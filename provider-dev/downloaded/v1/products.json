@@ -1,0 +1,3769 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "OVHcloud API specification",
+    "description": "Specification for OVHcloud API",
+    "version": "1.0",
+    "contact": {
+      "name": "OVH",
+      "email": "api@ml.ovh.net"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.eu.ovhcloud.com/v1"
+    }
+  ],
+  "components": {
+    "schemas": {
+      "any": {
+        "description": "Can be anything (text, int, bool, json, html, etc.)",
+        "example": "This is a content of any type !"
+      },
+      "duration": {
+        "type": "string",
+        "description": "Duration (e.g., P1Y2M3DT4H6M9S)",
+        "example": "P1Y2M3DT4H6M9S"
+      },
+      "email": {
+        "type": "string",
+        "description": "Email address (e.g., api@ml.ovh.net)",
+        "format": "email",
+        "example": "api@ml.ovh.net"
+      },
+      "internationalPhoneNumber": {
+        "type": "string",
+        "description": "International phone number",
+        "format": "phone-number"
+      },
+      "ip": {
+        "type": "string",
+        "description": "IP address (e.g., 192.0.2.0)",
+        "format": "ipv4",
+        "example": "192.0.2.0"
+      },
+      "ipBlock": {
+        "type": "string",
+        "description": "IP (v4 or v6) CIDR notation (e.g., 192.0.2.0/24)",
+        "format": "ip-block",
+        "example": "192.0.2.0/24"
+      },
+      "ipInterface": {
+        "type": "string",
+        "description": "IP address (e.g., 192.0.2.0)",
+        "format": "ipv4",
+        "example": "192.0.2.0"
+      },
+      "ipv4": {
+        "type": "string",
+        "description": "IPv4 address (e.g., 192.0.2.0)",
+        "format": "ipv4",
+        "example": "192.0.2.0"
+      },
+      "ipv4Block": {
+        "type": "string",
+        "description": "IPv4 CIDR notation (e.g., 192.0.2.0/24)",
+        "format": "ipv4-block",
+        "example": "192.0.2.0/24"
+      },
+      "ipv6": {
+        "type": "string",
+        "description": "IPv6 address (e.g., 2001:41d0:1:1994::1)",
+        "format": "ipv6",
+        "example": "2001:41d0:1:1994::1"
+      },
+      "ipv6Block": {
+        "type": "string",
+        "description": "IPv6 CIDR notation (e.g., 2001:41d0::/128)",
+        "format": "ipv6-block",
+        "example": "2001:41d0::/128"
+      },
+      "macAddress": {
+        "type": "string",
+        "description": "MAC address (e.g., 00:00:5e:00:53:01)",
+        "format": "mac-address",
+        "example": "00:00:5e:00:53:01"
+      },
+      "nichandle.OvhSubsidiaryEnum": {
+        "type": "string",
+        "description": "OVH subsidiaries",
+        "enum": [
+          "CZ",
+          "DE",
+          "ES",
+          "EU",
+          "FI",
+          "FR",
+          "GB",
+          "IE",
+          "IT",
+          "LT",
+          "MA",
+          "NL",
+          "PL",
+          "PT",
+          "SN",
+          "TN"
+        ]
+      },
+      "order.ContextTypeEnum": {
+        "type": "string",
+        "description": "Application context of a promotion",
+        "enum": [
+          "discover",
+          "standard",
+          "welcome"
+        ]
+      },
+      "order.ReductionTypeEnum": {
+        "type": "string",
+        "description": "Type of reduction",
+        "enum": [
+          "fixed_amount",
+          "forced_amount",
+          "percentage"
+        ]
+      },
+      "order.cart.DurationUnitEnum": {
+        "type": "string",
+        "description": "Unit corresponding to a duration range",
+        "enum": [
+          "day",
+          "hour",
+          "month",
+          "none"
+        ]
+      },
+      "order.cart.GenericProductPricingCapacitiesEnum": {
+        "type": "string",
+        "description": "Capacity of a pricing (type)",
+        "enum": [
+          "consumption",
+          "detach",
+          "downgrade",
+          "dynamic",
+          "installation",
+          "renew",
+          "upgrade"
+        ]
+      },
+      "order.cart.GenericProductPricingStrategyEnum": {
+        "type": "string",
+        "description": "Strategy of a Pricing",
+        "enum": [
+          "stairstep",
+          "tiered",
+          "volume"
+        ]
+      },
+      "order.cart.GenericProductPricingTypeEnum": {
+        "type": "string",
+        "description": "Type of a pricing",
+        "enum": [
+          "consumption",
+          "purchase",
+          "rental"
+        ]
+      },
+      "order.catalog.public.BillingStrategyEnum": {
+        "type": "string",
+        "description": "Enum values for Billing Strategy",
+        "enum": [
+          "custom",
+          "diff",
+          "max",
+          "max_retain",
+          "ping",
+          "sum"
+        ]
+      },
+      "order.catalog.public.Configuration": {
+        "type": "object",
+        "description": "Describes the Configuration for a Commercial offer",
+        "properties": {
+          "isCustom": {
+            "type": "boolean",
+            "description": "Whether the value of this Configuration is custom",
+            "readOnly": true
+          },
+          "isMandatory": {
+            "type": "boolean",
+            "description": "Whether this Configuration is mandatory",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "description": "Identifier of the Configuration",
+            "readOnly": true
+          },
+          "values": {
+            "type": "array",
+            "description": "Possible values for this Configuration, if not custom",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            },
+            "readOnly": true
+          }
+        }
+      },
+      "order.catalog.public.ConsumptionConfiguration": {
+        "type": "object",
+        "description": "Describes consumption configuration for a Plan",
+        "properties": {
+          "billingStrategy": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.BillingStrategyEnum"
+              }
+            ],
+            "description": "Consumption billing strategy",
+            "readOnly": true
+          },
+          "pingEndPolicy": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.PingEndPolicyEnum"
+              }
+            ],
+            "description": "Consumption ping end policy used at end of usage",
+            "nullable": true,
+            "readOnly": true
+          },
+          "prorataUnit": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.ProrataUnitEnum"
+              }
+            ],
+            "description": "Consumption prorata unit",
+            "readOnly": true
+          }
+        }
+      },
+      "order.catalog.public.EngagementConfiguration": {
+        "type": "object",
+        "description": "Configuration of an engagement triggered by a given pricing",
+        "properties": {
+          "defaultEndAction": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.EngagementConfiguration.EndStrategyEnum"
+              }
+            ],
+            "description": "Default action executed once the engagement is fully consumed",
+            "readOnly": true
+          },
+          "duration": {
+            "type": "string",
+            "description": "Engagement's duration",
+            "format": "duration",
+            "readOnly": true
+          },
+          "type": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.EngagementConfiguration.TypeEnum"
+              }
+            ],
+            "description": "Engagement type, either fully pre-paid (upfront) or periodically paid up to engagement duration (periodic)",
+            "readOnly": true
+          }
+        }
+      },
+      "order.catalog.public.EngagementConfiguration.EndStrategyEnum": {
+        "type": "string",
+        "description": "Strategy applicable at the end of the Engagement",
+        "enum": [
+          "CANCEL_SERVICE",
+          "REACTIVATE_ENGAGEMENT",
+          "STOP_ENGAGEMENT_FALLBACK_DEFAULT_PRICE",
+          "STOP_ENGAGEMENT_KEEP_PRICE"
+        ]
+      },
+      "order.catalog.public.EngagementConfiguration.TypeEnum": {
+        "type": "string",
+        "description": "Engagement's type, either fully pre-paid (upfront) or periodically paid up to engagement duration (periodic)",
+        "enum": [
+          "periodic",
+          "upfront"
+        ]
+      },
+      "order.catalog.public.PingEndPolicyEnum": {
+        "type": "string",
+        "description": "Enum values for Ping End Policy",
+        "enum": [
+          "full",
+          "prorata"
+        ]
+      },
+      "order.catalog.public.Pricing": {
+        "type": "object",
+        "description": "Describes a Pricing for a Commercial offer",
+        "properties": {
+          "capacities": {
+            "type": "array",
+            "description": "Capacities of the Pricing, describes what the Pricing can be used for",
+            "items": {
+              "$ref": "#/components/schemas/order.cart.GenericProductPricingCapacitiesEnum"
+            },
+            "readOnly": true
+          },
+          "commitment": {
+            "type": "integer",
+            "description": "Engagement period",
+            "readOnly": true
+          },
+          "description": {
+            "type": "string",
+            "description": "Pricing description",
+            "readOnly": true
+          },
+          "engagementConfiguration": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.EngagementConfiguration"
+              }
+            ],
+            "description": "Engagement Configuration",
+            "nullable": true,
+            "readOnly": true
+          },
+          "interval": {
+            "type": "integer",
+            "description": "Length of the interval",
+            "readOnly": true
+          },
+          "intervalUnit": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.cart.DurationUnitEnum"
+              }
+            ],
+            "description": "Unit of the interval",
+            "readOnly": true
+          },
+          "mode": {
+            "type": "string",
+            "description": "Pricing mode",
+            "readOnly": true
+          },
+          "mustBeCompleted": {
+            "type": "boolean",
+            "description": "Pricing must be completed",
+            "readOnly": true
+          },
+          "phase": {
+            "type": "integer",
+            "description": "Phase for the Pricing",
+            "readOnly": true
+          },
+          "price": {
+            "type": "integer",
+            "description": "Price, in micro-cents",
+            "readOnly": true
+          },
+          "promotions": {
+            "type": "array",
+            "description": "Promotions",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/order.catalog.public.Promotion"
+            },
+            "readOnly": true
+          },
+          "quantity": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.PricingMinMax"
+              }
+            ],
+            "description": "Describes how many times the Commercial offer can be added to the Cart",
+            "readOnly": true
+          },
+          "repeat": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.PricingMinMax"
+              }
+            ],
+            "description": "Describes how many times the interval can be repeated",
+            "readOnly": true
+          },
+          "strategy": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.cart.GenericProductPricingStrategyEnum"
+              }
+            ],
+            "description": "Pricing strategy",
+            "readOnly": true
+          },
+          "tax": {
+            "type": "integer",
+            "description": "Tax that can be applied, in micro-cents",
+            "readOnly": true
+          },
+          "type": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.cart.GenericProductPricingTypeEnum"
+              }
+            ],
+            "description": "Pricing type",
+            "readOnly": true
+          }
+        }
+      },
+      "order.catalog.public.PricingMinMax": {
+        "type": "object",
+        "description": "Describes minimal and maximal values for a Pricing",
+        "properties": {
+          "max": {
+            "type": "integer",
+            "description": "Maximal value",
+            "nullable": true,
+            "readOnly": true
+          },
+          "min": {
+            "type": "integer",
+            "description": "Minimal value",
+            "readOnly": true
+          }
+        }
+      },
+      "order.catalog.public.Product": {
+        "type": "object",
+        "description": "Describes a Product attached to a Commercial offer",
+        "properties": {
+          "blobs": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.ProductBlob"
+              }
+            ],
+            "description": "Product blobs",
+            "nullable": true,
+            "readOnly": true
+          },
+          "configurations": {
+            "type": "array",
+            "description": "List of possible Configurations for this Commercial offer",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/order.catalog.public.Configuration"
+            },
+            "readOnly": true
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the Product",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "description": "Identifier of the Product",
+            "readOnly": true
+          }
+        }
+      },
+      "order.catalog.public.ProductBlob": {
+        "type": "object",
+        "description": "Describes a Blob",
+        "properties": {
+          "commercial": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.ProductBlobCommercial"
+              }
+            ],
+            "description": "Commercial information for Dedicated Server Product",
+            "nullable": true,
+            "readOnly": true
+          },
+          "marketing": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.ProductBlobMarketing"
+              }
+            ],
+            "description": "Marketing information for VPS Product",
+            "nullable": true,
+            "readOnly": true
+          },
+          "meta": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.ProductBlobMeta"
+              }
+            ],
+            "description": "Meta blobs for VPS Product",
+            "nullable": true,
+            "readOnly": true
+          },
+          "tags": {
+            "type": "array",
+            "description": "Tags",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            },
+            "readOnly": true
+          },
+          "technical": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.ProductBlobTechnical"
+              }
+            ],
+            "description": "Technical information for Dedicated Server Product",
+            "nullable": true,
+            "readOnly": true
+          },
+          "value": {
+            "type": "string",
+            "description": "Value for meta blobs",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "order.catalog.public.ProductBlobCommercial": {
+        "type": "object",
+        "description": "Describes a Commercial blob",
+        "properties": {
+          "brick": {
+            "type": "string",
+            "description": "Brick",
+            "nullable": true,
+            "readOnly": true
+          },
+          "brickSubtype": {
+            "type": "string",
+            "description": "Brick subtype",
+            "nullable": true,
+            "readOnly": true
+          },
+          "connection": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.ProductBlobConnection"
+              }
+            ],
+            "description": "Connection",
+            "nullable": true,
+            "readOnly": true
+          },
+          "features": {
+            "type": "array",
+            "description": "Features",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/order.catalog.public.ProductBlobCommercialFeatures"
+            },
+            "readOnly": true
+          },
+          "line": {
+            "type": "string",
+            "description": "Line",
+            "nullable": true,
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "description": "Name",
+            "nullable": true,
+            "readOnly": true
+          },
+          "price": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.ProductBlobCommercialPrice"
+              }
+            ],
+            "description": "Price",
+            "nullable": true,
+            "readOnly": true
+          },
+          "range": {
+            "type": "string",
+            "description": "Range",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "order.catalog.public.ProductBlobCommercialFeatures": {
+        "type": "object",
+        "description": "Describes Features for a commercial blob",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name",
+            "nullable": true,
+            "readOnly": true
+          },
+          "value": {
+            "type": "string",
+            "description": "Value",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "order.catalog.public.ProductBlobCommercialPrice": {
+        "type": "object",
+        "description": "Describes a Price for a commercial blob",
+        "properties": {
+          "display": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.ProductBlobCommercialPriceDisplay"
+              }
+            ],
+            "description": "Display",
+            "nullable": true,
+            "readOnly": true
+          },
+          "interval": {
+            "type": "string",
+            "description": "Interval",
+            "nullable": true,
+            "readOnly": true
+          },
+          "precision": {
+            "type": "integer",
+            "description": "Precision",
+            "nullable": true,
+            "readOnly": true
+          },
+          "unit": {
+            "type": "string",
+            "description": "Unit",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "order.catalog.public.ProductBlobCommercialPriceDisplay": {
+        "type": "object",
+        "description": "Describes a Display a price",
+        "properties": {
+          "value": {
+            "type": "string",
+            "description": "Value",
+            "readOnly": true
+          }
+        }
+      },
+      "order.catalog.public.ProductBlobConnection": {
+        "type": "object",
+        "description": "Describes a Connection for a blob for a Dedicated Server",
+        "properties": {
+          "clients": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.ProductBlobConnectionClients"
+              }
+            ],
+            "description": "Clients",
+            "readOnly": true
+          },
+          "total": {
+            "type": "integer",
+            "description": "Total",
+            "readOnly": true
+          }
+        }
+      },
+      "order.catalog.public.ProductBlobConnectionClients": {
+        "type": "object",
+        "description": "Describes Clients for a Connection for a blob for a Dedicated Server",
+        "properties": {
+          "concurrency": {
+            "type": "integer",
+            "description": "Concurrency",
+            "readOnly": true
+          },
+          "number": {
+            "type": "integer",
+            "description": "Number",
+            "readOnly": true
+          }
+        }
+      },
+      "order.catalog.public.ProductBlobMarketing": {
+        "type": "object",
+        "description": "Describes a Marketing blob",
+        "properties": {
+          "content": {
+            "type": "array",
+            "description": "Marketing content information for VPS Product",
+            "items": {
+              "$ref": "#/components/schemas/order.catalog.public.ProductBlobMarketingContent"
+            },
+            "readOnly": true
+          }
+        }
+      },
+      "order.catalog.public.ProductBlobMarketingContent": {
+        "type": "object",
+        "description": "Describes a Content for a Marketing blob",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "Key",
+            "readOnly": true
+          },
+          "value": {
+            "type": "string",
+            "description": "Value",
+            "readOnly": true
+          }
+        }
+      },
+      "order.catalog.public.ProductBlobMeta": {
+        "type": "object",
+        "description": "Describes a Meta blob",
+        "properties": {
+          "configurations": {
+            "type": "array",
+            "description": "Configurations",
+            "items": {
+              "$ref": "#/components/schemas/order.catalog.public.ProductBlobMetaConfigurations"
+            },
+            "readOnly": true
+          }
+        }
+      },
+      "order.catalog.public.ProductBlobMetaConfigurations": {
+        "type": "object",
+        "description": "Describes a Configuration for a meta blob",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name",
+            "readOnly": true
+          },
+          "values": {
+            "type": "array",
+            "description": "Values",
+            "items": {
+              "$ref": "#/components/schemas/order.catalog.public.ProductBlobMetaConfigurationsValues"
+            },
+            "readOnly": true
+          }
+        }
+      },
+      "order.catalog.public.ProductBlobMetaConfigurationsValues": {
+        "type": "object",
+        "description": "Describes a Values configuration for a meta blob",
+        "properties": {
+          "blobs": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.ProductBlob"
+              }
+            ],
+            "description": "Blobs",
+            "readOnly": true
+          },
+          "value": {
+            "type": "string",
+            "description": "Value",
+            "readOnly": true
+          }
+        }
+      },
+      "order.catalog.public.ProductBlobTechnical": {
+        "type": "object",
+        "description": "Describes a Technical Blob",
+        "properties": {
+          "bandwidth": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.ProductBlobTechnicalNetwork"
+              }
+            ],
+            "description": "Network information",
+            "nullable": true,
+            "readOnly": true
+          },
+          "connection": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.ProductBlobConnection"
+              }
+            ],
+            "description": "Connection",
+            "nullable": true,
+            "readOnly": true
+          },
+          "connectionPerSeconds": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.ProductBlobTechnicalPerSeconds"
+              }
+            ],
+            "description": "Connection per seconds",
+            "nullable": true,
+            "readOnly": true
+          },
+          "cpu": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.ProductBlobTechnicalCPU"
+              }
+            ],
+            "description": "CPU information",
+            "nullable": true,
+            "readOnly": true
+          },
+          "datacenter": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.ProductBlobTechnicalDatacenter"
+              }
+            ],
+            "description": "Datacenter",
+            "nullable": true,
+            "readOnly": true
+          },
+          "ephemeralLocalStorage": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.ProductBlobTechnicalEphemeralStorage"
+              }
+            ],
+            "description": "Ephemeral local storage",
+            "nullable": true,
+            "readOnly": true
+          },
+          "gpu": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.ProductBlobTechnicalGPU"
+              }
+            ],
+            "description": "GPU information",
+            "nullable": true,
+            "readOnly": true
+          },
+          "license": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.ProductBlobTechnicalLicense"
+              }
+            ],
+            "description": "License information",
+            "nullable": true,
+            "readOnly": true
+          },
+          "memory": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.ProductBlobTechnicalMemory"
+              }
+            ],
+            "description": "Memory information",
+            "nullable": true,
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "description": "Name",
+            "nullable": true,
+            "readOnly": true
+          },
+          "nodes": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.ProductBlobTechnicalNodes"
+              }
+            ],
+            "description": "Nodes",
+            "nullable": true,
+            "readOnly": true
+          },
+          "nvme": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.ProductBlobTechnicalNvme"
+              }
+            ],
+            "description": "NVME",
+            "nullable": true,
+            "readOnly": true
+          },
+          "os": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.ProductBlobTechnicalOS"
+              }
+            ],
+            "description": "OS",
+            "nullable": true,
+            "readOnly": true
+          },
+          "provider": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.ProductBlobTechnicalProvider"
+              }
+            ],
+            "description": "Provider",
+            "nullable": true,
+            "readOnly": true
+          },
+          "requestPerSeconds": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.ProductBlobTechnicalPerSeconds"
+              }
+            ],
+            "description": "Connection per seconds",
+            "nullable": true,
+            "readOnly": true
+          },
+          "server": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.ProductBlobTechnicalServer"
+              }
+            ],
+            "description": "Hardware information",
+            "nullable": true,
+            "readOnly": true
+          },
+          "storage": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.ProductBlobTechnicalStorage"
+              }
+            ],
+            "description": "Disks information",
+            "nullable": true,
+            "readOnly": true
+          },
+          "throughput": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.ProductBlobTechnicalThroughput"
+              }
+            ],
+            "description": "Throughput",
+            "nullable": true,
+            "readOnly": true
+          },
+          "virtualization": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.ProductBlobTechnicalVirtualization"
+              }
+            ],
+            "description": "Virtualization",
+            "nullable": true,
+            "readOnly": true
+          },
+          "volume": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.ProductBlobTechnicalVolume"
+              }
+            ],
+            "description": "Volume",
+            "nullable": true,
+            "readOnly": true
+          },
+          "vrack": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.ProductBlobTechnicalNetwork"
+              }
+            ],
+            "description": "vRack information",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "order.catalog.public.ProductBlobTechnicalCPU": {
+        "type": "object",
+        "description": "Describes a CPU for a technical blob",
+        "properties": {
+          "boost": {
+            "type": "number",
+            "description": "CPU Boost",
+            "nullable": true,
+            "readOnly": true
+          },
+          "brand": {
+            "type": "string",
+            "description": "CPU Brand",
+            "nullable": true,
+            "readOnly": true
+          },
+          "cores": {
+            "type": "integer",
+            "description": "Number of cores",
+            "nullable": true,
+            "readOnly": true
+          },
+          "customizable": {
+            "type": "boolean",
+            "description": "Customizable",
+            "nullable": true,
+            "readOnly": true
+          },
+          "frequency": {
+            "type": "number",
+            "description": "Frequency of CPU in GHz",
+            "nullable": true,
+            "readOnly": true
+          },
+          "maxFrequency": {
+            "type": "number",
+            "description": "Maximum frequency of CPU in GHz",
+            "nullable": true,
+            "readOnly": true
+          },
+          "model": {
+            "type": "string",
+            "description": "Displayable name",
+            "nullable": true,
+            "readOnly": true
+          },
+          "number": {
+            "type": "integer",
+            "description": "Number of CPU",
+            "nullable": true,
+            "readOnly": true
+          },
+          "score": {
+            "type": "integer",
+            "description": "CPU score",
+            "nullable": true,
+            "readOnly": true
+          },
+          "threads": {
+            "type": "integer",
+            "description": "Number of threads",
+            "nullable": true,
+            "readOnly": true
+          },
+          "type": {
+            "type": "string",
+            "description": "Type of CPU",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "order.catalog.public.ProductBlobTechnicalDatacenter": {
+        "type": "object",
+        "description": "Describes a Datacenter for a technical Blob",
+        "properties": {
+          "city": {
+            "type": "string",
+            "description": "City",
+            "nullable": true,
+            "readOnly": true
+          },
+          "country": {
+            "type": "string",
+            "description": "Country",
+            "nullable": true,
+            "readOnly": true
+          },
+          "countryCode": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/nichandle.OvhSubsidiaryEnum"
+              }
+            ],
+            "description": "Country code",
+            "nullable": true,
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "description": "Name",
+            "nullable": true,
+            "readOnly": true
+          },
+          "region": {
+            "type": "string",
+            "description": "Region",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "order.catalog.public.ProductBlobTechnicalDisk": {
+        "type": "object",
+        "description": "Describes a Disk for a technical blob",
+        "properties": {
+          "capacity": {
+            "type": "number",
+            "description": "Disk capacity in Gb",
+            "readOnly": true
+          },
+          "interface": {
+            "type": "string",
+            "description": "Disk interface",
+            "nullable": true,
+            "readOnly": true
+          },
+          "iops": {
+            "type": "integer",
+            "description": "Iops",
+            "nullable": true,
+            "readOnly": true
+          },
+          "maximumCapacity": {
+            "type": "number",
+            "description": "Maximum disk capacity in Gb",
+            "readOnly": true
+          },
+          "number": {
+            "type": "integer",
+            "description": "Number of disks",
+            "nullable": true,
+            "readOnly": true
+          },
+          "sizeUnit": {
+            "type": "string",
+            "description": "Size unit",
+            "nullable": true,
+            "readOnly": true
+          },
+          "specs": {
+            "type": "string",
+            "description": "Disk specs",
+            "nullable": true,
+            "readOnly": true
+          },
+          "technology": {
+            "type": "string",
+            "description": "Disk technology",
+            "nullable": true,
+            "readOnly": true
+          },
+          "usage": {
+            "type": "string",
+            "description": "Usage information",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "order.catalog.public.ProductBlobTechnicalEphemeralStorage": {
+        "type": "object",
+        "description": "Describes an Ephemeral Storage for technical blob",
+        "properties": {
+          "disks": {
+            "type": "array",
+            "description": "Disk properties",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/order.catalog.public.ProductBlobTechnicalDisk"
+            },
+            "readOnly": true
+          }
+        }
+      },
+      "order.catalog.public.ProductBlobTechnicalFrame": {
+        "type": "object",
+        "description": "Describes a Frame for a technical blob",
+        "properties": {
+          "dualPowerSupply": {
+            "type": "boolean",
+            "description": "Dual power supply",
+            "readOnly": true
+          },
+          "model": {
+            "type": "string",
+            "description": "Frame model",
+            "readOnly": true
+          },
+          "size": {
+            "type": "string",
+            "description": "Frame size",
+            "readOnly": true
+          }
+        }
+      },
+      "order.catalog.public.ProductBlobTechnicalGPU": {
+        "type": "object",
+        "description": "Describes a GPU for a technical blob",
+        "properties": {
+          "brand": {
+            "type": "string",
+            "description": "GPU brand",
+            "nullable": true,
+            "readOnly": true
+          },
+          "memory": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.ProductBlobTechnicalMemory"
+              }
+            ],
+            "description": "GPU memory size",
+            "readOnly": true
+          },
+          "model": {
+            "type": "string",
+            "description": "GPU model",
+            "nullable": true,
+            "readOnly": true
+          },
+          "number": {
+            "type": "integer",
+            "description": "GPU number",
+            "nullable": true,
+            "readOnly": true
+          },
+          "performance": {
+            "type": "number",
+            "description": "GPU performance",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "order.catalog.public.ProductBlobTechnicalLicense": {
+        "type": "object",
+        "description": "Describes a License for a technical Blob",
+        "properties": {
+          "application": {
+            "type": "string",
+            "description": "Application",
+            "nullable": true,
+            "readOnly": true
+          },
+          "cores": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.ProductBlobTechnicalLicenseCores"
+              }
+            ],
+            "description": "Cores information",
+            "nullable": true,
+            "readOnly": true
+          },
+          "cpu": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.ProductBlobTechnicalCPU"
+              }
+            ],
+            "description": "CPU",
+            "nullable": true,
+            "readOnly": true
+          },
+          "distribution": {
+            "type": "string",
+            "description": "Network information",
+            "nullable": true,
+            "readOnly": true
+          },
+          "edition": {
+            "type": "string",
+            "description": "Edition information",
+            "nullable": true,
+            "readOnly": true
+          },
+          "family": {
+            "type": "string",
+            "description": "Family",
+            "nullable": true,
+            "readOnly": true
+          },
+          "feature": {
+            "type": "string",
+            "description": "Feature",
+            "nullable": true,
+            "readOnly": true
+          },
+          "flavor": {
+            "type": "string",
+            "description": "Flavor information",
+            "nullable": true,
+            "readOnly": true
+          },
+          "images": {
+            "type": "array",
+            "description": "Images information",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            },
+            "readOnly": true
+          },
+          "nbOfAccount": {
+            "type": "integer",
+            "description": "Number of accounts",
+            "nullable": true,
+            "readOnly": true
+          },
+          "package": {
+            "type": "string",
+            "description": "Package",
+            "nullable": true,
+            "readOnly": true
+          },
+          "version": {
+            "type": "string",
+            "description": "Version information",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "order.catalog.public.ProductBlobTechnicalLicenseCores": {
+        "type": "object",
+        "description": "Describes license cores for a technical blob",
+        "properties": {
+          "number": {
+            "type": "integer",
+            "description": "Number of cores",
+            "readOnly": true
+          },
+          "total": {
+            "type": "integer",
+            "description": "Total of cores",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "order.catalog.public.ProductBlobTechnicalMemory": {
+        "type": "object",
+        "description": "Describes a Memory technical Blob",
+        "properties": {
+          "customizable": {
+            "type": "boolean",
+            "description": "Customizable",
+            "nullable": true,
+            "readOnly": true
+          },
+          "ecc": {
+            "type": "boolean",
+            "description": "ECC",
+            "nullable": true,
+            "readOnly": true
+          },
+          "frequency": {
+            "type": "integer",
+            "description": "RAM Frequency",
+            "nullable": true,
+            "readOnly": true
+          },
+          "interface": {
+            "type": "string",
+            "description": "Interface",
+            "nullable": true,
+            "readOnly": true
+          },
+          "ramType": {
+            "type": "string",
+            "description": "RAM Type (DDRx...)",
+            "nullable": true,
+            "readOnly": true
+          },
+          "size": {
+            "type": "number",
+            "description": "Size of the RAM in Gb",
+            "readOnly": true
+          },
+          "sizeUnit": {
+            "type": "string",
+            "description": "Size unit",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "order.catalog.public.ProductBlobTechnicalNetwork": {
+        "type": "object",
+        "description": "Describes a Network technical Blob",
+        "properties": {
+          "burst": {
+            "type": "integer",
+            "description": "Network burst",
+            "nullable": true,
+            "readOnly": true
+          },
+          "capacity": {
+            "type": "integer",
+            "description": "Network capacity",
+            "nullable": true,
+            "readOnly": true
+          },
+          "guaranteed": {
+            "type": "boolean",
+            "description": "Guaranteed Network",
+            "nullable": true,
+            "readOnly": true
+          },
+          "interfaces": {
+            "type": "integer",
+            "description": "Network interfaces",
+            "nullable": true,
+            "readOnly": true
+          },
+          "isMax": {
+            "type": "boolean",
+            "description": "Is max?",
+            "nullable": true,
+            "readOnly": true
+          },
+          "level": {
+            "type": "number",
+            "description": "Network level",
+            "nullable": true,
+            "readOnly": true
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Network limit",
+            "nullable": true,
+            "readOnly": true
+          },
+          "max": {
+            "type": "number",
+            "description": "Maximum",
+            "readOnly": true
+          },
+          "maxUnit": {
+            "type": "string",
+            "description": "Unit of maximum",
+            "readOnly": true
+          },
+          "shared": {
+            "type": "boolean",
+            "description": "Shared",
+            "nullable": true,
+            "readOnly": true
+          },
+          "traffic": {
+            "type": "integer",
+            "description": "Traffic",
+            "nullable": true,
+            "readOnly": true
+          },
+          "unit": {
+            "type": "string",
+            "description": "Unit",
+            "readOnly": true
+          },
+          "unlimited": {
+            "type": "boolean",
+            "description": "Unlimited",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "order.catalog.public.ProductBlobTechnicalNodes": {
+        "type": "object",
+        "description": "Describes a Node for technical blob",
+        "properties": {
+          "number": {
+            "type": "integer",
+            "description": "Number of nodes",
+            "readOnly": true
+          }
+        }
+      },
+      "order.catalog.public.ProductBlobTechnicalNvme": {
+        "type": "object",
+        "description": "Describes a NVME for technical blob",
+        "properties": {
+          "disks": {
+            "type": "array",
+            "description": "Disk properties",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/order.catalog.public.ProductBlobTechnicalDisk"
+            },
+            "readOnly": true
+          }
+        }
+      },
+      "order.catalog.public.ProductBlobTechnicalOS": {
+        "type": "object",
+        "description": "Describes an OS for a technical blob",
+        "properties": {
+          "distribution": {
+            "type": "string",
+            "description": "Distribution",
+            "nullable": true,
+            "readOnly": true
+          },
+          "edition": {
+            "type": "string",
+            "description": "Edition",
+            "nullable": true,
+            "readOnly": true
+          },
+          "family": {
+            "type": "string",
+            "description": "Family",
+            "nullable": true,
+            "readOnly": true
+          },
+          "version": {
+            "type": "string",
+            "description": "Version",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "order.catalog.public.ProductBlobTechnicalPerSeconds": {
+        "type": "object",
+        "description": "Describes a connection or request per seconds for a technical blob",
+        "properties": {
+          "total": {
+            "type": "integer",
+            "description": "Total",
+            "readOnly": true
+          },
+          "unit": {
+            "type": "string",
+            "description": "Unit",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "order.catalog.public.ProductBlobTechnicalProvider": {
+        "type": "object",
+        "description": "Describes a provider for a technical blob",
+        "properties": {
+          "pointsOfPresence": {
+            "type": "integer",
+            "description": "Number of points of presence",
+            "readOnly": true
+          },
+          "reference": {
+            "type": "boolean",
+            "description": "Reference",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "order.catalog.public.ProductBlobTechnicalRaid": {
+        "type": "object",
+        "description": "Describes a Raid for a technical blob",
+        "properties": {
+          "cardModel": {
+            "type": "string",
+            "description": "Card size",
+            "nullable": true,
+            "readOnly": true
+          },
+          "cardSize": {
+            "type": "string",
+            "description": "Card size",
+            "nullable": true,
+            "readOnly": true
+          },
+          "type": {
+            "type": "string",
+            "description": "Type",
+            "readOnly": true
+          }
+        }
+      },
+      "order.catalog.public.ProductBlobTechnicalServer": {
+        "type": "object",
+        "description": "Describes some technicals information for a technical blob",
+        "properties": {
+          "cpu": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.ProductBlobTechnicalCPU"
+              }
+            ],
+            "description": "CPU properties",
+            "readOnly": true
+          },
+          "frame": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.ProductBlobTechnicalFrame"
+              }
+            ],
+            "description": "Frame properties",
+            "readOnly": true
+          },
+          "network": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.ProductBlobTechnicalNetwork"
+              }
+            ],
+            "description": "Network",
+            "nullable": true,
+            "readOnly": true
+          },
+          "range": {
+            "type": "string",
+            "description": "Dedicated server series",
+            "readOnly": true
+          },
+          "services": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.ProductBlobTechnicalServices"
+              }
+            ],
+            "description": "Services properties",
+            "readOnly": true
+          }
+        }
+      },
+      "order.catalog.public.ProductBlobTechnicalServices": {
+        "type": "object",
+        "description": "Describes some technicals information",
+        "properties": {
+          "antiddos": {
+            "type": "string",
+            "description": "Anti DDOS",
+            "readOnly": true
+          },
+          "includedBackup": {
+            "type": "integer",
+            "description": "Included backup",
+            "nullable": true,
+            "readOnly": true
+          },
+          "sla": {
+            "type": "number",
+            "description": "SLA",
+            "readOnly": true
+          }
+        }
+      },
+      "order.catalog.public.ProductBlobTechnicalStorage": {
+        "type": "object",
+        "description": "Describes a Storage technical Blob",
+        "properties": {
+          "disks": {
+            "type": "array",
+            "description": "Disk properties",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/order.catalog.public.ProductBlobTechnicalDisk"
+            },
+            "readOnly": true
+          },
+          "hotSwap": {
+            "type": "boolean",
+            "description": "Hot Swap",
+            "nullable": true,
+            "readOnly": true
+          },
+          "raid": {
+            "type": "string",
+            "description": "Raid",
+            "nullable": true,
+            "readOnly": true
+          },
+          "raidDetails": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.ProductBlobTechnicalRaid"
+              }
+            ],
+            "description": "Raid details",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "order.catalog.public.ProductBlobTechnicalThroughput": {
+        "type": "object",
+        "description": "Describes a Throughput for a technical blob",
+        "properties": {
+          "level": {
+            "type": "integer",
+            "description": "Level",
+            "readOnly": true
+          }
+        }
+      },
+      "order.catalog.public.ProductBlobTechnicalVirtualization": {
+        "type": "object",
+        "description": "Describes a Virtualization for a Technical Blob",
+        "properties": {
+          "hypervisor": {
+            "type": "string",
+            "description": "Hypervisor",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "order.catalog.public.ProductBlobTechnicalVolume": {
+        "type": "object",
+        "description": "Describes a Volume for a technichal blob",
+        "properties": {
+          "capacity": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.ProductBlobTechnicalVolumeCapacity"
+              }
+            ],
+            "description": "Capacity",
+            "readOnly": true
+          },
+          "iops": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.ProductBlobTechnicalVolumeIops"
+              }
+            ],
+            "description": "CPU information",
+            "readOnly": true
+          }
+        }
+      },
+      "order.catalog.public.ProductBlobTechnicalVolumeCapacity": {
+        "type": "object",
+        "description": "Describes a Capacity for a Volume for a technichal blob",
+        "properties": {
+          "max": {
+            "type": "integer",
+            "description": "Max",
+            "readOnly": true
+          }
+        }
+      },
+      "order.catalog.public.ProductBlobTechnicalVolumeIops": {
+        "type": "object",
+        "description": "Describes a Iops for a Volume for a technichal blob",
+        "properties": {
+          "guaranteed": {
+            "type": "boolean",
+            "description": "Guaranteed",
+            "readOnly": true
+          },
+          "level": {
+            "type": "integer",
+            "description": "Level",
+            "readOnly": true
+          },
+          "max": {
+            "type": "integer",
+            "description": "Maximum IOPS",
+            "readOnly": true
+          },
+          "maxUnit": {
+            "type": "string",
+            "description": "Unit of maximum IOPS",
+            "readOnly": true
+          },
+          "unit": {
+            "type": "string",
+            "description": "Unit",
+            "readOnly": true
+          }
+        }
+      },
+      "order.catalog.public.Promotion": {
+        "type": "object",
+        "description": "Describes a Promotion inside a Catalog",
+        "properties": {
+          "context": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.ContextTypeEnum"
+              }
+            ],
+            "description": "Promotion application context",
+            "readOnly": true
+          },
+          "customFieldValues": {
+            "type": "array",
+            "description": "All Promotion's custom fields",
+            "items": {
+              "type": "string"
+            },
+            "readOnly": true
+          },
+          "description": {
+            "type": "string",
+            "description": "Promotion description",
+            "readOnly": true
+          },
+          "discount": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.PromotionDiscountTotal"
+              }
+            ],
+            "description": "Promotion discount",
+            "readOnly": true
+          },
+          "duration": {
+            "type": "integer",
+            "description": "Promotion duration, in months",
+            "nullable": true,
+            "readOnly": true
+          },
+          "endDate": {
+            "type": "string",
+            "description": "Promotion end date using rfc3339",
+            "nullable": true,
+            "format": "date-time",
+            "readOnly": true
+          },
+          "globalQuantity": {
+            "type": "integer",
+            "description": "Promotion global quantity (global quota)",
+            "nullable": true,
+            "readOnly": true
+          },
+          "interval": {
+            "type": "integer",
+            "description": "Length of the interval the promotion applies to",
+            "readOnly": true
+          },
+          "intervalUnit": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.cart.DurationUnitEnum"
+              }
+            ],
+            "description": "Unit of the interval",
+            "readOnly": true
+          },
+          "isGlobalQuantityLimited": {
+            "type": "boolean",
+            "description": "Is the global quantity of the promotion limited?",
+            "readOnly": true
+          },
+          "minimumDuration": {
+            "type": "integer",
+            "description": "Minimum number of months to add to the first registration year, for multiyear promotion to apply",
+            "nullable": true,
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "description": "Promotion name",
+            "readOnly": true
+          },
+          "quantity": {
+            "type": "integer",
+            "description": "Promotion quantity (per user quota)",
+            "nullable": true,
+            "readOnly": true
+          },
+          "startDate": {
+            "type": "string",
+            "description": "Promotion start date using rfc3339",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "tags": {
+            "type": "array",
+            "description": "Promotion tags",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            },
+            "readOnly": true
+          },
+          "total": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.PromotionDiscountTotal"
+              }
+            ],
+            "description": "Promotion total",
+            "readOnly": true
+          },
+          "type": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.ReductionTypeEnum"
+              }
+            ],
+            "description": "Promotion type",
+            "readOnly": true
+          },
+          "value": {
+            "type": "integer",
+            "description": "Promotion value",
+            "readOnly": true
+          }
+        }
+      },
+      "order.catalog.public.PromotionDiscountTotal": {
+        "type": "object",
+        "description": "Describes a Promotion discount or total inside a Catalog",
+        "properties": {
+          "tax": {
+            "type": "integer",
+            "description": "Tax",
+            "readOnly": true
+          },
+          "value": {
+            "type": "integer",
+            "description": "Value",
+            "readOnly": true
+          }
+        }
+      },
+      "order.catalog.public.ProrataUnitEnum": {
+        "type": "string",
+        "description": "Enum values for Prorata Unit",
+        "enum": [
+          "day",
+          "hour",
+          "month"
+        ]
+      },
+      "phoneNumber": {
+        "type": "string",
+        "description": "Phone number",
+        "format": "phone-number"
+      },
+      "products.catalog.AddonFamilyFull": {
+        "type": "object",
+        "description": "Describes an Addon family full for a Commercial offer",
+        "properties": {
+          "addons": {
+            "type": "array",
+            "description": "List of Commercial offers that can be ordered as an Addon of the current Commerical offer for the current Family",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/products.catalog.PlanFull"
+            },
+            "readOnly": true
+          },
+          "default": {
+            "type": "string",
+            "description": "Default Commercial offer that can be ordered as an Addon of the current Commercial offer for the current Family",
+            "nullable": true,
+            "readOnly": true
+          },
+          "exclusive": {
+            "type": "boolean",
+            "description": "Whether this Addon family is exclusive and can be ordered only once for the main Commercial offer",
+            "nullable": true,
+            "readOnly": true
+          },
+          "mandatory": {
+            "type": "boolean",
+            "description": "Whether this Addon family is mandatory",
+            "nullable": true,
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "description": "Family name",
+            "readOnly": true
+          }
+        }
+      },
+      "products.catalog.PlanFull": {
+        "type": "object",
+        "description": "Describes a Commercial offer full inside a Catalog",
+        "properties": {
+          "addonFamilies": {
+            "type": "array",
+            "description": "Addon families for this offer",
+            "items": {
+              "$ref": "#/components/schemas/products.catalog.AddonFamilyFull"
+            },
+            "readOnly": true
+          },
+          "blobs": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.ProductBlob"
+              }
+            ],
+            "description": "Blobs",
+            "nullable": true,
+            "readOnly": true
+          },
+          "configurations": {
+            "type": "array",
+            "description": "List of possible Configurations for this Commercial offer",
+            "items": {
+              "$ref": "#/components/schemas/order.catalog.public.Configuration"
+            },
+            "readOnly": true
+          },
+          "consumptionConfiguration": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.ConsumptionConfiguration"
+              }
+            ],
+            "description": "Configuration when pricing type is consumption",
+            "nullable": true,
+            "readOnly": true
+          },
+          "family": {
+            "type": "string",
+            "description": "Name of the family this Commercial offer belongs to",
+            "nullable": true,
+            "readOnly": true
+          },
+          "invoiceName": {
+            "type": "string",
+            "description": "Commercial offer description",
+            "readOnly": true
+          },
+          "planCode": {
+            "type": "string",
+            "description": "Commercial offer identifier",
+            "readOnly": true
+          },
+          "pricingType": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.cart.GenericProductPricingTypeEnum"
+              }
+            ],
+            "description": "Type of Pricing used by this Commercial offer",
+            "readOnly": true
+          },
+          "pricings": {
+            "type": "array",
+            "description": "List of possible Pricings for this Commercial offer",
+            "items": {
+              "$ref": "#/components/schemas/order.catalog.public.Pricing"
+            },
+            "readOnly": true
+          },
+          "product": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.Product"
+              }
+            ],
+            "description": "Product linked to this Commercial offer",
+            "readOnly": true
+          }
+        }
+      },
+      "products.catalog.ProductBlob": {
+        "type": "object",
+        "description": "Describes a Blob",
+        "properties": {
+          "commercial": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlobCommercial"
+              }
+            ],
+            "description": "Commercial information for Dedicated Server Product",
+            "nullable": true,
+            "readOnly": true
+          },
+          "marketing": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlobMarketing"
+              }
+            ],
+            "description": "Marketing information for VPS Product",
+            "nullable": true,
+            "readOnly": true
+          },
+          "meta": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlobMeta"
+              }
+            ],
+            "description": "Meta blobs for VPS Product",
+            "nullable": true,
+            "readOnly": true
+          },
+          "tags": {
+            "type": "array",
+            "description": "Tags",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            },
+            "readOnly": true
+          },
+          "technical": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlobTechnical"
+              }
+            ],
+            "description": "Technical information for Dedicated Server Product",
+            "nullable": true,
+            "readOnly": true
+          },
+          "value": {
+            "type": "string",
+            "description": "Value for meta blobs",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "products.catalog.ProductBlobCommercial": {
+        "type": "object",
+        "description": "Describes a Commercial blob",
+        "properties": {
+          "additionalDescription": {
+            "type": "string",
+            "description": "Additional description",
+            "nullable": true,
+            "readOnly": true
+          },
+          "brick": {
+            "type": "string",
+            "description": "Brick",
+            "nullable": true,
+            "readOnly": true
+          },
+          "brickSubtype": {
+            "type": "string",
+            "description": "Brick subtype",
+            "nullable": true,
+            "readOnly": true
+          },
+          "connection": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlobConnection"
+              }
+            ],
+            "description": "Connection",
+            "nullable": true,
+            "readOnly": true
+          },
+          "displayedVcpu": {
+            "type": "array",
+            "description": "List of numbers of vcpu to display",
+            "nullable": true,
+            "items": {
+              "type": "integer"
+            },
+            "readOnly": true
+          },
+          "features": {
+            "type": "array",
+            "description": "Commercial features to describe additional services of the commercial offer",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/products.catalog.ProductBlobCommercialFeatures"
+            },
+            "readOnly": true
+          },
+          "line": {
+            "type": "string",
+            "description": "Commercial Offer Line",
+            "nullable": true,
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "description": "Name",
+            "nullable": true,
+            "readOnly": true
+          },
+          "packs": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlobCommercialPacks"
+              }
+            ],
+            "description": "Commercial packs",
+            "nullable": true,
+            "readOnly": true
+          },
+          "price": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlobCommercialPrice"
+              }
+            ],
+            "description": "Price",
+            "nullable": true,
+            "readOnly": true
+          },
+          "range": {
+            "type": "string",
+            "description": "Commercial offer Range",
+            "nullable": true,
+            "readOnly": true
+          },
+          "references": {
+            "type": "array",
+            "description": "Commercial references",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/products.catalog.ProductBlobCommercialReferences"
+            },
+            "readOnly": true
+          },
+          "sla": {
+            "type": "number",
+            "description": "Service Level Agreement in percent",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "products.catalog.ProductBlobCommercialFeatures": {
+        "type": "object",
+        "description": "Describes Features for a commercial blob",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name",
+            "nullable": true,
+            "readOnly": true
+          },
+          "value": {
+            "type": "string",
+            "description": "Value",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "products.catalog.ProductBlobCommercialPacks": {
+        "type": "object",
+        "description": "Describes Packs for a commercial blob",
+        "properties": {
+          "brick": {
+            "type": "string",
+            "description": "Brick. Category of the commercial pack",
+            "nullable": true,
+            "readOnly": true
+          },
+          "brickSubtype": {
+            "type": "string",
+            "description": "Brick subtype. Sub category of the commercial pack",
+            "nullable": true,
+            "readOnly": true
+          },
+          "items": {
+            "type": "array",
+            "description": "Items of the commercial pack",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/products.catalog.ProductBlobCommercialPacksItem"
+            },
+            "readOnly": true
+          },
+          "line": {
+            "type": "string",
+            "description": "Line of the commercial pack",
+            "nullable": true,
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "description": "Name",
+            "nullable": true,
+            "readOnly": true
+          },
+          "range": {
+            "type": "string",
+            "description": "Range of the commercial pack",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "products.catalog.ProductBlobCommercialPacksItem": {
+        "type": "object",
+        "description": "Describes Item for a commercial blob pack",
+        "properties": {
+          "planCode": {
+            "type": "string",
+            "description": "Plan code of the item in the pack",
+            "nullable": true,
+            "readOnly": true
+          },
+          "quantity": {
+            "type": "integer",
+            "description": "Quantity of the item in the pack",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "products.catalog.ProductBlobCommercialPrice": {
+        "type": "object",
+        "description": "Describes a Price for a commercial blob",
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "Description of the Commercial price",
+            "nullable": true,
+            "readOnly": true
+          },
+          "display": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlobCommercialPriceDisplay"
+              }
+            ],
+            "description": "Price display",
+            "nullable": true,
+            "readOnly": true
+          },
+          "interval": {
+            "type": "string",
+            "description": "Time interval of price (PT1H, P1M, etc.)",
+            "nullable": true,
+            "format": "duration",
+            "readOnly": true
+          },
+          "precision": {
+            "type": "integer",
+            "description": "Number of decimal digits of the price to display",
+            "nullable": true,
+            "readOnly": true
+          },
+          "unit": {
+            "type": "string",
+            "description": "Price unit",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "products.catalog.ProductBlobCommercialPriceDisplay": {
+        "type": "object",
+        "description": "Describes a Display of a price",
+        "properties": {
+          "unit": {
+            "type": "string",
+            "description": "unit of the diplayed price",
+            "nullable": true,
+            "readOnly": true
+          },
+          "value": {
+            "type": "string",
+            "description": "Value",
+            "readOnly": true
+          }
+        }
+      },
+      "products.catalog.ProductBlobCommercialReferences": {
+        "type": "object",
+        "description": "Describes References for a commercial blob",
+        "properties": {
+          "datacenter": {
+            "type": "string",
+            "description": "Datacenter",
+            "nullable": true,
+            "readOnly": true
+          },
+          "planCode": {
+            "type": "string",
+            "description": "Plan code",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "products.catalog.ProductBlobConnection": {
+        "type": "object",
+        "description": "Describes a Connection for a blob for a Dedicated Server",
+        "properties": {
+          "clients": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.catalog.public.ProductBlobConnectionClients"
+              }
+            ],
+            "description": "Concurrent clients connection details",
+            "nullable": true,
+            "readOnly": true
+          },
+          "total": {
+            "type": "integer",
+            "description": "Total of concurrent connections",
+            "nullable": true,
+            "readOnly": true
+          },
+          "unit": {
+            "type": "string",
+            "description": "Connection type request",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "products.catalog.ProductBlobMarketing": {
+        "type": "object",
+        "description": "Describes a Marketing blob",
+        "properties": {
+          "content": {
+            "type": "array",
+            "description": "Marketing content information for VPS Product",
+            "items": {
+              "$ref": "#/components/schemas/products.catalog.ProductBlobMarketingContent"
+            },
+            "readOnly": true
+          }
+        }
+      },
+      "products.catalog.ProductBlobMarketingContent": {
+        "type": "object",
+        "description": "Describes a Content for a Marketing blob",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "Key",
+            "readOnly": true
+          },
+          "value": {
+            "type": "string",
+            "description": "Value",
+            "readOnly": true
+          }
+        }
+      },
+      "products.catalog.ProductBlobMeta": {
+        "type": "object",
+        "description": "Describes a Meta blob",
+        "properties": {
+          "configurations": {
+            "type": "array",
+            "description": "Configurations",
+            "items": {
+              "$ref": "#/components/schemas/products.catalog.ProductBlobMetaConfigurations"
+            },
+            "readOnly": true
+          }
+        }
+      },
+      "products.catalog.ProductBlobMetaConfigurations": {
+        "type": "object",
+        "description": "Describes a Configuration for a meta blob",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name",
+            "readOnly": true
+          },
+          "values": {
+            "type": "array",
+            "description": "Values",
+            "items": {
+              "$ref": "#/components/schemas/products.catalog.ProductBlobMetaConfigurationsValues"
+            },
+            "readOnly": true
+          }
+        }
+      },
+      "products.catalog.ProductBlobMetaConfigurationsValues": {
+        "type": "object",
+        "description": "Describes a Values configuration for a meta blob",
+        "properties": {
+          "blobs": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlob"
+              }
+            ],
+            "description": "Blobs",
+            "readOnly": true
+          },
+          "value": {
+            "type": "string",
+            "description": "Value",
+            "readOnly": true
+          }
+        }
+      },
+      "products.catalog.ProductBlobTechnical": {
+        "type": "object",
+        "description": "Describes a Technical Blob",
+        "properties": {
+          "bandwidth": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlobTechnicalNetwork"
+              }
+            ],
+            "description": "Network information",
+            "nullable": true,
+            "readOnly": true
+          },
+          "cluster": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlobTechnicalCluster"
+              }
+            ],
+            "description": "Cluster",
+            "nullable": true,
+            "readOnly": true
+          },
+          "connection": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlobConnection"
+              }
+            ],
+            "description": "Connection",
+            "nullable": true,
+            "readOnly": true
+          },
+          "connectionPerSeconds": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlobConnection"
+              }
+            ],
+            "description": "Connection per seconds",
+            "nullable": true,
+            "readOnly": true
+          },
+          "cpu": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlobTechnicalCPU"
+              }
+            ],
+            "description": "CPU information",
+            "nullable": true,
+            "readOnly": true
+          },
+          "datacenter": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlobTechnicalDatacenter"
+              }
+            ],
+            "description": "Datacenter",
+            "nullable": true,
+            "readOnly": true
+          },
+          "ephemeralLocalStorage": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlobTechnicalStorage"
+              }
+            ],
+            "description": "Ephemeral local storage",
+            "nullable": true,
+            "readOnly": true
+          },
+          "extensionCard": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlobTechnicalExtensionCard"
+              }
+            ],
+            "description": "Extension card",
+            "nullable": true,
+            "readOnly": true
+          },
+          "farm": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlobTechnicalFarm"
+              }
+            ],
+            "description": "Farm's properties",
+            "nullable": true,
+            "readOnly": true
+          },
+          "frame": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlobTechnicalFrame"
+              }
+            ],
+            "description": "Frame properties",
+            "nullable": true,
+            "readOnly": true
+          },
+          "gpu": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlobTechnicalGPU"
+              }
+            ],
+            "description": "GPU information",
+            "nullable": true,
+            "readOnly": true
+          },
+          "license": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlobTechnicalOS"
+              }
+            ],
+            "description": "License information",
+            "nullable": true,
+            "readOnly": true
+          },
+          "managedNetappCluster": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlobTechnicalStorage"
+              }
+            ],
+            "description": "Managed Netapp cluster information",
+            "nullable": true,
+            "readOnly": true
+          },
+          "memory": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlobTechnicalMemory"
+              }
+            ],
+            "description": "Memory information",
+            "nullable": true,
+            "readOnly": true
+          },
+          "metric": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlobTechnicalMetric"
+              }
+            ],
+            "description": "Metric information",
+            "nullable": true,
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "description": "Name",
+            "nullable": true,
+            "readOnly": true
+          },
+          "network": {
+            "type": "array",
+            "description": "List of Networks",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/products.catalog.ProductBlobTechnicalNetwork"
+            },
+            "readOnly": true
+          },
+          "nodes": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlobTechnicalVirtualization"
+              }
+            ],
+            "description": "Nodes",
+            "nullable": true,
+            "readOnly": true
+          },
+          "nvme": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlobTechnicalStorage"
+              }
+            ],
+            "description": "NVME",
+            "nullable": true,
+            "readOnly": true
+          },
+          "os": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlobTechnicalOS"
+              }
+            ],
+            "description": "OS",
+            "nullable": true,
+            "readOnly": true
+          },
+          "provider": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlobTechnicalProvider"
+              }
+            ],
+            "description": "Provider",
+            "nullable": true,
+            "readOnly": true
+          },
+          "requestPerSeconds": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlobConnection"
+              }
+            ],
+            "description": "Connection per seconds",
+            "nullable": true,
+            "readOnly": true
+          },
+          "server": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlobTechnicalServer"
+              }
+            ],
+            "description": "Hardware information",
+            "nullable": true,
+            "readOnly": true
+          },
+          "service": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlobTechnicalServices"
+              }
+            ],
+            "description": "Hardware information",
+            "nullable": true,
+            "readOnly": true
+          },
+          "storage": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlobTechnicalStorage"
+              }
+            ],
+            "description": "Disks information",
+            "nullable": true,
+            "readOnly": true
+          },
+          "tags": {
+            "type": "array",
+            "description": "Tags",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            },
+            "readOnly": true
+          },
+          "throughput": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlobTechnicalNetwork"
+              }
+            ],
+            "description": "Throughput",
+            "nullable": true,
+            "readOnly": true
+          },
+          "virtualization": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlobTechnicalVirtualization"
+              }
+            ],
+            "description": "Virtualization",
+            "nullable": true,
+            "readOnly": true
+          },
+          "volume": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlobTechnicalVolume"
+              }
+            ],
+            "description": "Volume",
+            "nullable": true,
+            "readOnly": true
+          },
+          "vrack": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlobTechnicalNetwork"
+              }
+            ],
+            "description": "vRack information",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "products.catalog.ProductBlobTechnicalAggregation": {
+        "type": "object",
+        "description": "Describes an aggregation for a technical blob",
+        "properties": {
+          "upTo": {
+            "type": "number",
+            "description": "Maximum value",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "products.catalog.ProductBlobTechnicalCPU": {
+        "type": "object",
+        "description": "Describes a CPU for a technical blob",
+        "properties": {
+          "boost": {
+            "type": "number",
+            "description": "CPU Boost",
+            "nullable": true,
+            "readOnly": true
+          },
+          "brand": {
+            "type": "string",
+            "description": "CPU Brand",
+            "nullable": true,
+            "readOnly": true
+          },
+          "cache": {
+            "type": "integer",
+            "description": "Cache",
+            "nullable": true,
+            "readOnly": true
+          },
+          "cores": {
+            "type": "integer",
+            "description": "Number of cores",
+            "nullable": true,
+            "readOnly": true
+          },
+          "customizable": {
+            "type": "boolean",
+            "description": "Customizable",
+            "nullable": true,
+            "readOnly": true
+          },
+          "frequency": {
+            "type": "number",
+            "description": "Frequency of CPU in GHz",
+            "nullable": true,
+            "readOnly": true
+          },
+          "maxFrequency": {
+            "type": "number",
+            "description": "Maximum frequency value",
+            "nullable": true,
+            "readOnly": true
+          },
+          "model": {
+            "type": "string",
+            "description": "Displayable name",
+            "nullable": true,
+            "readOnly": true
+          },
+          "number": {
+            "type": "integer",
+            "description": "Number of CPU",
+            "nullable": true,
+            "readOnly": true
+          },
+          "score": {
+            "type": "integer",
+            "description": "CPU score",
+            "nullable": true,
+            "readOnly": true
+          },
+          "threads": {
+            "type": "integer",
+            "description": "Number of threads",
+            "nullable": true,
+            "readOnly": true
+          },
+          "type": {
+            "type": "string",
+            "description": "Type",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "products.catalog.ProductBlobTechnicalCluster": {
+        "type": "object",
+        "description": "Describes a Cluster for a technical Blob",
+        "properties": {
+          "range": {
+            "type": "string",
+            "description": "Product offer range",
+            "nullable": true,
+            "readOnly": true
+          },
+          "server": {
+            "type": "string",
+            "description": "Server composition details",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "products.catalog.ProductBlobTechnicalDatacenter": {
+        "type": "object",
+        "description": "Describes a Datacenter for a technical Blob",
+        "properties": {
+          "city": {
+            "type": "string",
+            "description": "City",
+            "nullable": true,
+            "readOnly": true
+          },
+          "country": {
+            "type": "string",
+            "description": "Country",
+            "nullable": true,
+            "readOnly": true
+          },
+          "countryCode": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/nichandle.OvhSubsidiaryEnum"
+              }
+            ],
+            "description": "Country code",
+            "nullable": true,
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "description": "Name",
+            "nullable": true,
+            "readOnly": true
+          },
+          "region": {
+            "type": "string",
+            "description": "Region",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "products.catalog.ProductBlobTechnicalDisk": {
+        "type": "object",
+        "description": "Describes a Disk for a technical blob",
+        "properties": {
+          "capacity": {
+            "type": "number",
+            "description": "Disk capacity in Gb",
+            "nullable": true,
+            "readOnly": true
+          },
+          "dwpd": {
+            "type": "integer",
+            "description": "Drive Writes Per Day",
+            "nullable": true,
+            "readOnly": true
+          },
+          "interface": {
+            "type": "string",
+            "description": "Disk interface",
+            "nullable": true,
+            "readOnly": true
+          },
+          "iops": {
+            "type": "integer",
+            "description": "Iops",
+            "nullable": true,
+            "readOnly": true
+          },
+          "maximumCapacity": {
+            "type": "number",
+            "description": "Maximum disk capacity in Gb",
+            "nullable": true,
+            "readOnly": true
+          },
+          "number": {
+            "type": "integer",
+            "description": "Number of disks",
+            "nullable": true,
+            "readOnly": true
+          },
+          "sizeUnit": {
+            "type": "string",
+            "description": "Size unit",
+            "nullable": true,
+            "readOnly": true
+          },
+          "specs": {
+            "type": "string",
+            "description": "Disk specs",
+            "nullable": true,
+            "readOnly": true
+          },
+          "technology": {
+            "type": "string",
+            "description": "Disk technology",
+            "nullable": true,
+            "readOnly": true
+          },
+          "usage": {
+            "type": "string",
+            "description": "Usage information",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "products.catalog.ProductBlobTechnicalExtensionCard": {
+        "type": "object",
+        "description": "Describes an extension card for a technical blob",
+        "properties": {
+          "model": {
+            "type": "string",
+            "description": "model of the extension card",
+            "nullable": true,
+            "readOnly": true
+          },
+          "size": {
+            "type": "string",
+            "description": "Size of the extension card in GB",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "products.catalog.ProductBlobTechnicalFarm": {
+        "type": "object",
+        "description": "Describes a Farm for technical blob",
+        "properties": {
+          "number": {
+            "type": "integer",
+            "description": "Number",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "products.catalog.ProductBlobTechnicalFrame": {
+        "type": "object",
+        "description": "Describes a Frame for a technical blob",
+        "properties": {
+          "customizable": {
+            "type": "boolean",
+            "description": "Customizable",
+            "nullable": true,
+            "readOnly": true
+          },
+          "dualPowerSupply": {
+            "type": "boolean",
+            "description": "Dual power supply",
+            "readOnly": true
+          },
+          "maxNbDisks": {
+            "type": "integer",
+            "description": "Maximum number of disks",
+            "nullable": true,
+            "readOnly": true
+          },
+          "model": {
+            "type": "string",
+            "description": "Frame model",
+            "nullable": true,
+            "readOnly": true
+          },
+          "size": {
+            "type": "string",
+            "description": "Frame size",
+            "nullable": true,
+            "readOnly": true
+          },
+          "slots": {
+            "type": "integer",
+            "description": "Number of slots",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "products.catalog.ProductBlobTechnicalGPU": {
+        "type": "object",
+        "description": "Describes a GPU for a technical blob",
+        "properties": {
+          "brand": {
+            "type": "string",
+            "description": "GPU brand",
+            "nullable": true,
+            "readOnly": true
+          },
+          "memory": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlobTechnicalMemory"
+              }
+            ],
+            "description": "GPU memory details",
+            "nullable": true,
+            "readOnly": true
+          },
+          "model": {
+            "type": "string",
+            "description": "GPU model",
+            "nullable": true,
+            "readOnly": true
+          },
+          "number": {
+            "type": "integer",
+            "description": "GPU number",
+            "nullable": true,
+            "readOnly": true
+          },
+          "performance": {
+            "type": "number",
+            "description": "GPU performance",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "products.catalog.ProductBlobTechnicalInterfaces": {
+        "type": "object",
+        "description": "Describes an interface for a technical blob",
+        "properties": {
+          "interfaces": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlobTechnicalItemMinMax"
+              }
+            ],
+            "description": "Interfaces details",
+            "nullable": true,
+            "readOnly": true
+          },
+          "level": {
+            "type": "integer",
+            "description": "Interface Level",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "products.catalog.ProductBlobTechnicalItemMinMax": {
+        "type": "object",
+        "description": "Describes minimal and maximal values of an item",
+        "properties": {
+          "max": {
+            "type": "integer",
+            "description": "Maximal value",
+            "nullable": true,
+            "readOnly": true
+          },
+          "min": {
+            "type": "integer",
+            "description": "Minimal value",
+            "readOnly": true
+          }
+        }
+      },
+      "products.catalog.ProductBlobTechnicalLicenseCores": {
+        "type": "object",
+        "description": "Describes license cores for a technical blob",
+        "properties": {
+          "min": {
+            "type": "integer",
+            "description": "Minimum number of cores",
+            "nullable": true,
+            "readOnly": true
+          },
+          "number": {
+            "type": "integer",
+            "description": "Number of cores",
+            "nullable": true,
+            "readOnly": true
+          },
+          "total": {
+            "type": "integer",
+            "description": "Total of cores",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "products.catalog.ProductBlobTechnicalMemory": {
+        "type": "object",
+        "description": "Describes a Memory technical Blob",
+        "properties": {
+          "customizable": {
+            "type": "boolean",
+            "description": "Customizable",
+            "nullable": true,
+            "readOnly": true
+          },
+          "ecc": {
+            "type": "boolean",
+            "description": "ECC",
+            "nullable": true,
+            "readOnly": true
+          },
+          "frequency": {
+            "type": "integer",
+            "description": "RAM frequency in MHz",
+            "nullable": true,
+            "readOnly": true
+          },
+          "interface": {
+            "type": "string",
+            "description": "RAM interface details",
+            "nullable": true,
+            "readOnly": true
+          },
+          "ramType": {
+            "type": "string",
+            "description": "RAM Type (DDRx...)",
+            "nullable": true,
+            "readOnly": true
+          },
+          "size": {
+            "type": "number",
+            "description": "Size of the RAM in GB",
+            "readOnly": true
+          },
+          "sizeUnit": {
+            "type": "string",
+            "description": "Size unit",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "products.catalog.ProductBlobTechnicalMetric": {
+        "type": "object",
+        "description": "Describes a Metric for a technical Blob",
+        "properties": {
+          "retentionPeriod": {
+            "type": "integer",
+            "description": "Metric retention period in month",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "products.catalog.ProductBlobTechnicalNetwork": {
+        "type": "object",
+        "description": "Describes a Network technical Blob",
+        "properties": {
+          "aggregation": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlobTechnicalAggregation"
+              }
+            ],
+            "description": "Network aggregation information",
+            "nullable": true,
+            "readOnly": true
+          },
+          "assured": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlobTechnicalInterfaces"
+              }
+            ],
+            "description": "Network assured information",
+            "nullable": true,
+            "readOnly": true
+          },
+          "burst": {
+            "type": "integer",
+            "description": "Network burst",
+            "nullable": true,
+            "readOnly": true
+          },
+          "capacity": {
+            "type": "integer",
+            "description": "Network capacity. If capacity > 1000 then unit is Mbps, else Gbps",
+            "nullable": true,
+            "readOnly": true
+          },
+          "guaranteed": {
+            "type": "boolean",
+            "description": "Guaranteed Network",
+            "nullable": true,
+            "readOnly": true
+          },
+          "interfaces": {
+            "type": "integer",
+            "description": "Network interfaces number",
+            "nullable": true,
+            "readOnly": true
+          },
+          "isMax": {
+            "type": "boolean",
+            "description": "False if additional NETWORK capacity can be added when max is reached",
+            "nullable": true,
+            "readOnly": true
+          },
+          "level": {
+            "type": "number",
+            "description": "Network level",
+            "nullable": true,
+            "readOnly": true
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Network limit",
+            "nullable": true,
+            "readOnly": true
+          },
+          "max": {
+            "type": "integer",
+            "description": "Network max capacity. If capacity > 1000 then unit is Mbps, else Gbps",
+            "nullable": true,
+            "readOnly": true
+          },
+          "maxUnit": {
+            "type": "string",
+            "description": "Maximun network capacity unit",
+            "nullable": true,
+            "readOnly": true
+          },
+          "number": {
+            "type": "integer",
+            "description": "Network number",
+            "nullable": true,
+            "readOnly": true
+          },
+          "shared": {
+            "type": "boolean",
+            "description": "True if the network is shared",
+            "nullable": true,
+            "readOnly": true
+          },
+          "traffic": {
+            "type": "integer",
+            "description": "Included traffic in GB",
+            "nullable": true,
+            "readOnly": true
+          },
+          "unit": {
+            "type": "string",
+            "description": "Unit",
+            "nullable": true,
+            "readOnly": true
+          },
+          "unlimited": {
+            "type": "boolean",
+            "description": "Unlimited",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "products.catalog.ProductBlobTechnicalOS": {
+        "type": "object",
+        "description": "Describes an OS for a technical blob",
+        "properties": {
+          "application": {
+            "type": "string",
+            "description": "Application",
+            "nullable": true,
+            "readOnly": true
+          },
+          "cores": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlobTechnicalLicenseCores"
+              }
+            ],
+            "description": "Cores information",
+            "nullable": true,
+            "readOnly": true
+          },
+          "cpu": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlobTechnicalCPU"
+              }
+            ],
+            "description": "CPU",
+            "nullable": true,
+            "readOnly": true
+          },
+          "distribution": {
+            "type": "string",
+            "description": "OS distribution",
+            "nullable": true,
+            "readOnly": true
+          },
+          "edition": {
+            "type": "string",
+            "description": "Edition",
+            "nullable": true,
+            "readOnly": true
+          },
+          "family": {
+            "type": "string",
+            "description": "Family",
+            "nullable": true,
+            "readOnly": true
+          },
+          "feature": {
+            "type": "string",
+            "description": "Feature",
+            "nullable": true,
+            "readOnly": true
+          },
+          "features": {
+            "type": "array",
+            "description": "Features",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/products.catalog.ProductBlobCommercialFeatures"
+            },
+            "readOnly": true
+          },
+          "flavor": {
+            "type": "string",
+            "description": "Os flavor",
+            "nullable": true,
+            "readOnly": true
+          },
+          "images": {
+            "type": "array",
+            "description": "Multiple Images information",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            },
+            "readOnly": true
+          },
+          "nbOfAccount": {
+            "type": "integer",
+            "description": "Number of account",
+            "nullable": true,
+            "readOnly": true
+          },
+          "package": {
+            "type": "string",
+            "description": "Package",
+            "nullable": true,
+            "readOnly": true
+          },
+          "rack": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlobTechnicalRack"
+              }
+            ],
+            "description": "Rack information",
+            "nullable": true,
+            "readOnly": true
+          },
+          "version": {
+            "type": "string",
+            "description": "Version",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "products.catalog.ProductBlobTechnicalProvider": {
+        "type": "object",
+        "description": "Describes a provider for a technical blob",
+        "properties": {
+          "pointsOfPresence": {
+            "type": "integer",
+            "description": "Points of presence of the provider",
+            "nullable": true,
+            "readOnly": true
+          },
+          "reference": {
+            "type": "boolean",
+            "description": "Reference",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "products.catalog.ProductBlobTechnicalRack": {
+        "type": "object",
+        "description": "Describes a Rack technical Blob",
+        "properties": {
+          "size": {
+            "type": "integer",
+            "description": "Size of the rack",
+            "readOnly": true
+          }
+        }
+      },
+      "products.catalog.ProductBlobTechnicalRaid": {
+        "type": "object",
+        "description": "Describes a Raid for a technical blob",
+        "properties": {
+          "cardModel": {
+            "type": "string",
+            "description": "Card size",
+            "nullable": true,
+            "readOnly": true
+          },
+          "cardSize": {
+            "type": "string",
+            "description": "Card size",
+            "nullable": true,
+            "readOnly": true
+          },
+          "level": {
+            "type": "integer",
+            "description": "Raid level",
+            "nullable": true,
+            "readOnly": true
+          },
+          "type": {
+            "type": "string",
+            "description": "Type",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "products.catalog.ProductBlobTechnicalServer": {
+        "type": "object",
+        "description": "Describes some technicals information for a technical blob",
+        "properties": {
+          "cpu": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlobTechnicalCPU"
+              }
+            ],
+            "description": "CPU properties",
+            "nullable": true,
+            "readOnly": true
+          },
+          "extensionCard": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlobTechnicalExtensionCard"
+              }
+            ],
+            "description": "Extension card",
+            "nullable": true,
+            "readOnly": true
+          },
+          "frame": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlobTechnicalFrame"
+              }
+            ],
+            "description": "Frame properties",
+            "nullable": true,
+            "readOnly": true
+          },
+          "range": {
+            "type": "string",
+            "description": "Dedicated server series",
+            "nullable": true,
+            "readOnly": true
+          },
+          "services": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlobTechnicalServices"
+              }
+            ],
+            "description": "Hardware information",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "products.catalog.ProductBlobTechnicalServices": {
+        "type": "object",
+        "description": "Describes some technicals information",
+        "properties": {
+          "antiddos": {
+            "type": "string",
+            "description": "Anti DDOS formula",
+            "nullable": true,
+            "readOnly": true
+          },
+          "includedBackup": {
+            "type": "integer",
+            "description": "Included backup",
+            "nullable": true,
+            "readOnly": true
+          },
+          "sla": {
+            "type": "number",
+            "description": "Service Level Agreement in percent",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "products.catalog.ProductBlobTechnicalStorage": {
+        "type": "object",
+        "description": "Describes a Storage technical Blob",
+        "properties": {
+          "disks": {
+            "type": "array",
+            "description": "Disk properties",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/products.catalog.ProductBlobTechnicalDisk"
+            },
+            "readOnly": true
+          },
+          "hotSwap": {
+            "type": "boolean",
+            "description": "Hot Swap. True if the feature exists",
+            "nullable": true,
+            "readOnly": true
+          },
+          "local": {
+            "type": "boolean",
+            "description": "Local",
+            "nullable": true,
+            "readOnly": true
+          },
+          "raid": {
+            "type": "string",
+            "description": "Raid",
+            "nullable": true,
+            "readOnly": true
+          },
+          "raidDetails": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlobTechnicalRaid"
+              }
+            ],
+            "description": "Raid details",
+            "nullable": true,
+            "readOnly": true
+          },
+          "replication": {
+            "type": "integer",
+            "description": "Replication",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "products.catalog.ProductBlobTechnicalVirtualization": {
+        "type": "object",
+        "description": "Describes a Virtualization for a Technical Blob",
+        "properties": {
+          "hypervisor": {
+            "type": "string",
+            "description": "Hypervisor",
+            "nullable": true,
+            "readOnly": true
+          },
+          "number": {
+            "type": "integer",
+            "description": "Number",
+            "nullable": true,
+            "readOnly": true
+          },
+          "replication": {
+            "type": "integer",
+            "description": "Number of virtual replication",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "products.catalog.ProductBlobTechnicalVolume": {
+        "type": "object",
+        "description": "Describes a Volume for a technichal blob",
+        "properties": {
+          "capacity": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlobTechnicalVolumeCapacity"
+              }
+            ],
+            "description": "Capacity",
+            "nullable": true,
+            "readOnly": true
+          },
+          "iops": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/products.catalog.ProductBlobTechnicalVolumeIops"
+              }
+            ],
+            "description": "Iops details",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "products.catalog.ProductBlobTechnicalVolumeCapacity": {
+        "type": "object",
+        "description": "Describes a Capacity for a Volume for a technichal blob",
+        "properties": {
+          "max": {
+            "type": "integer",
+            "description": "Max",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "products.catalog.ProductBlobTechnicalVolumeIops": {
+        "type": "object",
+        "description": "Describes a Iops for a Volume for a technichal blob",
+        "properties": {
+          "guaranteed": {
+            "type": "boolean",
+            "description": "Guaranteed",
+            "nullable": true,
+            "readOnly": true
+          },
+          "level": {
+            "type": "integer",
+            "description": "Number of IOPS",
+            "nullable": true,
+            "readOnly": true
+          },
+          "max": {
+            "type": "integer",
+            "description": "Maximum volume value",
+            "nullable": true,
+            "readOnly": true
+          },
+          "maxUnit": {
+            "type": "string",
+            "description": "Maximal unit value",
+            "nullable": true,
+            "readOnly": true
+          },
+          "unit": {
+            "type": "string",
+            "description": "IOPS unit",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "time": {
+        "type": "string",
+        "description": "Time (e.g., 15:04:05)",
+        "format": "time",
+        "example": "15:04:05"
+      }
+    },
+    "securitySchemes": {
+      "oAuth2AuthCode": {
+        "type": "oauth2",
+        "description": "Oauth2",
+        "x-client-id": "1bb9c7df371741c0",
+        "x-client-secret": "a5b4de870aca620d10fbf63cd18d205b",
+        "flows": {
+          "authorizationCode": {
+            "authorizationUrl": "https://auth.eu.ovhcloud.com/oauth2/authorize",
+            "tokenUrl": "https://auth.eu.ovhcloud.com/oauth2/token",
+            "scopes": {
+              "account/all": "Manage your account",
+              "all": "Manage your whole account and all your services",
+              "services/all": "Manage your services lifecycle and billing"
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {}
+}

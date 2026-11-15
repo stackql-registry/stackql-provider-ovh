@@ -1,0 +1,1157 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "OVHcloud API specification",
+    "description": "Specification for OVHcloud API",
+    "version": "1.0",
+    "contact": {
+      "name": "OVH",
+      "email": "api@ml.ovh.net"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.eu.ovhcloud.com/v1"
+    }
+  ],
+  "components": {
+    "schemas": {
+      "any": {
+        "description": "Can be anything (text, int, bool, json, html, etc.)",
+        "example": "This is a content of any type !"
+      },
+      "duration": {
+        "type": "string",
+        "description": "Duration (e.g., P1Y2M3DT4H6M9S)",
+        "example": "P1Y2M3DT4H6M9S"
+      },
+      "email": {
+        "type": "string",
+        "description": "Email address (e.g., api@ml.ovh.net)",
+        "format": "email",
+        "example": "api@ml.ovh.net"
+      },
+      "internationalPhoneNumber": {
+        "type": "string",
+        "description": "International phone number",
+        "format": "phone-number"
+      },
+      "ip": {
+        "type": "string",
+        "description": "IP address (e.g., 192.0.2.0)",
+        "format": "ipv4",
+        "example": "192.0.2.0"
+      },
+      "ipBlock": {
+        "type": "string",
+        "description": "IP (v4 or v6) CIDR notation (e.g., 192.0.2.0/24)",
+        "format": "ip-block",
+        "example": "192.0.2.0/24"
+      },
+      "ipInterface": {
+        "type": "string",
+        "description": "IP address (e.g., 192.0.2.0)",
+        "format": "ipv4",
+        "example": "192.0.2.0"
+      },
+      "ipv4": {
+        "type": "string",
+        "description": "IPv4 address (e.g., 192.0.2.0)",
+        "format": "ipv4",
+        "example": "192.0.2.0"
+      },
+      "ipv4Block": {
+        "type": "string",
+        "description": "IPv4 CIDR notation (e.g., 192.0.2.0/24)",
+        "format": "ipv4-block",
+        "example": "192.0.2.0/24"
+      },
+      "ipv6": {
+        "type": "string",
+        "description": "IPv6 address (e.g., 2001:41d0:1:1994::1)",
+        "format": "ipv6",
+        "example": "2001:41d0:1:1994::1"
+      },
+      "ipv6Block": {
+        "type": "string",
+        "description": "IPv6 CIDR notation (e.g., 2001:41d0::/128)",
+        "format": "ipv6-block",
+        "example": "2001:41d0::/128"
+      },
+      "macAddress": {
+        "type": "string",
+        "description": "MAC address (e.g., 00:00:5e:00:53:01)",
+        "format": "mac-address",
+        "example": "00:00:5e:00:53:01"
+      },
+      "nichandle.CountryEnum": {
+        "type": "string",
+        "description": "Countries a nichandle can choose",
+        "enum": [
+          "AC",
+          "AD",
+          "AE",
+          "AF",
+          "AG",
+          "AI",
+          "AL",
+          "AM",
+          "AO",
+          "AQ",
+          "AR",
+          "AS",
+          "AT",
+          "AU",
+          "AW",
+          "AX",
+          "AZ",
+          "BA",
+          "BB",
+          "BD",
+          "BE",
+          "BF",
+          "BG",
+          "BH",
+          "BI",
+          "BJ",
+          "BL",
+          "BM",
+          "BN",
+          "BO",
+          "BQ",
+          "BR",
+          "BS",
+          "BT",
+          "BW",
+          "BY",
+          "BZ",
+          "CA",
+          "CC",
+          "CD",
+          "CF",
+          "CG",
+          "CH",
+          "CI",
+          "CK",
+          "CL",
+          "CM",
+          "CN",
+          "CO",
+          "CR",
+          "CU",
+          "CV",
+          "CW",
+          "CX",
+          "CY",
+          "CZ",
+          "DE",
+          "DG",
+          "DJ",
+          "DK",
+          "DM",
+          "DO",
+          "DZ",
+          "EA",
+          "EC",
+          "EE",
+          "EG",
+          "EH",
+          "ER",
+          "ES",
+          "ET",
+          "FI",
+          "FJ",
+          "FK",
+          "FM",
+          "FO",
+          "FR",
+          "GA",
+          "GB",
+          "GD",
+          "GE",
+          "GF",
+          "GG",
+          "GH",
+          "GI",
+          "GL",
+          "GM",
+          "GN",
+          "GP",
+          "GQ",
+          "GR",
+          "GS",
+          "GT",
+          "GU",
+          "GW",
+          "GY",
+          "HK",
+          "HN",
+          "HR",
+          "HT",
+          "HU",
+          "IC",
+          "ID",
+          "IE",
+          "IL",
+          "IM",
+          "IN",
+          "IO",
+          "IQ",
+          "IR",
+          "IS",
+          "IT",
+          "JE",
+          "JM",
+          "JO",
+          "JP",
+          "KE",
+          "KG",
+          "KH",
+          "KI",
+          "KM",
+          "KN",
+          "KP",
+          "KR",
+          "KW",
+          "KY",
+          "KZ",
+          "LA",
+          "LB",
+          "LC",
+          "LI",
+          "LK",
+          "LR",
+          "LS",
+          "LT",
+          "LU",
+          "LV",
+          "LY",
+          "MA",
+          "MC",
+          "MD",
+          "ME",
+          "MF",
+          "MG",
+          "MH",
+          "MK",
+          "ML",
+          "MM",
+          "MN",
+          "MO",
+          "MP",
+          "MQ",
+          "MR",
+          "MS",
+          "MT",
+          "MU",
+          "MV",
+          "MW",
+          "MX",
+          "MY",
+          "MZ",
+          "NA",
+          "NC",
+          "NE",
+          "NF",
+          "NG",
+          "NI",
+          "NL",
+          "NO",
+          "NP",
+          "NR",
+          "NU",
+          "NZ",
+          "OM",
+          "PA",
+          "PE",
+          "PF",
+          "PG",
+          "PH",
+          "PK",
+          "PL",
+          "PM",
+          "PN",
+          "PR",
+          "PS",
+          "PT",
+          "PW",
+          "PY",
+          "QA",
+          "RE",
+          "RO",
+          "RS",
+          "RU",
+          "RW",
+          "SA",
+          "SB",
+          "SC",
+          "SD",
+          "SE",
+          "SG",
+          "SH",
+          "SI",
+          "SJ",
+          "SK",
+          "SL",
+          "SM",
+          "SN",
+          "SO",
+          "SR",
+          "SS",
+          "ST",
+          "SV",
+          "SX",
+          "SY",
+          "SZ",
+          "TA",
+          "TC",
+          "TD",
+          "TF",
+          "TG",
+          "TH",
+          "TJ",
+          "TK",
+          "TL",
+          "TM",
+          "TN",
+          "TO",
+          "TR",
+          "TT",
+          "TV",
+          "TW",
+          "TZ",
+          "UA",
+          "UG",
+          "UM",
+          "UNKNOWN",
+          "US",
+          "UY",
+          "UZ",
+          "VA",
+          "VC",
+          "VE",
+          "VG",
+          "VI",
+          "VN",
+          "VU",
+          "WF",
+          "WS",
+          "XK",
+          "YE",
+          "YT",
+          "ZA",
+          "ZM",
+          "ZW"
+        ]
+      },
+      "nichandle.CreationRule": {
+        "type": "object",
+        "description": "Describe all rules for a given field",
+        "properties": {
+          "defaultValue": {
+            "type": "string",
+            "description": "Default value of the field",
+            "nullable": true
+          },
+          "examples": {
+            "type": "array",
+            "description": "Examples of values for the fields",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "fieldName": {
+            "type": "string",
+            "description": "Name of the field",
+            "nullable": true
+          },
+          "in": {
+            "type": "array",
+            "description": "List of allowed values for the field",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "mandatory": {
+            "type": "boolean",
+            "description": "Whether the field is mandatory"
+          },
+          "maxLength": {
+            "type": "integer",
+            "description": "Maximum length of the field",
+            "nullable": true
+          },
+          "minLength": {
+            "type": "integer",
+            "description": "Minimum length of the field",
+            "nullable": true
+          },
+          "prefix": {
+            "type": "string",
+            "description": "Prefix of the field value",
+            "nullable": true
+          },
+          "regularExpression": {
+            "type": "string",
+            "description": "Regular expression to validate the field value",
+            "nullable": true
+          }
+        }
+      },
+      "nichandle.CreationRules": {
+        "type": "object",
+        "description": "Describe rules foreach field in order to create a nic",
+        "properties": {
+          "address": {
+            "$ref": "#/components/schemas/nichandle.CreationRule"
+          },
+          "area": {
+            "$ref": "#/components/schemas/nichandle.CreationRule"
+          },
+          "birthCity": {
+            "$ref": "#/components/schemas/nichandle.CreationRule"
+          },
+          "birthDay": {
+            "$ref": "#/components/schemas/nichandle.CreationRule"
+          },
+          "city": {
+            "$ref": "#/components/schemas/nichandle.CreationRule"
+          },
+          "companyNationalIdentificationNumber": {
+            "$ref": "#/components/schemas/nichandle.CreationRule"
+          },
+          "corporationType": {
+            "$ref": "#/components/schemas/nichandle.CreationRule"
+          },
+          "country": {
+            "$ref": "#/components/schemas/nichandle.CreationRule"
+          },
+          "email": {
+            "$ref": "#/components/schemas/nichandle.CreationRule"
+          },
+          "fax": {
+            "$ref": "#/components/schemas/nichandle.CreationRule"
+          },
+          "firstname": {
+            "$ref": "#/components/schemas/nichandle.CreationRule"
+          },
+          "italianSDI": {
+            "$ref": "#/components/schemas/nichandle.CreationRule"
+          },
+          "language": {
+            "$ref": "#/components/schemas/nichandle.CreationRule"
+          },
+          "legalform": {
+            "$ref": "#/components/schemas/nichandle.CreationRule"
+          },
+          "name": {
+            "$ref": "#/components/schemas/nichandle.CreationRule"
+          },
+          "nationalIdentificationNumber": {
+            "$ref": "#/components/schemas/nichandle.CreationRule"
+          },
+          "organisation": {
+            "$ref": "#/components/schemas/nichandle.CreationRule"
+          },
+          "ovhCompany": {
+            "$ref": "#/components/schemas/nichandle.CreationRule"
+          },
+          "ovhSubsidiary": {
+            "$ref": "#/components/schemas/nichandle.CreationRule"
+          },
+          "phone": {
+            "$ref": "#/components/schemas/nichandle.CreationRule"
+          },
+          "phoneCountry": {
+            "$ref": "#/components/schemas/nichandle.CreationRule"
+          },
+          "phoneType": {
+            "$ref": "#/components/schemas/nichandle.CreationRule"
+          },
+          "purposeOfPurchase": {
+            "$ref": "#/components/schemas/nichandle.CreationRule"
+          },
+          "sex": {
+            "$ref": "#/components/schemas/nichandle.CreationRule"
+          },
+          "spareEmail": {
+            "$ref": "#/components/schemas/nichandle.CreationRule"
+          },
+          "vat": {
+            "$ref": "#/components/schemas/nichandle.CreationRule"
+          },
+          "zip": {
+            "$ref": "#/components/schemas/nichandle.CreationRule"
+          }
+        }
+      },
+      "nichandle.CreationRulesActionEnum": {
+        "type": "string",
+        "description": "Action a nichandle can perform on his account.",
+        "enum": [
+          "create",
+          "update"
+        ]
+      },
+      "nichandle.GenderEnum": {
+        "type": "string",
+        "description": "All genders a person can choose",
+        "enum": [
+          "female",
+          "male"
+        ]
+      },
+      "nichandle.LanguageEnum": {
+        "type": "string",
+        "description": "Languages a nichandle can choose",
+        "enum": [
+          "cs_CZ",
+          "de_DE",
+          "en_AU",
+          "en_CA",
+          "en_GB",
+          "en_IE",
+          "en_US",
+          "es_ES",
+          "fi_FI",
+          "fr_CA",
+          "fr_FR",
+          "fr_MA",
+          "fr_SN",
+          "fr_TN",
+          "it_IT",
+          "lt_LT",
+          "nl_NL",
+          "pl_PL",
+          "pt_PT"
+        ]
+      },
+      "nichandle.LegalFormEnum": {
+        "type": "string",
+        "description": "Legal forms a nichandle can be registered as",
+        "enum": [
+          "administration",
+          "association",
+          "corporation",
+          "individual",
+          "other",
+          "personalcorporation"
+        ]
+      },
+      "nichandle.NewAccountAndToken": {
+        "type": "object",
+        "description": "Newly created OVH identifier and a login token for the API",
+        "properties": {
+          "consumerKey": {
+            "type": "string",
+            "nullable": true
+          },
+          "ovhIdentifier": {
+            "type": "string"
+          }
+        }
+      },
+      "nichandle.OvhCompanyEnum": {
+        "type": "string",
+        "description": "OVH companies",
+        "enum": [
+          "kimsufi",
+          "ovh",
+          "soyoustart"
+        ]
+      },
+      "nichandle.OvhSubsidiaryEnum": {
+        "type": "string",
+        "description": "OVH subsidiaries",
+        "enum": [
+          "ASIA",
+          "AU",
+          "CA",
+          "CZ",
+          "DE",
+          "ES",
+          "EU",
+          "FI",
+          "FR",
+          "GB",
+          "IE",
+          "IN",
+          "IT",
+          "LT",
+          "MA",
+          "NL",
+          "PL",
+          "PT",
+          "QC",
+          "SG",
+          "SN",
+          "TN",
+          "US",
+          "WE",
+          "WS"
+        ]
+      },
+      "nichandle.PhoneTypeEnum": {
+        "type": "string",
+        "description": "Phone Type a nichandle can have",
+        "enum": [
+          "landline",
+          "mobile"
+        ]
+      },
+      "order.Contract": {
+        "type": "object",
+        "description": "A contract",
+        "properties": {
+          "content": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          }
+        }
+      },
+      "phoneNumber": {
+        "type": "string",
+        "description": "Phone number",
+        "format": "phone-number"
+      },
+      "time": {
+        "type": "string",
+        "description": "Time (e.g., 15:04:05)",
+        "format": "time",
+        "example": "15:04:05"
+      }
+    },
+    "securitySchemes": {
+      "oAuth2AuthCode": {
+        "type": "oauth2",
+        "description": "Oauth2",
+        "x-client-id": "1bb9c7df371741c0",
+        "x-client-secret": "a5b4de870aca620d10fbf63cd18d205b",
+        "flows": {
+          "authorizationCode": {
+            "authorizationUrl": "https://auth.eu.ovhcloud.com/oauth2/authorize",
+            "tokenUrl": "https://auth.eu.ovhcloud.com/oauth2/token",
+            "scopes": {
+              "account/all": "Manage your account",
+              "all": "Manage your whole account and all your services",
+              "services/all": "Manage your services lifecycle and billing"
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/newAccount": {
+      "post": {
+        "summary": "Create a new OVH identifier",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "address": {
+                    "type": "string"
+                  },
+                  "area": {
+                    "type": "string"
+                  },
+                  "birthCity": {
+                    "type": "string"
+                  },
+                  "birthDay": {
+                    "type": "string"
+                  },
+                  "city": {
+                    "type": "string"
+                  },
+                  "companyNationalIdentificationNumber": {
+                    "type": "string"
+                  },
+                  "corporationType": {
+                    "type": "string"
+                  },
+                  "country": {
+                    "$ref": "#/components/schemas/nichandle.CountryEnum"
+                  },
+                  "einvoicingBillingAddress": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string"
+                  },
+                  "fax": {
+                    "type": "string"
+                  },
+                  "firstname": {
+                    "type": "string"
+                  },
+                  "italianSDI": {
+                    "type": "string"
+                  },
+                  "language": {
+                    "$ref": "#/components/schemas/nichandle.LanguageEnum"
+                  },
+                  "legalform": {
+                    "$ref": "#/components/schemas/nichandle.LegalFormEnum"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "nationalIdentificationNumber": {
+                    "type": "string"
+                  },
+                  "organisation": {
+                    "type": "string"
+                  },
+                  "ovhCompany": {
+                    "$ref": "#/components/schemas/nichandle.OvhCompanyEnum"
+                  },
+                  "ovhSubsidiary": {
+                    "$ref": "#/components/schemas/nichandle.OvhSubsidiaryEnum"
+                  },
+                  "phone": {
+                    "type": "string"
+                  },
+                  "phoneCountry": {
+                    "$ref": "#/components/schemas/nichandle.CountryEnum"
+                  },
+                  "phoneType": {
+                    "$ref": "#/components/schemas/nichandle.PhoneTypeEnum"
+                  },
+                  "purposeOfPurchase": {
+                    "type": "string"
+                  },
+                  "sex": {
+                    "$ref": "#/components/schemas/nichandle.GenderEnum"
+                  },
+                  "spareEmail": {
+                    "type": "string"
+                  },
+                  "vat": {
+                    "type": "string"
+                  },
+                  "zip": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "country",
+                  "email",
+                  "legalform",
+                  "ovhCompany",
+                  "ovhSubsidiary"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/nichandle.NewAccountAndToken"
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ]
+      }
+    },
+    "/newAccount/area": {
+      "get": {
+        "summary": "All available areas for a given country",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "country",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/nichandle.CountryEnum"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ]
+      }
+    },
+    "/newAccount/contracts": {
+      "get": {
+        "summary": "Returns the contracts that governs the creation of an OVH identifier",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "company",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/nichandle.OvhCompanyEnum"
+            }
+          },
+          {
+            "in": "query",
+            "name": "subsidiary",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/nichandle.OvhSubsidiaryEnum"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/order.Contract"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ]
+      }
+    },
+    "/newAccount/corporationType": {
+      "get": {
+        "summary": "All available corporation types for a given country",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "country",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/nichandle.CountryEnum"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ]
+      }
+    },
+    "/newAccount/countries": {
+      "get": {
+        "summary": "All available countries for an ovh company and an ovh subsidiary",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "ovhCompany",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/nichandle.OvhCompanyEnum"
+            }
+          },
+          {
+            "in": "query",
+            "name": "ovhSubsidiary",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/nichandle.OvhSubsidiaryEnum"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/nichandle.CountryEnum"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ]
+      }
+    },
+    "/newAccount/creationRules": {
+      "get": {
+        "summary": "Give all the rules to follow in order to create an OVH identifier",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "country",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/nichandle.CountryEnum"
+            }
+          },
+          {
+            "in": "query",
+            "name": "legalform",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/nichandle.LegalFormEnum"
+            }
+          },
+          {
+            "in": "query",
+            "name": "ovhCompany",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/nichandle.OvhCompanyEnum"
+            }
+          },
+          {
+            "in": "query",
+            "name": "ovhSubsidiary",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/nichandle.OvhSubsidiaryEnum"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/nichandle.CreationRules"
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ]
+      }
+    },
+    "/newAccount/legalform": {
+      "get": {
+        "summary": "All available legal forms for a given country",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "country",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/nichandle.CountryEnum"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ]
+      }
+    },
+    "/newAccount/rules": {
+      "post": {
+        "summary": "Give all the rules to follow in order to create and update an OVH identifier",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "action": {
+                    "$ref": "#/components/schemas/nichandle.CreationRulesActionEnum"
+                  },
+                  "address": {
+                    "type": "string"
+                  },
+                  "area": {
+                    "type": "string"
+                  },
+                  "birthCity": {
+                    "type": "string"
+                  },
+                  "birthDay": {
+                    "type": "string"
+                  },
+                  "city": {
+                    "type": "string"
+                  },
+                  "companyNationalIdentificationNumber": {
+                    "type": "string"
+                  },
+                  "corporationType": {
+                    "type": "string"
+                  },
+                  "country": {
+                    "$ref": "#/components/schemas/nichandle.CountryEnum"
+                  },
+                  "einvoicingBillingAddress": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string"
+                  },
+                  "fax": {
+                    "type": "string"
+                  },
+                  "firstname": {
+                    "type": "string"
+                  },
+                  "italianSDI": {
+                    "type": "string"
+                  },
+                  "language": {
+                    "$ref": "#/components/schemas/nichandle.LanguageEnum"
+                  },
+                  "legalform": {
+                    "$ref": "#/components/schemas/nichandle.LegalFormEnum"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "nationalIdentificationNumber": {
+                    "type": "string"
+                  },
+                  "organisation": {
+                    "type": "string"
+                  },
+                  "ovhCompany": {
+                    "$ref": "#/components/schemas/nichandle.OvhCompanyEnum"
+                  },
+                  "ovhSubsidiary": {
+                    "$ref": "#/components/schemas/nichandle.OvhSubsidiaryEnum"
+                  },
+                  "phone": {
+                    "type": "string"
+                  },
+                  "phoneCountry": {
+                    "$ref": "#/components/schemas/nichandle.CountryEnum"
+                  },
+                  "phoneType": {
+                    "$ref": "#/components/schemas/nichandle.PhoneTypeEnum"
+                  },
+                  "purposeOfPurchase": {
+                    "type": "string"
+                  },
+                  "sex": {
+                    "$ref": "#/components/schemas/nichandle.GenderEnum"
+                  },
+                  "spareEmail": {
+                    "type": "string"
+                  },
+                  "vat": {
+                    "type": "string"
+                  },
+                  "zip": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/nichandle.CreationRule"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ]
+      }
+    }
+  }
+}

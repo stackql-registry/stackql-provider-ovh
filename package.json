@@ -1,7 +1,7 @@
 {
-  "name": "stackql-provider-myprovider",
+  "name": "stackql-provider-ovh",
   "version": "0.1.0",
-  "description": "StackQL Provider for My Provider",
+  "description": "StackQL Provider for OVHcloud",
   "type": "module",
   "scripts": {
     "fetch-spec": "bash ./bin/fetch-spec.sh",
@@ -27,13 +27,13 @@
   "dependencies": {
     "@apidevtools/swagger-parser": "^13.1.0",
     "@stackql/pgwire-lite": "^1.0.2",
-    "@stackql/provider-utils": "^0.7.11",
+    "@stackql/provider-utils": "^0.7.12",
     "js-yaml": "^4.1.0",
     "pluralize": "^8.0.0"
   },
   "keywords": [
     "stackql",
-    "myprovider",
+    "ovh",
     "provider"
   ],
   "engines": {

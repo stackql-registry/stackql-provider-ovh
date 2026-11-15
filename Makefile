@@ -1,9 +1,9 @@
-# StackQL myprovider provider - build, test and docs pipeline.
+# StackQL ovh provider - build, test and docs pipeline.
 #
 # Every step is deterministic and re-runnable; manual mapping decisions live
 # in provider-dev/scripts (rules, skip codes, fix classes), never in
 # hand-edited artifacts. `make all` runs the full chain:
-#   fetch/pin the spec -> inventory -> split service specs -> mappings ->
+#   fetch/pin the 88 family documents -> inventory -> split service specs -> mappings ->
 #   pre-normalize -> normalize -> generate (+ post-process, views, GraphQL
 #   merge) -> offline + integration + meta-route tests -> docs -> website.
 # `make all` never needs credentials and never bills; the live smoke targets
@@ -14,15 +14,14 @@
 # Python 3 (a venv with pystackql is created on demand for the smoke suite),
 # yarn for the website. Runs on Linux, macOS or WSL.
 #
-# TODO(template): set PROVIDER and SOURCE_PROJECT (or run bin/init-provider.sh), then review
-# every target marked TODO as the provider comes together. Rename
-# smoke-gated-lifecycle to the expensive lifecycle the provider gates
-# (smoke-service, smoke-project-lifecycle, ...), or delete it.
+# The ovh provider is large (98 services, about 2,500 resources): the full
+# chain takes roughly half an hour, most of it the meta-route walk, the docs
+# generation and the site build.
 
 SHELL := bash
 .DEFAULT_GOAL := help
 
-PROVIDER := myprovider
+PROVIDER := ovh
 VERSION := v00.00.00000
 OPENAPI_DIR := provider-dev/openapi
 SERVICES_DIR := $(OPENAPI_DIR)/src/$(PROVIDER)
@@ -35,14 +34,14 @@ GRAPHQL_DIR := provider-dev/source-graphql
 # rewrites the slug; a provider hosted outside stackql-registry sets its own
 # URL here or passes SOURCE_PROJECT=... on the command line. Always the
 # consuming repository's URL, never the template's.
-SOURCE_PROJECT ?= https://github.com/stackql-registry/stackql-provider-myprovider
+SOURCE_PROJECT ?= https://github.com/stackql-registry/stackql-provider-ovh
 PORT ?= 5444
 VENV := .venv
 PY := $(VENV)/bin/python
 ENV_FILE := .env
 
 .PHONY: help deps fetch-spec refresh-spec inventory split mappings mappings-report pre-normalize normalize generate post-process graphql-merge build \
-        test-offline test-integration test-meta test venv smoke smoke-live smoke-read-only smoke-gated-lifecycle smoke-cleanup \
+        test-offline test-integration test-meta test venv smoke smoke-live smoke-read-only smoke-instance-lifecycle smoke-cleanup \
         docs website website-start start-server stop-server server-status clean all
 
 help: ## show this help
@@ -53,17 +52,17 @@ deps: ## install node dependencies (latest @stackql/provider-utils per package.j
 
 # ---------------------------------------------------------------- pipeline
 
-fetch-spec: ## download the upstream spec and verify it against the pin (fails on drift)
+fetch-spec: ## download the upstream family documents and verify them against the pin (fails on drift)
 	npm run fetch-spec
 
-refresh-spec: ## download the spec and ACCEPT the upstream change (rewrites the pin - review the diff)
+refresh-spec: ## download the family documents and ACCEPT the upstream change (rewrites the pin - review the diff)
 	npm run fetch-spec -- --update
 
 inventory: ## build provider-dev/config/endpoint_inventory.csv from the pinned spec
 	npm run build-inventory
 
-split: ## split the pinned spec into per-service specs (ordered path rules in service_names.json)
-	npm run split -- --provider-name $(PROVIDER) --overwrite
+split: ## split the pinned family documents into per-service specs (ordered path rules in service_names.json)
+	npm run split -- --overwrite
 
 mappings: ## regenerate all_services.csv from scratch and apply the deterministic mapping rules
 	rm -f $(CONFIG_DIR)/all_services.csv
@@ -79,26 +78,26 @@ pre-normalize: ## provider-specific spec surgery on provider-dev/source before t
 normalize: ## generic provider-utils normalize pass (allOf flatten, oneOf/anyOf lowering, bare-array wrap)
 	npm run normalize -- --api-dir $(SOURCE_DIR)
 
-generate: ## generate the provider (servers, auth, naive request bodies, views), then post-process and GraphQL merge
+generate: ## generate the provider (auth, naive request bodies, views), then post-process and GraphQL merge
 	rm -rf $(OPENAPI_DIR)/*
 	npm run generate-provider -- \
 	  --provider-name $(PROVIDER) \
 	  --input-dir $(SOURCE_DIR) \
 	  --output-dir $(SERVICES_DIR) \
 	  --config-path $(CONFIG_DIR)/all_services.csv \
-	  --servers $(CONFIG_DIR)/servers.json \
 	  --provider-config $(CONFIG_DIR)/provider_config.json \
 	  --naive-req-body-translate \
 	  --overwrite
 	$(MAKE) post-process
 	$(MAKE) graphql-merge
 
-# Add `--service-config $(CONFIG_DIR)/service_config.json` to generate when
-# a document-level x-stackQL-config (pagination, variations,
-# queryParamPushdown) applies to every service; `--skip-files '["x.yaml"]'`
-# for a split service that must not ship; `--update-path-param-names` when
-# the vendor's path parameters are camelCase. Views under ./views/<service>/
-# views.yaml are spliced automatically.
+# No --servers: bin/split.mjs writes each service's server template (the
+# api_host selector, and the project variable for the Public Cloud services)
+# from provider-dev/config/servers.json, and generate keeps it. Add
+# `--service-config $(CONFIG_DIR)/service_config.json` when a document-level
+# x-stackQL-config (pagination, variations, queryParamPushdown) applies to
+# every service. Views under ./views/<service>/views.yaml are spliced
+# automatically.
 
 post-process: ## re-apply everything the generator cannot express (numbered rules in post_process.mjs)
 	npm run post-process
@@ -118,7 +117,7 @@ test-integration: ## row-level and wire-level assertions against the mock API
 
 # The server is always torn down and the meta-route walk's exit status is
 # preserved so a failure stops `make all`.
-test-meta: ## meta-route walk (every service, resource, method) against a local stackql server
+test-meta: ## meta-route walk (every service, resource, method) against a local stackql server (about 10 minutes)
 	bash bin/start-server.sh --provider $(PROVIDER) --registry "$(CURDIR)/$(OPENAPI_DIR)" --port $(PORT)
 	node bin/test-meta-routes.cjs $(PROVIDER) --port $(PORT); status=$$?; bash bin/stop-server.sh --port $(PORT); exit $$status
 
@@ -145,7 +144,7 @@ venv: $(VENV)/bin/activate ## create the python venv with pystackql for the smok
 # without exporting anything; CI sets the variables from secrets.
 with_env = set -a; [ -f $(ENV_FILE) ] && source <(tr -d '\r' < $(ENV_FILE)); set +a;
 
-smoke: venv ## live smoke suite with the locally generated provider - reads + cheap self-cleaning write lifecycles (needs .env)
+smoke: venv ## live smoke suite with the locally generated provider - reads + free self-cleaning write lifecycles (needs .env)
 	@$(with_env) $(PY) tests/smoke_test.py
 
 smoke-live: venv ## live smoke suite against the PUBLISHED provider in the stackql registry (post-publish verification)
@@ -154,8 +153,8 @@ smoke-live: venv ## live smoke suite against the PUBLISHED provider in the stack
 smoke-read-only: venv ## live read smokes only, no writes
 	@$(with_env) $(PY) tests/smoke_test.py --read-only
 
-smoke-gated-lifecycle: venv ## live suite INCLUDING the gated expensive create/delete lifecycle (TODO: rename per provider)
-	@$(with_env) $(PY) tests/smoke_test.py --with-gated-lifecycle
+smoke-instance-lifecycle: venv ## live suite INCLUDING the billable instance create / rename / reboot / delete lifecycle
+	@$(with_env) $(PY) tests/smoke_test.py --with-instance-lifecycle
 
 smoke-cleanup: venv ## sweep stackql-smoke-* breadcrumbs and exit
 	@$(with_env) $(PY) tests/smoke_test.py --cleanup-only

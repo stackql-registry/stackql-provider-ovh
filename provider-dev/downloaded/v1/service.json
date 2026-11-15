@@ -1,0 +1,1101 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "OVHcloud API specification",
+    "description": "Specification for OVHcloud API",
+    "version": "1.0",
+    "contact": {
+      "name": "OVH",
+      "email": "api@ml.ovh.net"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.eu.ovhcloud.com/v1"
+    }
+  ],
+  "components": {
+    "schemas": {
+      "any": {
+        "description": "Can be anything (text, int, bool, json, html, etc.)",
+        "example": "This is a content of any type !"
+      },
+      "complexType.SafeKeyValue_string": {
+        "type": "object",
+        "description": "Key and value, with proper key strings",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          }
+        }
+      },
+      "duration": {
+        "type": "string",
+        "description": "Duration (e.g., P1Y2M3DT4H6M9S)",
+        "example": "P1Y2M3DT4H6M9S"
+      },
+      "email": {
+        "type": "string",
+        "description": "Email address (e.g., api@ml.ovh.net)",
+        "format": "email",
+        "example": "api@ml.ovh.net"
+      },
+      "internationalPhoneNumber": {
+        "type": "string",
+        "description": "International phone number",
+        "format": "phone-number"
+      },
+      "ip": {
+        "type": "string",
+        "description": "IP address (e.g., 192.0.2.0)",
+        "format": "ipv4",
+        "example": "192.0.2.0"
+      },
+      "ipBlock": {
+        "type": "string",
+        "description": "IP (v4 or v6) CIDR notation (e.g., 192.0.2.0/24)",
+        "format": "ip-block",
+        "example": "192.0.2.0/24"
+      },
+      "ipInterface": {
+        "type": "string",
+        "description": "IP address (e.g., 192.0.2.0)",
+        "format": "ipv4",
+        "example": "192.0.2.0"
+      },
+      "ipv4": {
+        "type": "string",
+        "description": "IPv4 address (e.g., 192.0.2.0)",
+        "format": "ipv4",
+        "example": "192.0.2.0"
+      },
+      "ipv4Block": {
+        "type": "string",
+        "description": "IPv4 CIDR notation (e.g., 192.0.2.0/24)",
+        "format": "ipv4-block",
+        "example": "192.0.2.0/24"
+      },
+      "ipv6": {
+        "type": "string",
+        "description": "IPv6 address (e.g., 2001:41d0:1:1994::1)",
+        "format": "ipv6",
+        "example": "2001:41d0:1:1994::1"
+      },
+      "ipv6Block": {
+        "type": "string",
+        "description": "IPv6 CIDR notation (e.g., 2001:41d0::/128)",
+        "format": "ipv6-block",
+        "example": "2001:41d0::/128"
+      },
+      "macAddress": {
+        "type": "string",
+        "description": "MAC address (e.g., 00:00:5e:00:53:01)",
+        "format": "mac-address",
+        "example": "00:00:5e:00:53:01"
+      },
+      "order.CurrencyCodeEnum": {
+        "type": "string",
+        "enum": [
+          "AUD",
+          "CAD",
+          "CZK",
+          "EUR",
+          "GBP",
+          "INR",
+          "LTL",
+          "MAD",
+          "N/A",
+          "PLN",
+          "SGD",
+          "TND",
+          "USD",
+          "XOF",
+          "points"
+        ]
+      },
+      "order.Price": {
+        "type": "object",
+        "description": "Price with it's currency and textual representation",
+        "properties": {
+          "currencyCode": {
+            "$ref": "#/components/schemas/order.CurrencyCodeEnum"
+          },
+          "text": {
+            "type": "string"
+          },
+          "value": {
+            "type": "number"
+          }
+        }
+      },
+      "phoneNumber": {
+        "type": "string",
+        "description": "Phone number",
+        "format": "phone-number"
+      },
+      "service.BillingStateEnum": {
+        "type": "string",
+        "description": "Possible billing states",
+        "enum": [
+          "expired",
+          "ok",
+          "pending",
+          "unpaid"
+        ]
+      },
+      "service.Plan": {
+        "type": "object",
+        "description": "Plan information",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Product code",
+            "nullable": true
+          },
+          "product": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/service.plan.Product"
+              }
+            ],
+            "description": "Product plan information"
+          }
+        }
+      },
+      "service.Renew": {
+        "type": "object",
+        "description": "Renew information",
+        "properties": {
+          "dayOfMonth": {
+            "type": "integer",
+            "description": "Renew day number",
+            "nullable": true
+          },
+          "interval": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/service.renew.Interval"
+              }
+            ],
+            "description": "Interval between each renewal",
+            "nullable": true
+          },
+          "mode": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/service.renew.Mode"
+              }
+            ],
+            "description": "Renewal mode"
+          },
+          "possibleIntervals": {
+            "type": "array",
+            "description": "Possible interval between each renewal",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/service.renew.Interval"
+            }
+          },
+          "possibleModes": {
+            "type": "array",
+            "description": "Possible renewal mode",
+            "items": {
+              "$ref": "#/components/schemas/service.renew.Mode"
+            }
+          }
+        }
+      },
+      "service.Resource": {
+        "type": "object",
+        "description": "Resource service informations",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "description": "Custom display name of the service"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the service",
+            "nullable": true
+          },
+          "state": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/service.ResourceStateEnum"
+              }
+            ],
+            "description": "Resource state",
+            "nullable": true
+          }
+        }
+      },
+      "service.ResourceStateEnum": {
+        "type": "string",
+        "description": "Possible resource states",
+        "enum": [
+          "deleted",
+          "deleting",
+          "ok",
+          "opening",
+          "suspended",
+          "suspending",
+          "toDelete",
+          "toOpen",
+          "toSuspend"
+        ]
+      },
+      "service.Route": {
+        "type": "object",
+        "description": "route of this service",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to use in API",
+            "nullable": true
+          },
+          "url": {
+            "type": "string",
+            "description": "Path with variables applyed",
+            "nullable": true
+          },
+          "vars": {
+            "type": "array",
+            "description": "Variables to use in the path",
+            "items": {
+              "$ref": "#/components/schemas/complexType.SafeKeyValue_string"
+            }
+          }
+        }
+      },
+      "service.plan.Product": {
+        "type": "object",
+        "description": "Product plan information",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Product name",
+            "nullable": true
+          }
+        }
+      },
+      "service.renew.Interval": {
+        "type": "string",
+        "description": "Interval enum information",
+        "enum": [
+          "P1M",
+          "P1Y",
+          "P2Y",
+          "P3M",
+          "P3Y",
+          "P6M"
+        ]
+      },
+      "service.renew.Mode": {
+        "type": "string",
+        "description": "Mode enum informations",
+        "enum": [
+          "automaticForcedProduct",
+          "automaticV2012",
+          "automaticV2014",
+          "automaticV2016",
+          "automaticV2024",
+          "deleteAtEndEngagement",
+          "deleteAtExpiration",
+          "manual",
+          "oneShot",
+          "option"
+        ]
+      },
+      "service.renew.RenewDescription": {
+        "type": "object",
+        "description": "List possible renews for service",
+        "properties": {
+          "renewPeriod": {
+            "type": "string",
+            "description": "ISO8601 formatted renewal duration",
+            "format": "duration",
+            "readOnly": true
+          },
+          "strategies": {
+            "type": "array",
+            "description": "List possible strategies",
+            "items": {
+              "$ref": "#/components/schemas/service.renew.RenewStrategy"
+            },
+            "readOnly": true
+          }
+        }
+      },
+      "service.renew.RenewForecast": {
+        "type": "object",
+        "description": "Representation of service's renew forecasting",
+        "properties": {
+          "details": {
+            "type": "array",
+            "description": "Forecast details",
+            "items": {
+              "$ref": "#/components/schemas/service.renew.RenewForecastDetail"
+            },
+            "readOnly": true
+          },
+          "prices": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/service.renew.RenewForecastPrices"
+              }
+            ],
+            "description": "Prices for renew forecasting",
+            "readOnly": true
+          }
+        }
+      },
+      "service.renew.RenewForecastDetail": {
+        "type": "object",
+        "description": "Representation of a product renew pricing",
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "Detail description",
+            "nullable": true,
+            "readOnly": true
+          },
+          "quantity": {
+            "type": "integer",
+            "description": "Quantity",
+            "readOnly": true
+          },
+          "serviceName": {
+            "type": "string",
+            "description": "Associated service name",
+            "readOnly": true
+          },
+          "totalPrice": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.Price"
+              }
+            ],
+            "description": "Total price",
+            "readOnly": true
+          },
+          "unitPrice": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.Price"
+              }
+            ],
+            "description": "Price for one unit",
+            "readOnly": true
+          }
+        }
+      },
+      "service.renew.RenewForecastPrices": {
+        "type": "object",
+        "description": "Prices for renew forecasting",
+        "properties": {
+          "tax": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.Price"
+              }
+            ],
+            "description": "Tax",
+            "readOnly": true
+          },
+          "withTax": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.Price"
+              }
+            ],
+            "description": "Total price with tax",
+            "readOnly": true
+          },
+          "withoutTax": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.Price"
+              }
+            ],
+            "description": "Total price without tax",
+            "readOnly": true
+          }
+        }
+      },
+      "service.renew.RenewOrder": {
+        "type": "object",
+        "description": "Details about a renew Order",
+        "properties": {
+          "date": {
+            "type": "string",
+            "description": "Creation date of the renew Order",
+            "nullable": true,
+            "format": "date-time",
+            "readOnly": true
+          },
+          "expirationDate": {
+            "type": "string",
+            "description": "Expiration date of the renew Order",
+            "nullable": true,
+            "format": "date-time",
+            "readOnly": true
+          },
+          "orderId": {
+            "type": "integer",
+            "description": "ID of the renew Order",
+            "readOnly": true
+          },
+          "password": {
+            "type": "string",
+            "description": "Password",
+            "readOnly": true
+          },
+          "pdfUrl": {
+            "type": "string",
+            "description": "Public pdf URL of the generated renew Order",
+            "readOnly": true
+          },
+          "priceWithTax": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.Price"
+              }
+            ],
+            "description": "Price of the product with tax",
+            "readOnly": true
+          },
+          "priceWithoutTax": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.Price"
+              }
+            ],
+            "description": "Price of the product without tax",
+            "readOnly": true
+          },
+          "retractionDate": {
+            "type": "string",
+            "description": "Retraction date",
+            "nullable": true,
+            "format": "date-time",
+            "readOnly": true
+          },
+          "tax": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.Price"
+              }
+            ],
+            "description": "Value of the tax",
+            "readOnly": true
+          },
+          "url": {
+            "type": "string",
+            "description": "Public URL to display generated renew Order",
+            "readOnly": true
+          }
+        }
+      },
+      "service.renew.RenewStrategy": {
+        "type": "object",
+        "description": "Representation of a product renew pricing",
+        "properties": {
+          "price": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.Price"
+              }
+            ],
+            "description": "Price of the product",
+            "readOnly": true
+          },
+          "priceInUcents": {
+            "type": "integer",
+            "description": "Price of the product in micro-centims",
+            "readOnly": true
+          },
+          "services": {
+            "type": "array",
+            "description": "Services renewed by strategy",
+            "items": {
+              "type": "integer"
+            },
+            "readOnly": true
+          },
+          "servicesDetails": {
+            "type": "array",
+            "description": "Details of services renewed by strategy",
+            "items": {
+              "$ref": "#/components/schemas/service.renew.Service"
+            },
+            "readOnly": true
+          }
+        }
+      },
+      "service.renew.Service": {
+        "type": "object",
+        "description": "Description of a service",
+        "properties": {
+          "serviceId": {
+            "type": "integer",
+            "description": "ID of the service",
+            "readOnly": true
+          },
+          "serviceName": {
+            "type": "string",
+            "description": "Name of the service",
+            "readOnly": true
+          },
+          "serviceType": {
+            "type": "string",
+            "description": "Type of the service",
+            "readOnly": true
+          }
+        }
+      },
+      "serviceList.Service": {
+        "type": "object",
+        "description": "Details about a Service",
+        "properties": {
+          "creationDate": {
+            "type": "string",
+            "description": "Creation date",
+            "format": "date",
+            "readOnly": true
+          },
+          "details": {
+            "type": "array",
+            "description": "Resource details",
+            "items": {
+              "$ref": "#/components/schemas/complexType.SafeKeyValue_string"
+            },
+            "readOnly": true
+          },
+          "engagementDate": {
+            "type": "string",
+            "description": "Engagement date",
+            "nullable": true,
+            "format": "date",
+            "readOnly": true
+          },
+          "expirationDate": {
+            "type": "string",
+            "description": "Expiration date",
+            "nullable": true,
+            "format": "date",
+            "readOnly": true
+          },
+          "nextBillingDate": {
+            "type": "string",
+            "description": "The next billing date",
+            "nullable": true,
+            "format": "date",
+            "readOnly": true
+          },
+          "plan": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/service.Plan"
+              }
+            ],
+            "description": "Plan service description",
+            "readOnly": true
+          },
+          "quantity": {
+            "type": "integer",
+            "description": "Quantity",
+            "readOnly": true
+          },
+          "renew": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/service.Renew"
+              }
+            ],
+            "description": "Renew service description",
+            "nullable": true,
+            "readOnly": true
+          },
+          "resource": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/service.Resource"
+              }
+            ],
+            "description": "Resource service description"
+          },
+          "route": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/service.Route"
+              }
+            ],
+            "description": "Route to use in API",
+            "readOnly": true
+          },
+          "state": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/service.BillingStateEnum"
+              }
+            ],
+            "description": "Billing state of your service",
+            "readOnly": true
+          }
+        }
+      },
+      "time": {
+        "type": "string",
+        "description": "Time (e.g., 15:04:05)",
+        "format": "time",
+        "example": "15:04:05"
+      }
+    },
+    "securitySchemes": {
+      "oAuth2AuthCode": {
+        "type": "oauth2",
+        "description": "Oauth2",
+        "x-client-id": "1bb9c7df371741c0",
+        "x-client-secret": "a5b4de870aca620d10fbf63cd18d205b",
+        "flows": {
+          "authorizationCode": {
+            "authorizationUrl": "https://auth.eu.ovhcloud.com/oauth2/authorize",
+            "tokenUrl": "https://auth.eu.ovhcloud.com/oauth2/token",
+            "scopes": {
+              "account/all": "Manage your account",
+              "all": "Manage your whole account and all your services",
+              "services/all": "Manage your services lifecycle and billing"
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/service": {
+      "get": {
+        "summary": "Services",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Offers & Services",
+            "Services"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "blue",
+            "label": "Beta version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "account:apiovh:service/get",
+            "required": true
+          }
+        ],
+        "x-expanded-response": "ServiceListService"
+      }
+    },
+    "/service/{serviceId}": {
+      "get": {
+        "summary": "Get this object properties",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceId",
+            "description": "The internal ID of your service",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/serviceList.Service"
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Offers & Services",
+            "Services"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "blue",
+            "label": "Beta version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "account:apiovh:service/get",
+            "required": true
+          }
+        ]
+      },
+      "put": {
+        "summary": "Alter this object properties",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceId",
+            "description": "The internal ID of your service",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/serviceList.Service"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Offers & Services",
+            "Services"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "blue",
+            "label": "Beta version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "account:apiovh:service/edit",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/service/{serviceId}/renew": {
+      "get": {
+        "summary": "List possible renews for this service",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "includeOptions",
+            "description": "Include service's option(s)",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceId",
+            "description": "Service Id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/service.renew.RenewDescription"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Offers & Services",
+            "Services"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "blue",
+            "label": "Beta version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "account:apiovh:service/renew/get",
+            "required": true
+          }
+        ]
+      },
+      "post": {
+        "summary": "Create a renew order",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceId",
+            "description": "Service Id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "dryRun": {
+                    "type": "boolean",
+                    "description": "Indicates if renew order is generated"
+                  },
+                  "duration": {
+                    "type": "string",
+                    "description": "Renew duration",
+                    "format": "duration"
+                  },
+                  "services": {
+                    "type": "array",
+                    "description": "List of services to renew",
+                    "items": {
+                      "type": "integer"
+                    }
+                  }
+                },
+                "required": [
+                  "duration",
+                  "services"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/service.renew.RenewOrder"
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Offers & Services",
+            "Services"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "blue",
+            "label": "Beta version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "account:apiovh:service/renew/create",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/service/{serviceId}/reopen": {
+      "post": {
+        "summary": "Reopen a suspended service",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceId",
+            "description": "The internal ID of your service",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Offers & Services",
+            "Services"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "blue",
+            "label": "Beta version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "account:apiovh:service/reopen",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/service/{serviceId}/suspend": {
+      "post": {
+        "summary": "Suspend the service. The service won't be accessible, but you will still be charged for it",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceId",
+            "description": "The internal ID of your service",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Offers & Services",
+            "Services"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "blue",
+            "label": "Beta version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "account:apiovh:service/suspend",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/service/{serviceId}/terminate": {
+      "post": {
+        "summary": "Terminates a suspended service",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceId",
+            "description": "The internal ID of your service",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Offers & Services",
+            "Services"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "blue",
+            "label": "Beta version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "account:apiovh:service/terminate",
+            "required": true
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,1965 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "OVHcloud API specification",
+    "description": "Specification for OVHcloud API",
+    "version": "1.0",
+    "contact": {
+      "name": "OVH",
+      "email": "api@ml.ovh.net"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.eu.ovhcloud.com/v1"
+    }
+  ],
+  "components": {
+    "schemas": {
+      "any": {
+        "description": "Can be anything (text, int, bool, json, html, etc.)",
+        "example": "This is a content of any type !"
+      },
+      "duration": {
+        "type": "string",
+        "description": "Duration (e.g., P1Y2M3DT4H6M9S)",
+        "example": "P1Y2M3DT4H6M9S"
+      },
+      "email": {
+        "type": "string",
+        "description": "Email address (e.g., api@ml.ovh.net)",
+        "format": "email",
+        "example": "api@ml.ovh.net"
+      },
+      "freefax.BalanceInformations": {
+        "type": "object",
+        "description": "Return credit balance information structure",
+        "properties": {
+          "faxs": {
+            "type": "integer",
+            "description": "The number of equivalement remaining french faxs",
+            "readOnly": true
+          },
+          "points": {
+            "type": "integer",
+            "description": "Total balance available in points",
+            "readOnly": true
+          }
+        }
+      },
+      "freefax.FreefaxProperties": {
+        "type": "object",
+        "description": "Freefax properties",
+        "properties": {
+          "faxMaxCall": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/telephony.FaxSendingTriesEnum"
+              }
+            ],
+            "description": "Number of tries when sending a fax"
+          },
+          "faxQuality": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/telephony.FaxQualityEnum"
+              }
+            ],
+            "description": "Available quality for fax documents"
+          },
+          "faxTagLine": {
+            "type": "string",
+            "description": "Customised freefax header"
+          },
+          "fromEmail": {
+            "type": "string",
+            "description": "FROM email header"
+          },
+          "fromName": {
+            "type": "string",
+            "description": "Name of the sender of the email"
+          },
+          "number": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/phoneNumber"
+              }
+            ],
+            "description": "Phone number",
+            "readOnly": true
+          },
+          "redirectionEmail": {
+            "type": "array",
+            "description": "Email address to redirect fax response.",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "freefax.FreefaxPropertiesWithIAM": {
+        "type": "object",
+        "description": "Freefax properties",
+        "properties": {
+          "faxMaxCall": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/telephony.FaxSendingTriesEnum"
+              }
+            ],
+            "description": "Number of tries when sending a fax"
+          },
+          "faxQuality": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/telephony.FaxQualityEnum"
+              }
+            ],
+            "description": "Available quality for fax documents"
+          },
+          "faxTagLine": {
+            "type": "string",
+            "description": "Customised freefax header"
+          },
+          "fromEmail": {
+            "type": "string",
+            "description": "FROM email header"
+          },
+          "fromName": {
+            "type": "string",
+            "description": "Name of the sender of the email"
+          },
+          "iam": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/iam.ResourceMetadata"
+              }
+            ],
+            "description": "IAM resource metadata",
+            "nullable": true,
+            "readOnly": true
+          },
+          "number": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/phoneNumber"
+              }
+            ],
+            "description": "Phone number",
+            "readOnly": true
+          },
+          "redirectionEmail": {
+            "type": "array",
+            "description": "Email address to redirect fax response.",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "iam.ResourceMetadata": {
+        "type": "object",
+        "description": "IAM resource metadata embedded in services models",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "description": "Resource display name",
+            "nullable": true,
+            "readOnly": true
+          },
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the resource",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "state": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/iam.ResourceMetadata.StateEnum"
+              }
+            ],
+            "description": "Resource state",
+            "nullable": true,
+            "readOnly": true
+          },
+          "tags": {
+            "type": "object",
+            "description": "Resource tags. Tags that were internally computed are prefixed with ovh:",
+            "nullable": true,
+            "additionalProperties": {
+              "type": "string"
+            },
+            "readOnly": true
+          },
+          "urn": {
+            "type": "string",
+            "description": "Unique resource name used in policies",
+            "readOnly": true
+          }
+        }
+      },
+      "iam.ResourceMetadata.StateEnum": {
+        "type": "string",
+        "description": "Resource state",
+        "enum": [
+          "EXPIRED",
+          "IN_CREATION",
+          "OK",
+          "SUSPENDED"
+        ]
+      },
+      "iam.resource.TagFilter": {
+        "type": "object",
+        "description": "Resource tag filter",
+        "properties": {
+          "operator": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/iam.resource.TagFilter.OperatorEnum"
+              }
+            ],
+            "description": "Operator to use in order to filter on the value (defaults to 'EQ')",
+            "nullable": true,
+            "readOnly": true
+          },
+          "value": {
+            "type": "string",
+            "description": "Value to use in order to filter tags",
+            "readOnly": true
+          }
+        }
+      },
+      "iam.resource.TagFilter.OperatorEnum": {
+        "type": "string",
+        "description": "Operator that can be used in order to filter resources tags",
+        "enum": [
+          "EQ",
+          "EXISTS",
+          "ILIKE",
+          "LIKE",
+          "NEQ",
+          "NEXISTS"
+        ]
+      },
+      "internationalPhoneNumber": {
+        "type": "string",
+        "description": "International phone number",
+        "format": "phone-number"
+      },
+      "ip": {
+        "type": "string",
+        "description": "IP address (e.g., 192.0.2.0)",
+        "format": "ipv4",
+        "example": "192.0.2.0"
+      },
+      "ipBlock": {
+        "type": "string",
+        "description": "IP (v4 or v6) CIDR notation (e.g., 192.0.2.0/24)",
+        "format": "ip-block",
+        "example": "192.0.2.0/24"
+      },
+      "ipInterface": {
+        "type": "string",
+        "description": "IP address (e.g., 192.0.2.0)",
+        "format": "ipv4",
+        "example": "192.0.2.0"
+      },
+      "ipv4": {
+        "type": "string",
+        "description": "IPv4 address (e.g., 192.0.2.0)",
+        "format": "ipv4",
+        "example": "192.0.2.0"
+      },
+      "ipv4Block": {
+        "type": "string",
+        "description": "IPv4 CIDR notation (e.g., 192.0.2.0/24)",
+        "format": "ipv4-block",
+        "example": "192.0.2.0/24"
+      },
+      "ipv6": {
+        "type": "string",
+        "description": "IPv6 address (e.g., 2001:41d0:1:1994::1)",
+        "format": "ipv6",
+        "example": "2001:41d0:1:1994::1"
+      },
+      "ipv6Block": {
+        "type": "string",
+        "description": "IPv6 CIDR notation (e.g., 2001:41d0::/128)",
+        "format": "ipv6-block",
+        "example": "2001:41d0::/128"
+      },
+      "macAddress": {
+        "type": "string",
+        "description": "MAC address (e.g., 00:00:5e:00:53:01)",
+        "format": "mac-address",
+        "example": "00:00:5e:00:53:01"
+      },
+      "nichandle.GenderEnum": {
+        "type": "string",
+        "description": "All genders a person can choose",
+        "enum": [
+          "female",
+          "male"
+        ]
+      },
+      "phoneNumber": {
+        "type": "string",
+        "description": "Phone number",
+        "format": "phone-number"
+      },
+      "service.RenewType": {
+        "type": "object",
+        "description": "Map a possible renew for a specific service",
+        "properties": {
+          "automatic": {
+            "type": "boolean",
+            "description": "The service is automatically renewed"
+          },
+          "deleteAtExpiration": {
+            "type": "boolean",
+            "description": "The service will be deleted at expiration"
+          },
+          "forced": {
+            "type": "boolean",
+            "description": "The service forced to be renewed"
+          },
+          "manualPayment": {
+            "type": "boolean",
+            "description": "The service needs to be manually renewed and paid",
+            "nullable": true
+          },
+          "period": {
+            "type": "integer",
+            "description": "period of renew in month",
+            "nullable": true
+          }
+        }
+      },
+      "service.RenewalTypeEnum": {
+        "type": "string",
+        "description": "Detailed renewal type of a service",
+        "enum": [
+          "automaticForcedProduct",
+          "automaticV2012",
+          "automaticV2014",
+          "automaticV2016",
+          "manual",
+          "oneShot",
+          "option"
+        ]
+      },
+      "service.StateEnum": {
+        "type": "string",
+        "description": "service.StateEnum",
+        "enum": [
+          "autorenewInProgress",
+          "expired",
+          "inCreation",
+          "ok",
+          "pendingDebt",
+          "unPaid"
+        ]
+      },
+      "services.Service": {
+        "type": "object",
+        "description": "Details about a Service",
+        "properties": {
+          "canDeleteAtExpiration": {
+            "type": "boolean",
+            "description": "Indicates that the service can be set up to be deleted at expiration",
+            "readOnly": true
+          },
+          "contactAdmin": {
+            "type": "string",
+            "readOnly": true
+          },
+          "contactBilling": {
+            "type": "string",
+            "readOnly": true
+          },
+          "contactTech": {
+            "type": "string",
+            "readOnly": true
+          },
+          "creation": {
+            "type": "string",
+            "format": "date",
+            "readOnly": true
+          },
+          "domain": {
+            "type": "string",
+            "readOnly": true
+          },
+          "engagedUpTo": {
+            "type": "string",
+            "nullable": true,
+            "format": "date",
+            "readOnly": true
+          },
+          "expiration": {
+            "type": "string",
+            "format": "date",
+            "readOnly": true
+          },
+          "possibleRenewPeriod": {
+            "type": "array",
+            "description": "All the possible renew period of your service in month",
+            "nullable": true,
+            "items": {
+              "type": "integer"
+            },
+            "readOnly": true
+          },
+          "renew": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/service.RenewType"
+              }
+            ],
+            "description": "Way of handling the renew",
+            "nullable": true
+          },
+          "renewalType": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/service.RenewalTypeEnum"
+              }
+            ],
+            "readOnly": true
+          },
+          "serviceId": {
+            "type": "integer",
+            "readOnly": true
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/service.StateEnum"
+              }
+            ],
+            "readOnly": true
+          }
+        }
+      },
+      "telephony.DirectoryHeadingPJ": {
+        "type": "object",
+        "description": "Directory information",
+        "properties": {
+          "apeCode": {
+            "type": "string",
+            "readOnly": true
+          },
+          "apeDescription": {
+            "type": "string",
+            "readOnly": true
+          },
+          "directoryServiceCode": {
+            "type": "integer",
+            "readOnly": true
+          },
+          "directoryServiceDescription": {
+            "type": "string",
+            "readOnly": true
+          },
+          "notification": {
+            "type": "string",
+            "readOnly": true
+          }
+        }
+      },
+      "telephony.DirectoryInfo": {
+        "type": "object",
+        "description": "Directory information",
+        "properties": {
+          "PJSocialNomination": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "addressExtra": {
+            "type": "string"
+          },
+          "ape": {
+            "type": "string"
+          },
+          "areaCode": {
+            "type": "integer",
+            "readOnly": true
+          },
+          "birthDate": {
+            "type": "string",
+            "nullable": true,
+            "format": "date"
+          },
+          "cedex": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          },
+          "directoryServiceCode": {
+            "type": "string"
+          },
+          "displayFirstName": {
+            "type": "boolean"
+          },
+          "displayMarketingDirectory": {
+            "type": "boolean"
+          },
+          "displayOnlyCity": {
+            "type": "boolean"
+          },
+          "displaySearchReverse": {
+            "type": "boolean"
+          },
+          "displayUniversalDirectory": {
+            "type": "boolean"
+          },
+          "email": {
+            "type": "string"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "gender": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/nichandle.GenderEnum"
+              }
+            ],
+            "description": "All genders a person can choose"
+          },
+          "inseeCode": {
+            "type": "integer",
+            "readOnly": true
+          },
+          "legalForm": {
+            "type": "string"
+          },
+          "lineDescription": {
+            "type": "string"
+          },
+          "modificationDate": {
+            "type": "string",
+            "readOnly": true
+          },
+          "modificationType": {
+            "type": "string",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string"
+          },
+          "number": {
+            "type": "string",
+            "readOnly": true
+          },
+          "occupation": {
+            "type": "string"
+          },
+          "postBox": {
+            "type": "string"
+          },
+          "postCode": {
+            "type": "string"
+          },
+          "receivePJDirectory": {
+            "type": "boolean"
+          },
+          "siret": {
+            "type": "string"
+          },
+          "socialNomination": {
+            "type": "string"
+          },
+          "socialNominationExtra": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "readOnly": true
+          },
+          "urbanDistrict": {
+            "type": "string"
+          },
+          "wayName": {
+            "type": "string"
+          },
+          "wayNumber": {
+            "type": "string"
+          },
+          "wayNumberExtra": {
+            "type": "string"
+          },
+          "wayType": {
+            "type": "string"
+          }
+        }
+      },
+      "telephony.DirectoryWayType": {
+        "type": "object",
+        "description": "Directory way type",
+        "properties": {
+          "abbreviatedName": {
+            "type": "string",
+            "readOnly": true
+          },
+          "wayName": {
+            "type": "string",
+            "readOnly": true
+          }
+        }
+      },
+      "telephony.EntrepriseNumber": {
+        "type": "object",
+        "description": "Enterprise number",
+        "properties": {
+          "entrepriseNumber": {
+            "type": "string",
+            "description": "Entreprise number to fetch information from"
+          }
+        },
+        "required": [
+          "entrepriseNumber"
+        ]
+      },
+      "telephony.EntrepriseNumberInformations": {
+        "type": "object",
+        "description": "Task information about an entreprise",
+        "properties": {
+          "address": {
+            "type": "string",
+            "description": "Address of the entreprise",
+            "nullable": true,
+            "readOnly": true
+          },
+          "ape": {
+            "type": "string",
+            "description": "Entreprise's category code for directory services",
+            "nullable": true,
+            "readOnly": true
+          },
+          "brand": {
+            "type": "string",
+            "description": "Brand of the entreprise",
+            "nullable": true,
+            "readOnly": true
+          },
+          "entrepriseNumber": {
+            "type": "string",
+            "description": "Entreprise number",
+            "readOnly": true
+          },
+          "isValid": {
+            "type": "boolean",
+            "description": "Is this a valid entreprise number?",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the entreprise",
+            "readOnly": true
+          },
+          "siren": {
+            "type": "string",
+            "description": "Short version of the entreprise number (FR only)",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "telephony.EntrepriseNumberInformationsTask": {
+        "type": "object",
+        "description": "Task about getting entreprise information",
+        "properties": {
+          "informations": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/telephony.EntrepriseNumberInformations"
+              }
+            ],
+            "description": "Task information about an entreprise",
+            "readOnly": true
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/telephony.TaskStatusEnum"
+              }
+            ],
+            "description": "Task status",
+            "readOnly": true
+          }
+        }
+      },
+      "telephony.FaxQualityEnum": {
+        "type": "string",
+        "description": "Available quality for fax documents",
+        "enum": [
+          "best",
+          "high",
+          "normal"
+        ]
+      },
+      "telephony.FaxSendingTries": {
+        "type": "integer",
+        "description": "Number of tries when sending a fax",
+        "enum": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ]
+      },
+      "telephony.FaxSendingTriesEnum": {
+        "type": "integer",
+        "description": "Number of tries when sending a fax",
+        "enum": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ]
+      },
+      "telephony.ServiceVoicemailAudioFormatEnum": {
+        "type": "string",
+        "description": "Voicemail audio format",
+        "enum": [
+          "aiff",
+          "au",
+          "flac",
+          "mp3",
+          "ogg",
+          "wav"
+        ]
+      },
+      "telephony.ServiceVoicemailMailOptionEnum": {
+        "type": "string",
+        "description": "Voicemail configuration",
+        "enum": [
+          "attachment",
+          "simple"
+        ]
+      },
+      "telephony.ServiceVoicemailNotifications": {
+        "type": "object",
+        "description": "Voicemail configuration",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "type": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/telephony.ServiceVoicemailMailOptionEnum"
+              }
+            ],
+            "description": "Voicemail configuration"
+          }
+        }
+      },
+      "telephony.TaskStatusEnum": {
+        "type": "string",
+        "description": "Task status",
+        "enum": [
+          "doing",
+          "done",
+          "error",
+          "pause",
+          "todo"
+        ]
+      },
+      "telephony.VoicefaxRoutingEnum": {
+        "type": "string",
+        "description": "All existing type of routing for a voicemail",
+        "enum": [
+          "fax",
+          "voicemail"
+        ]
+      },
+      "telephony.VoicemailGreetingEnum": {
+        "type": "string",
+        "description": "Greeting type",
+        "enum": [
+          "default",
+          "full",
+          "short"
+        ]
+      },
+      "telephony.VoicemailNumbers": {
+        "type": "object",
+        "description": "Internal and external numbers for voicemail service",
+        "properties": {
+          "external": {
+            "type": "string",
+            "description": "The external voicemail number",
+            "readOnly": true
+          },
+          "internal": {
+            "type": "string",
+            "description": "The internal voicemail number",
+            "readOnly": true
+          }
+        }
+      },
+      "telephony.VoicemailProperties": {
+        "type": "object",
+        "description": "Voicemail Properties",
+        "properties": {
+          "annouceMessage": {
+            "type": "string",
+            "description": "Name of the voicemail panel announce file",
+            "readOnly": true
+          },
+          "audioFormat": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/telephony.ServiceVoicemailAudioFormatEnum"
+              }
+            ],
+            "description": "Voicemail audio format"
+          },
+          "doNotRecord": {
+            "type": "boolean",
+            "description": "Don't allow callers to leave voicemails"
+          },
+          "forcePassword": {
+            "type": "boolean",
+            "description": "Force password request to access the voicemail panel"
+          },
+          "fromEmail": {
+            "type": "string",
+            "description": "Email address from which emails will be sent"
+          },
+          "fromName": {
+            "type": "string",
+            "description": "Name from which emails will be sent"
+          },
+          "fullGreetingSoundId": {
+            "type": "integer",
+            "description": "Sound ID of the long greeeting",
+            "nullable": true
+          },
+          "greetingType": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/telephony.VoicemailGreetingEnum"
+              }
+            ],
+            "description": "Greeting type"
+          },
+          "isNewVersion": {
+            "type": "boolean",
+            "description": "Current voicemail version",
+            "readOnly": true
+          },
+          "keepMessage": {
+            "type": "boolean",
+            "description": "Don't delete voicemails after they've been sent by email"
+          },
+          "redirectionEmails": {
+            "type": "array",
+            "description": "Email addresses to notify when a new voicemail is left",
+            "items": {
+              "$ref": "#/components/schemas/telephony.ServiceVoicemailNotifications"
+            }
+          },
+          "shortGreetingSoundId": {
+            "type": "integer",
+            "description": "Sound ID of the short greeting played before an automated message",
+            "nullable": true
+          },
+          "temporaryGreetingActivated": {
+            "type": "boolean",
+            "description": "Play the temporary greeting instead of the regular one"
+          },
+          "temporaryGreetingSoundId": {
+            "type": "integer",
+            "description": "Sound ID of the temporary greeeting",
+            "nullable": true
+          },
+          "unreadMessages": {
+            "type": "integer",
+            "description": "Quantity of unread voicemails",
+            "readOnly": true
+          }
+        }
+      },
+      "telephony.voicemail.ChangePassword": {
+        "type": "object",
+        "description": "Change voicemail password",
+        "properties": {
+          "password": {
+            "type": "string",
+            "description": "The password",
+            "format": "password"
+          }
+        },
+        "required": [
+          "password"
+        ]
+      },
+      "telephony.voicemail.ChangeRouting": {
+        "type": "object",
+        "description": "Change voicemail routing",
+        "properties": {
+          "routing": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/telephony.VoicefaxRoutingEnum"
+              }
+            ],
+            "description": "All existing type of routing for a voicemail"
+          }
+        },
+        "required": [
+          "routing"
+        ]
+      },
+      "time": {
+        "type": "string",
+        "description": "Time (e.g., 15:04:05)",
+        "format": "time",
+        "example": "15:04:05"
+      }
+    },
+    "securitySchemes": {
+      "oAuth2AuthCode": {
+        "type": "oauth2",
+        "description": "Oauth2",
+        "x-client-id": "1bb9c7df371741c0",
+        "x-client-secret": "a5b4de870aca620d10fbf63cd18d205b",
+        "flows": {
+          "authorizationCode": {
+            "authorizationUrl": "https://auth.eu.ovhcloud.com/oauth2/authorize",
+            "tokenUrl": "https://auth.eu.ovhcloud.com/oauth2/token",
+            "scopes": {
+              "account/all": "Manage your account",
+              "all": "Manage your whole account and all your services",
+              "services/all": "Manage your services lifecycle and billing"
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/freefax": {
+      "get": {
+        "summary": "List Freefax line accounts",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "iamTags",
+            "description": "Filter resources on IAM tags",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/iam.resource.TagFilter"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/phoneNumber"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Web Cloud",
+            "Fax"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "freefax:apiovh:get",
+            "required": true
+          }
+        ],
+        "x-expanded-response": "FreefaxFreefaxPropertiesWithIAM"
+      }
+    },
+    "/freefax/credits": {
+      "get": {
+        "summary": "Get the credit balance and the remaining pages available for all our freefax",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/freefax.BalanceInformations"
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Web Cloud",
+            "Fax"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "account:apiovh:freefax/credits/get",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/freefax/{serviceName}": {
+      "get": {
+        "summary": "Get Freefax information",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/phoneNumber"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/freefax.FreefaxPropertiesWithIAM"
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Web Cloud",
+            "Fax"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "freefax:apiovh:get",
+            "required": true
+          }
+        ]
+      },
+      "put": {
+        "summary": "Edit the Freefax properties",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/phoneNumber"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/freefax.FreefaxProperties"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Web Cloud",
+            "Fax"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "freefax:apiovh:put",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/freefax/{serviceName}/changePassword": {
+      "post": {
+        "summary": "Generates a new password for your fax account",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/phoneNumber"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "password"
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Web Cloud",
+            "Fax"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "freefax:apiovh:changePassword",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/freefax/{serviceName}/directory": {
+      "get": {
+        "summary": "Get Freefax directory information",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/phoneNumber"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/telephony.DirectoryInfo"
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Web Cloud",
+            "Fax"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "freefax:apiovh:directory/get",
+            "required": true
+          }
+        ]
+      },
+      "put": {
+        "summary": "Edit Freefax directory information",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/phoneNumber"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/telephony.DirectoryInfo"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Web Cloud",
+            "Fax"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "freefax:apiovh:directory/edit",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/freefax/{serviceName}/directory/fetchEntrepriseInformations": {
+      "post": {
+        "summary": "Get enterprise information by providing enterprise number",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/phoneNumber"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/telephony.EntrepriseNumber"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/telephony.EntrepriseNumberInformationsTask"
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Web Cloud",
+            "Fax"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "freefax:apiovh:directory/fetchEntrepriseInformations",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/freefax/{serviceName}/directory/getDirectoryServiceCode": {
+      "get": {
+        "summary": "Get directory service code from an APE code (principal activity of the firm code)",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "apeCode",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/phoneNumber"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/telephony.DirectoryHeadingPJ"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Web Cloud",
+            "Fax"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "freefax:apiovh:directory/getDirectoryServiceCode",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/freefax/{serviceName}/directory/getWayTypes": {
+      "get": {
+        "summary": "Get all the way types available",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/phoneNumber"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/telephony.DirectoryWayType"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Web Cloud",
+            "Fax"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "freefax:apiovh:directory/getWayTypes",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/freefax/{serviceName}/mainService": {
+      "get": {
+        "summary": "Get main service attached to the Freefax",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/phoneNumber"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Web Cloud",
+            "Fax"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "freefax:apiovh:mainService/get",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/freefax/{serviceName}/serviceInfos": {
+      "get": {
+        "summary": "Get service information",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/phoneNumber"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/services.Service"
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Web Cloud",
+            "Fax"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "freefax:apiovh:serviceInfos/get",
+            "required": true
+          }
+        ]
+      },
+      "put": {
+        "summary": "Update service information",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/phoneNumber"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/services.Service"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Web Cloud",
+            "Fax"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "freefax:apiovh:serviceInfos/edit",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/freefax/{serviceName}/voicemail": {
+      "get": {
+        "summary": "Get the Freefax voicemail information",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/phoneNumber"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/telephony.VoicemailProperties"
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Web Cloud",
+            "Fax"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "freefax:apiovh:voicemail/get",
+            "required": true
+          }
+        ]
+      },
+      "put": {
+        "summary": "Edit the Freefax voicemail",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/phoneNumber"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/telephony.VoicemailProperties"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Web Cloud",
+            "Fax"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "freefax:apiovh:voicemail/edit",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/freefax/{serviceName}/voicemail/changePassword": {
+      "post": {
+        "summary": "Change the voicemail password. It must be 4 digit",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/phoneNumber"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/telephony.voicemail.ChangePassword"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Web Cloud",
+            "Fax"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "freefax:apiovh:voicemail/changePassword",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/freefax/{serviceName}/voicemail/changeRouting": {
+      "post": {
+        "summary": "Disable/Enable voicemail. Available only if the line has fax capabilities",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/phoneNumber"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/telephony.voicemail.ChangeRouting"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Web Cloud",
+            "Fax"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "freefax:apiovh:voicemail/changeRouting",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/freefax/{serviceName}/voicemail/routing": {
+      "get": {
+        "summary": "Get the status of the voicemail. Available only if the line has fax capabilities",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/phoneNumber"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/telephony.VoicefaxRoutingEnum"
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Web Cloud",
+            "Fax"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "freefax:apiovh:voicemail/routing/get",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/freefax/{serviceName}/voicemail/voicemailNumbers": {
+      "get": {
+        "summary": "Get number for internal and external voicemail",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/phoneNumber"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/telephony.VoicemailNumbers"
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Web Cloud",
+            "Fax"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "freefax:apiovh:voicemail/voicemailNumbers/get",
+            "required": true
+          }
+        ]
+      }
+    }
+  }
+}

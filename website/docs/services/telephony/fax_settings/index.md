@@ -1,0 +1,317 @@
+--- 
+title: fax_settings
+hide_title: false
+hide_table_of_contents: false
+keywords:
+  - fax_settings
+  - telephony
+  - ovh
+  - infrastructure-as-code
+  - configuration-as-data
+  - cloud inventory
+description: Query, deploy and manage ovh resources using SQL
+custom_edit_url: null
+image: /img/stackql-ovh-provider-featured-image.png
+---
+
+import CopyableCode from '@site/src/components/CopyableCode/CopyableCode';
+import CodeBlock from '@theme/CodeBlock';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+Creates, updates, deletes, gets or lists a <code>fax_settings</code> resource.
+
+## Overview
+<table><tbody>
+<tr><td><b>Name</b></td><td><CopyableCode code="fax_settings" /></td></tr>
+<tr><td><b>Type</b></td><td>Resource</td></tr>
+<tr><td><b>Id</b></td><td><CopyableCode code="ovh.telephony.fax_settings" /></td></tr>
+</tbody></table>
+
+## Fields
+
+The following fields are returned by `SELECT` queries:
+
+<Tabs
+    defaultValue="get"
+    values={[
+        { label: 'get', value: 'get' }
+    ]}
+>
+<TabItem value="get">
+
+successful operation
+
+<table>
+<thead>
+    <tr>
+    <th>Name</th>
+    <th>Datatype</th>
+    <th>Description</th>
+    </tr>
+</thead>
+<tbody>
+<tr>
+    <td><CopyableCode code="from_name" /></td>
+    <td><code>string</code></td>
+    <td> (wire: fromName)</td>
+</tr>
+<tr>
+    <td><CopyableCode code="call_number" /></td>
+    <td><code>string</code></td>
+    <td> (wire: callNumber)</td>
+</tr>
+<tr>
+    <td><CopyableCode code="country_code" /></td>
+    <td><code>string</code></td>
+    <td> (wire: countryCode)</td>
+</tr>
+<tr>
+    <td><CopyableCode code="fax_max_call" /></td>
+    <td><code>integer</code></td>
+    <td>Number of tries when sending a fax (1, 2, 3, 4, 5, 6, 7, 8, 9) (wire: faxMaxCall)</td>
+</tr>
+<tr>
+    <td><CopyableCode code="fax_quality" /></td>
+    <td><code>string</code></td>
+    <td>Available quality for fax documents (best, high, normal) (wire: faxQuality)</td>
+</tr>
+<tr>
+    <td><CopyableCode code="fax_tag_line" /></td>
+    <td><code>string</code></td>
+    <td> (wire: faxTagLine)</td>
+</tr>
+<tr>
+    <td><CopyableCode code="from_email" /></td>
+    <td><code>string</code></td>
+    <td> (wire: fromEmail)</td>
+</tr>
+<tr>
+    <td><CopyableCode code="mail_format" /></td>
+    <td><code>string</code></td>
+    <td>Format of the notification mail. "html" will include a preview image of the fax (html, text) (wire: mailFormat)</td>
+</tr>
+<tr>
+    <td><CopyableCode code="receiver" /></td>
+    <td><code>string</code></td>
+    <td></td>
+</tr>
+<tr>
+    <td><CopyableCode code="redirection_email" /></td>
+    <td><code>array</code></td>
+    <td> (wire: redirectionEmail)</td>
+</tr>
+<tr>
+    <td><CopyableCode code="reject_anonymous" /></td>
+    <td><code>boolean</code></td>
+    <td> (wire: rejectAnonymous)</td>
+</tr>
+<tr>
+    <td><CopyableCode code="sender" /></td>
+    <td><code>string</code></td>
+    <td></td>
+</tr>
+</tbody>
+</table>
+</TabItem>
+</Tabs>
+
+## Methods
+
+The following methods are available for this resource:
+
+<table>
+<thead>
+    <tr>
+    <th>Name</th>
+    <th>Accessible by</th>
+    <th>Required Params</th>
+    <th>Optional Params</th>
+    <th>Description</th>
+    </tr>
+</thead>
+<tbody>
+<tr>
+    <td><a href="#get"><CopyableCode code="get" /></a></td>
+    <td><CopyableCode code="select" /></td>
+    <td><a href="#parameter-billing_account"><code>billing_account</code></a>, <a href="#parameter-service_name"><code>service_name</code></a></td>
+    <td></td>
+    <td>Get the settings. Returns the fax settings: sender, quality, number of sending tries, email delivery and rejection of anonymous faxes.</td>
+</tr>
+<tr>
+    <td><a href="#update"><CopyableCode code="update" /></a></td>
+    <td><CopyableCode code="update" /></td>
+    <td><a href="#parameter-billing_account"><code>billing_account</code></a>, <a href="#parameter-service_name"><code>service_name</code></a></td>
+    <td></td>
+    <td>Update the settings. Updates the fax settings: sender, receiver, quality, number of sending tries (1 to 9), tag line, email delivery and rejection of anonymous faxes.</td>
+</tr>
+<tr>
+    <td><a href="#change_password"><CopyableCode code="change_password" /></a></td>
+    <td><CopyableCode code="exec" /></td>
+    <td><a href="#parameter-billingAccount"><code>billingAccount</code></a>, <a href="#parameter-serviceName"><code>serviceName</code></a></td>
+    <td></td>
+    <td>Change the password. Sets a new password for the fax account. Without a password, a random one is generated and returned.</td>
+</tr>
+<tr>
+    <td><a href="#send_fax"><CopyableCode code="send_fax" /></a></td>
+    <td><CopyableCode code="exec" /></td>
+    <td><a href="#parameter-billingAccount"><code>billingAccount</code></a>, <a href="#parameter-serviceName"><code>serviceName</code></a>, <a href="#parameter-pdfUrl"><code>pdfUrl</code></a>, <a href="#parameter-recipients"><code>recipients</code></a></td>
+    <td></td>
+    <td>Send a fax. Sends a PDF document from a URL to one or more recipients, now or at a scheduled date. Returns the task that tracks the sending.</td>
+</tr>
+</tbody>
+</table>
+
+## Parameters
+
+Parameters can be passed in the `WHERE` clause of a query. Check the [Methods](#methods) section to see which parameters are required or optional for each operation.
+
+<table>
+<thead>
+    <tr>
+    <th>Name</th>
+    <th>Datatype</th>
+    <th>Description</th>
+    </tr>
+</thead>
+<tbody>
+<tr id="parameter-api_host">
+    <td><CopyableCode code="api_host" /></td>
+    <td><code>string</code></td>
+    <td>The OVHcloud API host. Selected by OVH_ENDPOINT (ovh-eu, ovh-ca or ovh-us; default ovh-eu). (default: api.eu.ovhcloud.com, x-stackQL-envVarSelector: &#123;"envVar":"OVH_ENDPOINT","default":"ovh-eu","values":&#123;"ovh-eu":"api.eu.ovhcloud.com","ovh-ca":"api.ca.ovhcloud.com","ovh-us":"api.us.ovhcloud.com"&#125;&#125;)</td>
+</tr>
+<tr id="parameter-billingAccount">
+    <td><CopyableCode code="billingAccount" /></td>
+    <td><code>string</code></td>
+    <td>The name of your billingAccount</td>
+</tr>
+<tr id="parameter-billing_account">
+    <td><CopyableCode code="billing_account" /></td>
+    <td><code>string</code></td>
+    <td>The name of your billingAccount (wire: billingAccount)</td>
+</tr>
+<tr id="parameter-serviceName">
+    <td><CopyableCode code="serviceName" /></td>
+    <td><code>string</code></td>
+    <td></td>
+</tr>
+<tr id="parameter-service_name">
+    <td><CopyableCode code="service_name" /></td>
+    <td><code>string</code></td>
+    <td> (wire: serviceName)</td>
+</tr>
+</tbody>
+</table>
+
+## `SELECT` examples
+
+<Tabs
+    defaultValue="get"
+    values={[
+        { label: 'get', value: 'get' }
+    ]}
+>
+<TabItem value="get">
+
+Get the settings. Returns the fax settings: sender, quality, number of sending tries, email delivery and rejection of anonymous faxes.
+
+```sql
+SELECT
+from_name,
+call_number,
+country_code,
+fax_max_call,
+fax_quality,
+fax_tag_line,
+from_email,
+mail_format,
+receiver,
+redirection_email,
+reject_anonymous,
+sender
+FROM ovh.telephony.fax_settings
+WHERE billing_account = '{{ billing_account }}' -- required
+AND service_name = '{{ service_name }}' -- required
+;
+```
+</TabItem>
+</Tabs>
+
+
+## `UPDATE` examples
+
+<Tabs
+    defaultValue="update"
+    values={[
+        { label: 'update', value: 'update' }
+    ]}
+>
+<TabItem value="update">
+
+Update the settings. Updates the fax settings: sender, receiver, quality, number of sending tries (1 to 9), tag line, email delivery and rejection of anonymous faxes.
+
+```sql
+UPDATE ovh.telephony.fax_settings
+SET 
+fax_max_call = {{ fax_max_call }},
+fax_quality = '{{ fax_quality }}',
+fax_tag_line = '{{ fax_tag_line }}',
+from_email = '{{ from_email }}',
+from_name = '{{ from_name }}',
+mail_format = '{{ mail_format }}',
+receiver = '{{ receiver }}',
+redirection_email = '{{ redirection_email }}',
+reject_anonymous = {{ reject_anonymous }},
+sender = '{{ sender }}'
+WHERE 
+billing_account = '{{ billing_account }}' --required
+AND service_name = '{{ service_name }}' --required;
+```
+</TabItem>
+</Tabs>
+
+
+## Lifecycle Methods
+
+EXEC variables use wire (API) names.
+
+<Tabs
+    defaultValue="change_password"
+    values={[
+        { label: 'change_password', value: 'change_password' },
+        { label: 'send_fax', value: 'send_fax' }
+    ]}
+>
+<TabItem value="change_password">
+
+Change the password. Sets a new password for the fax account. Without a password, a random one is generated and returned.
+
+```sql
+EXEC ovh.telephony.fax_settings.change_password 
+@billingAccount='{{ billingAccount }}' --required, 
+@serviceName='{{ serviceName }}' --required 
+@@json=
+'{
+"password": "{{ password }}"
+}'
+;
+```
+</TabItem>
+<TabItem value="send_fax">
+
+Send a fax. Sends a PDF document from a URL to one or more recipients, now or at a scheduled date. Returns the task that tracks the sending.
+
+```sql
+EXEC ovh.telephony.fax_settings.send_fax 
+@billingAccount='{{ billingAccount }}' --required, 
+@serviceName='{{ serviceName }}' --required 
+@@json=
+'{
+"dateSchedule": "{{ dateSchedule }}", 
+"pdfUrl": "{{ pdfUrl }}", 
+"recipients": "{{ recipients }}"
+}'
+;
+```
+</TabItem>
+</Tabs>

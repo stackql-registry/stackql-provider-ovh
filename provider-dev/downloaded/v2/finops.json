@@ -1,0 +1,1709 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "OVHcloud API specification",
+    "description": "Specification for OVHcloud API",
+    "version": "1.0",
+    "contact": {
+      "name": "OVH",
+      "email": "api@ml.ovh.net"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.eu.ovhcloud.com/v2"
+    }
+  ],
+  "components": {
+    "schemas": {
+      "any": {
+        "description": "Can be anything (text, int, bool, json, html, etc.)",
+        "example": "This is a content of any type !"
+      },
+      "common.CurrentTask": {
+        "type": "object",
+        "description": "Asynchronous operation currently running",
+        "properties": {
+          "errors": {
+            "type": "array",
+            "description": "Errors that occurred on the task",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/common.TaskError"
+            },
+            "readOnly": true
+          },
+          "id": {
+            "type": "string",
+            "description": "Identifier of the current task",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "link": {
+            "type": "string",
+            "description": "Link to the task details",
+            "readOnly": true
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/common.CurrentTaskStatusEnum"
+              }
+            ],
+            "description": "Current global status of the current task",
+            "nullable": true,
+            "readOnly": true
+          },
+          "type": {
+            "type": "string",
+            "description": "Type of the current task",
+            "readOnly": true
+          }
+        }
+      },
+      "common.CurrentTaskStatusEnum": {
+        "type": "string",
+        "description": "Current status of a task. A task in ERROR cannot be retried without your inputs. PENDING tasks will be executed as soon as possible. A RUNNING task is currently executing your original request. SCHEDULED is used for tasks that will be executed in the future.",
+        "enum": [
+          "ERROR",
+          "PENDING",
+          "RUNNING",
+          "SCHEDULED",
+          "WAITING_USER_INPUT"
+        ]
+      },
+      "common.Event": {
+        "type": "object",
+        "description": "Represents an event for an async envelope",
+        "properties": {
+          "createdAt": {
+            "type": "string",
+            "description": "Creation date of the event",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "kind": {
+            "type": "string",
+            "description": "Nature of the event",
+            "readOnly": true
+          },
+          "link": {
+            "type": "string",
+            "description": "Link to the event related resource",
+            "nullable": true,
+            "readOnly": true
+          },
+          "message": {
+            "type": "string",
+            "description": "Description of what happened on the event",
+            "readOnly": true
+          },
+          "type": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/common.EventTypeEnum"
+              }
+            ],
+            "description": "Type of the event",
+            "readOnly": true
+          }
+        }
+      },
+      "common.EventTypeEnum": {
+        "type": "string",
+        "description": "Nature of an event",
+        "enum": [
+          "TARGET_SPEC_UPDATE",
+          "TASK_ERROR",
+          "TASK_START",
+          "TASK_SUCCESS"
+        ]
+      },
+      "common.ResourceStatusEnum": {
+        "type": "string",
+        "description": "Current status of a resource",
+        "enum": [
+          "CREATING",
+          "CREATION_PLANNED",
+          "DELETING",
+          "ERROR",
+          "OUT_OF_SYNC",
+          "READY",
+          "SUSPENDED",
+          "UNKNOWN",
+          "UPDATING"
+        ]
+      },
+      "common.Task": {
+        "type": "object",
+        "description": "Asynchronous operation",
+        "properties": {
+          "createdAt": {
+            "type": "string",
+            "description": "Creation date of the task",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "errors": {
+            "type": "array",
+            "description": "Errors that occurred on the task",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/common.TaskError"
+            },
+            "readOnly": true
+          },
+          "finishedAt": {
+            "type": "string",
+            "description": "Ending date of the task",
+            "nullable": true,
+            "format": "date-time",
+            "readOnly": true
+          },
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the task",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "link": {
+            "type": "string",
+            "description": "Link to the related resource",
+            "readOnly": true
+          },
+          "message": {
+            "type": "string",
+            "description": "Description of the task",
+            "readOnly": true
+          },
+          "progress": {
+            "type": "array",
+            "description": "Progress steps of the asynchronous operation",
+            "items": {
+              "$ref": "#/components/schemas/common.TaskProgress"
+            },
+            "readOnly": true
+          },
+          "startedAt": {
+            "type": "string",
+            "description": "Starting date of the task",
+            "nullable": true,
+            "format": "date-time",
+            "readOnly": true
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/common.TaskStatusEnum"
+              }
+            ],
+            "description": "Current global status of the task",
+            "readOnly": true
+          },
+          "type": {
+            "type": "string",
+            "description": "Type of the task",
+            "readOnly": true
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "Last update of the task",
+            "format": "date-time",
+            "readOnly": true
+          }
+        }
+      },
+      "common.TaskError": {
+        "type": "object",
+        "description": "Errors that occurred on the task",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Error description",
+            "readOnly": true
+          }
+        }
+      },
+      "common.TaskProgress": {
+        "type": "object",
+        "description": "Detailed information about an asynchronous operation progress steps",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Progress step name",
+            "readOnly": true
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/common.TaskStatusEnum"
+              }
+            ],
+            "description": "Current status of the progress step",
+            "readOnly": true
+          }
+        }
+      },
+      "common.TaskStatusEnum": {
+        "type": "string",
+        "description": "Current status of a task",
+        "enum": [
+          "DONE",
+          "ERROR",
+          "PENDING",
+          "RUNNING",
+          "SCHEDULED",
+          "WAITING_USER_INPUT"
+        ]
+      },
+      "duration": {
+        "type": "string",
+        "description": "Duration (e.g., P1Y2M3DT4H6M9S)",
+        "example": "P1Y2M3DT4H6M9S"
+      },
+      "email": {
+        "type": "string",
+        "description": "Email address (e.g., api@ml.ovh.net)",
+        "format": "email",
+        "example": "api@ml.ovh.net"
+      },
+      "finops.bucketExport.AsyncConfiguration": {
+        "type": "object",
+        "description": "Bucket Export Configuration",
+        "properties": {
+          "checksum": {
+            "type": "string",
+            "description": "Checksum of the Bucket Export Configuration"
+          },
+          "currentState": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/finops.bucketExport.Configuration"
+              }
+            ],
+            "description": "Current state of the billing account",
+            "readOnly": true
+          },
+          "currentTasks": {
+            "type": "array",
+            "description": "Task to do on this billing account",
+            "items": {
+              "$ref": "#/components/schemas/common.CurrentTask"
+            },
+            "readOnly": true
+          },
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the billing account",
+            "readOnly": true
+          },
+          "resourceStatus": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/common.ResourceStatusEnum"
+              }
+            ],
+            "description": "Billing account readiness in the system",
+            "readOnly": true
+          },
+          "targetSpec": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/finops.bucketExport.Configuration"
+              }
+            ],
+            "description": "Target Spec for the FinOps Bucket Export Configuration"
+          }
+        }
+      },
+      "finops.bucketExport.AsyncCreateConfiguration": {
+        "type": "object",
+        "description": "FinOps Bucket Export creation parameters",
+        "properties": {
+          "targetSpec": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/finops.bucketExport.Configuration"
+              }
+            ],
+            "description": "Target Spec for the bucket export configuration"
+          }
+        },
+        "required": [
+          "targetSpec"
+        ]
+      },
+      "finops.bucketExport.BucketConfiguration": {
+        "type": "object",
+        "description": "Configuration of the target bucket, which must be S3™*-compatible",
+        "properties": {
+          "accessKey": {
+            "type": "string",
+            "description": "S3™* access key",
+            "format": "password"
+          },
+          "bucketName": {
+            "type": "string",
+            "description": "Name of the bucket where the file will be put"
+          },
+          "endpointURL": {
+            "type": "string",
+            "description": "Hostname used to reach the S3™* cluster"
+          },
+          "pathPrefix": {
+            "type": "string",
+            "description": "Folder where the files will be created"
+          },
+          "region": {
+            "type": "string",
+            "description": "S3™* region name"
+          },
+          "secretKey": {
+            "type": "string",
+            "description": "S3™* secret key",
+            "format": "password"
+          }
+        },
+        "required": [
+          "accessKey",
+          "bucketName",
+          "endpointURL",
+          "region",
+          "secretKey"
+        ]
+      },
+      "finops.bucketExport.Configuration": {
+        "type": "object",
+        "description": "FinOps bucket export configuration",
+        "properties": {
+          "bucketConfiguration": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/finops.bucketExport.BucketConfiguration"
+              }
+            ],
+            "description": "Configuration of the target bucket, which must be S3™*-compatible"
+          },
+          "exportHour": {
+            "type": "integer",
+            "description": "The hour (in UTC) we will deposit the file at. For example, if set to 7, the export will be triggered starting at 7:00 UTC. Only applicable to period=DAILY."
+          },
+          "filePolicy": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/finops.bucketExport.FilePolicyEnum"
+              }
+            ],
+            "description": "Strategy for file creation"
+          },
+          "period": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/finops.bucketExport.PeriodEnum"
+              }
+            ],
+            "description": "The period at which your finops data will be exported. Defaults to DAILY.",
+            "nullable": true
+          },
+          "scope": {
+            "type": "string",
+            "description": "Scope of this export",
+            "readOnly": true
+          }
+        }
+      },
+      "finops.bucketExport.FilePolicyEnum": {
+        "type": "string",
+        "description": "Policy applied for file creation",
+        "enum": [
+          "CREATE",
+          "REPLACE"
+        ]
+      },
+      "finops.bucketExport.PeriodEnum": {
+        "type": "string",
+        "description": "The period at which your finops data will be exported",
+        "enum": [
+          "DAILY",
+          "HOURLY"
+        ]
+      },
+      "finops.costExplorer.BreakdownCreation": {
+        "type": "object",
+        "description": "Parameters of a cost breakdown computation",
+        "properties": {
+          "currency": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/finops.costExplorer.CurrencyEnum"
+              }
+            ],
+            "description": "Currency to keep, for example EUR: only the cost lines billed in this currency are kept. Needed only when the cost lines of the range hold a non-zero cost in more than one currency. Null keeps every currency. The computation then ends in ERROR when more than one currency is present, and the error message lists them.",
+            "nullable": true
+          },
+          "filters": {
+            "type": "array",
+            "description": "Filters on the cost lines. A cost line is kept when it passes every filter, and a dimension without a filter keeps every value. Null or empty keeps every cost line.",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/finops.costExplorer.BreakdownFilter"
+            }
+          },
+          "from": {
+            "type": "string",
+            "description": "Start of the range, included",
+            "format": "date-time"
+          },
+          "granularity": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/finops.costExplorer.GranularityEnum"
+              }
+            ],
+            "description": "Finest width of a period. The computation uses a coarser one when the range holds more than 744 periods of this width."
+          },
+          "groupBy": {
+            "type": "string",
+            "description": "Key of the dimension whose values split the cost into series, as GET /v2/finops/costExplorer/dimension lists it. Null groups by CATEGORY.",
+            "nullable": true
+          },
+          "to": {
+            "type": "string",
+            "description": "End of the range, excluded. It must be after from.",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "from",
+          "granularity",
+          "to"
+        ]
+      },
+      "finops.costExplorer.BreakdownFilter": {
+        "type": "object",
+        "description": "Keeps only the cost lines whose value of the dimension is one of the values",
+        "properties": {
+          "dimension": {
+            "type": "string",
+            "description": "Key of the dimension to filter on, as GET /v2/finops/costExplorer/dimension lists it. Two filters of the same breakdown cannot name the same dimension."
+          },
+          "values": {
+            "type": "array",
+            "description": "Values to keep, at least one, as POST /v2/finops/costExplorer/dimensionValue lists them. The comparison is exact and case-sensitive. An empty string keeps the cost lines that have no value for the dimension.",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "dimension",
+          "values"
+        ]
+      },
+      "finops.costExplorer.BreakdownResult": {
+        "type": "object",
+        "description": "Cost of a range, split into periods and into series",
+        "properties": {
+          "currency": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/finops.costExplorer.CurrencyEnum"
+              }
+            ],
+            "description": "Currency of every amount, for example EUR. Null when the range holds no cost.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "from": {
+            "type": "string",
+            "description": "Start of the range, included",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "granularity": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/finops.costExplorer.GranularityEnum"
+              }
+            ],
+            "description": "Width of the periods. It is the requested granularity, or a coarser one when the range holds more than 744 periods of the requested width.",
+            "readOnly": true
+          },
+          "periods": {
+            "type": "array",
+            "description": "Cost of each period, in time order",
+            "items": {
+              "$ref": "#/components/schemas/finops.costExplorer.Period"
+            },
+            "readOnly": true
+          },
+          "series": {
+            "type": "array",
+            "description": "Values of the groupBy dimension present in the result, by total cost descending. Each one is a key of the amounts of every period and of totals. An empty string groups the cost lines that have no value for the dimension.",
+            "items": {
+              "type": "string"
+            },
+            "readOnly": true
+          },
+          "timezone": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/finops.costExplorer.TimezoneEnum"
+              }
+            ],
+            "description": "IANA time zone that the periods align with. Always UTC for now.",
+            "readOnly": true
+          },
+          "to": {
+            "type": "string",
+            "description": "End of the range, excluded",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "totals": {
+            "type": "object",
+            "description": "Cost of each series over all the periods, in the currency of the breakdown, keyed by the values of series",
+            "additionalProperties": {
+              "type": "number"
+            },
+            "readOnly": true
+          },
+          "truncated": {
+            "type": "boolean",
+            "description": "Whether cost data is missing for a part of the range, so the amounts of that part are incomplete",
+            "readOnly": true
+          }
+        }
+      },
+      "finops.costExplorer.BreakdownTask": {
+        "type": "object",
+        "description": "Asynchronous computation of a cost breakdown, and its result. The computation is kept for a limited time after its last update. It is then no longer found.",
+        "properties": {
+          "createdAt": {
+            "type": "string",
+            "description": "Date when the computation was started",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "errors": {
+            "type": "array",
+            "description": "Errors that ended the computation. Empty unless the status is ERROR.",
+            "items": {
+              "$ref": "#/components/schemas/finops.costExplorer.TaskError"
+            },
+            "readOnly": true
+          },
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the computation",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "result": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/finops.costExplorer.BreakdownResult"
+              }
+            ],
+            "description": "Cost breakdown. Null unless the status is DONE.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/common.TaskStatusEnum"
+              }
+            ],
+            "description": "Status of the computation: PENDING, RUNNING, DONE or ERROR. DONE and ERROR are final.",
+            "readOnly": true
+          }
+        }
+      },
+      "finops.costExplorer.CurrencyEnum": {
+        "type": "string",
+        "description": "Currency of the cost lines: an ISO 4217 code, or POINTS",
+        "enum": [
+          "AUD",
+          "CAD",
+          "CZK",
+          "EUR",
+          "GBP",
+          "INR",
+          "LTL",
+          "MAD",
+          "PLN",
+          "POINTS",
+          "SGD",
+          "TND",
+          "USD",
+          "XOF"
+        ]
+      },
+      "finops.costExplorer.Dimension": {
+        "type": "object",
+        "description": "Attribute of the cost lines that a cost breakdown can filter on or group by",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "Identifier of the dimension, for example CATEGORY, as the groupBy and the filters of a cost breakdown take it",
+            "readOnly": true
+          },
+          "label": {
+            "type": "string",
+            "description": "Display name of the dimension, in English, for example `Product category`",
+            "readOnly": true
+          }
+        }
+      },
+      "finops.costExplorer.DimensionValueCreation": {
+        "type": "object",
+        "description": "Parameters of a dimension values listing",
+        "properties": {
+          "from": {
+            "type": "string",
+            "description": "Start of the range, included",
+            "format": "date-time"
+          },
+          "to": {
+            "type": "string",
+            "description": "End of the range, excluded. It must be after from.",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "from",
+          "to"
+        ]
+      },
+      "finops.costExplorer.DimensionValueList": {
+        "type": "object",
+        "description": "Values of one dimension present in the cost lines of a range",
+        "properties": {
+          "dimension": {
+            "type": "string",
+            "description": "Key of the dimension that the values belong to, as GET /v2/finops/costExplorer/dimension lists it",
+            "readOnly": true
+          },
+          "values": {
+            "type": "array",
+            "description": "Distinct values of the dimension in the cost lines of the range, sorted. Each one can feed a filter of a cost breakdown. An empty string stands for the cost lines that have no value for the dimension.",
+            "items": {
+              "type": "string"
+            },
+            "readOnly": true
+          }
+        }
+      },
+      "finops.costExplorer.DimensionValueTask": {
+        "type": "object",
+        "description": "Asynchronous listing of the values of every dimension in the cost lines of a range, and its result. The listing is kept for a limited time after its last update. It is then no longer found.",
+        "properties": {
+          "createdAt": {
+            "type": "string",
+            "description": "Date when the listing was started",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "errors": {
+            "type": "array",
+            "description": "Errors that ended the listing. Empty unless the status is ERROR.",
+            "items": {
+              "$ref": "#/components/schemas/finops.costExplorer.TaskError"
+            },
+            "readOnly": true
+          },
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the listing",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "result": {
+            "type": "array",
+            "description": "Values of each dimension, in the order of GET /v2/finops/costExplorer/dimension. Null unless the status is DONE.",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/finops.costExplorer.DimensionValueList"
+            },
+            "readOnly": true
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/common.TaskStatusEnum"
+              }
+            ],
+            "description": "Status of the listing: PENDING, RUNNING, DONE or ERROR. DONE and ERROR are final.",
+            "readOnly": true
+          }
+        }
+      },
+      "finops.costExplorer.GranularityEnum": {
+        "type": "string",
+        "description": "Width of a period of a cost breakdown. Periods align with UTC hours, days or months.",
+        "enum": [
+          "DAY",
+          "HOUR",
+          "MONTH"
+        ]
+      },
+      "finops.costExplorer.Period": {
+        "type": "object",
+        "description": "Cost recognized during one period of a cost breakdown, split into series",
+        "properties": {
+          "amounts": {
+            "type": "object",
+            "description": "Cost of each series during the period, in the currency of the breakdown, keyed by the values of series. Every series has an entry.",
+            "additionalProperties": {
+              "type": "number"
+            },
+            "readOnly": true
+          },
+          "end": {
+            "type": "string",
+            "description": "End of the period, excluded, in UTC. The last period ends at the to of the range.",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "start": {
+            "type": "string",
+            "description": "Start of the period, included, in UTC. The first period starts at the from of the range.",
+            "format": "date-time",
+            "readOnly": true
+          }
+        }
+      },
+      "finops.costExplorer.TaskError": {
+        "type": "object",
+        "description": "Error that ended a cost explorer computation",
+        "properties": {
+          "class": {
+            "type": "string",
+            "description": "Class of the error: - Client::BadRequest::CurrencyRequired: the cost spans several currencies. Start the breakdown again with one of those the message lists. - Server::ServiceUnavailable::Timeout: start again over a shorter range. - Server::ServiceUnavailable::Interrupted: start again. - Server::InternalServerError: unexpected failure.",
+            "readOnly": true
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable description of the error",
+            "readOnly": true
+          }
+        }
+      },
+      "finops.costExplorer.TimezoneEnum": {
+        "type": "string",
+        "description": "IANA time zone that the periods of a cost breakdown align with",
+        "enum": [
+          "UTC"
+        ]
+      },
+      "internationalPhoneNumber": {
+        "type": "string",
+        "description": "International phone number",
+        "format": "phone-number"
+      },
+      "ip": {
+        "type": "string",
+        "description": "IP address (e.g., 192.0.2.0)",
+        "format": "ipv4",
+        "example": "192.0.2.0"
+      },
+      "ipBlock": {
+        "type": "string",
+        "description": "IP (v4 or v6) CIDR notation (e.g., 192.0.2.0/24)",
+        "format": "ip-block",
+        "example": "192.0.2.0/24"
+      },
+      "ipInterface": {
+        "type": "string",
+        "description": "IP address (e.g., 192.0.2.0)",
+        "format": "ipv4",
+        "example": "192.0.2.0"
+      },
+      "ipv4": {
+        "type": "string",
+        "description": "IPv4 address (e.g., 192.0.2.0)",
+        "format": "ipv4",
+        "example": "192.0.2.0"
+      },
+      "ipv4Block": {
+        "type": "string",
+        "description": "IPv4 CIDR notation (e.g., 192.0.2.0/24)",
+        "format": "ipv4-block",
+        "example": "192.0.2.0/24"
+      },
+      "ipv6": {
+        "type": "string",
+        "description": "IPv6 address (e.g., 2001:41d0:1:1994::1)",
+        "format": "ipv6",
+        "example": "2001:41d0:1:1994::1"
+      },
+      "ipv6Block": {
+        "type": "string",
+        "description": "IPv6 CIDR notation (e.g., 2001:41d0::/128)",
+        "format": "ipv6-block",
+        "example": "2001:41d0::/128"
+      },
+      "macAddress": {
+        "type": "string",
+        "description": "MAC address (e.g., 00:00:5e:00:53:01)",
+        "format": "mac-address",
+        "example": "00:00:5e:00:53:01"
+      },
+      "phoneNumber": {
+        "type": "string",
+        "description": "Phone number",
+        "format": "phone-number"
+      },
+      "time": {
+        "type": "string",
+        "description": "Time (e.g., 15:04:05)",
+        "format": "time",
+        "example": "15:04:05"
+      }
+    },
+    "securitySchemes": {
+      "oAuth2AuthCode": {
+        "type": "oauth2",
+        "description": "Oauth2",
+        "x-client-id": "1bb9c7df371741c0",
+        "x-client-secret": "a5b4de870aca620d10fbf63cd18d205b",
+        "flows": {
+          "authorizationCode": {
+            "authorizationUrl": "https://auth.eu.ovhcloud.com/oauth2/authorize",
+            "tokenUrl": "https://auth.eu.ovhcloud.com/oauth2/token",
+            "scopes": {
+              "account/all": "Manage your account",
+              "all": "Manage your whole account and all your services",
+              "services/all": "Manage your services lifecycle and billing"
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/finops/bucketExport": {
+      "get": {
+        "operationId": "getAllFinopsBucketExports",
+        "summary": "List FinOps bucket export configurations. The target bucket must be S3™*-compatible.",
+        "description": "<sup>*</sup> S3 is a trademark filed by Amazon Technologies,Inc. OVHcloud's service is not sponsored by, endorsed by, or otherwise affiliated with Amazon Technologies,Inc.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Pagination-Cursor",
+            "description": "Pagination cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Pagination-Size",
+            "description": "Pagination size",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/finops.bucketExport.AsyncConfiguration"
+                  }
+                },
+                "examples": {
+                  "List of bucket exports": {
+                    "value": [
+                      {
+                        "checksum": "12345678901234567890123456789012",
+                        "currentState": {
+                          "bucketConfiguration": {
+                            "accessKey": "abcdef1234567890",
+                            "bucketName": "my-finops",
+                            "endpointURL": "s3.gra.io.cloud.ovh.net",
+                            "pathPrefix": "/finops-reports/",
+                            "region": "gra",
+                            "secretKey": "abcdef1234567890"
+                          },
+                          "exportHour": 7,
+                          "filePolicy": "CREATE",
+                          "period": "DAILY",
+                          "scope": "urn:nichandle:nic1"
+                        },
+                        "currentTasks": [],
+                        "id": "1241b431-2a13-4974-835f-78f0e231a9b1",
+                        "resourceStatus": "READY",
+                        "targetSpec": {
+                          "bucketConfiguration": {
+                            "accessKey": "abcdef1234567890",
+                            "bucketName": "my-finops",
+                            "endpointURL": "s3.gra.io.cloud.ovh.net",
+                            "pathPrefix": "/finops-reports/",
+                            "region": "gra",
+                            "secretKey": "abcdef1234567890"
+                          },
+                          "exportHour": 7,
+                          "filePolicy": "CREATE",
+                          "period": "DAILY",
+                          "scope": "urn:nichandle:nic1"
+                        }
+                      }
+                    ],
+                    "summary": "List containing a single ready bucket export"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Manage & Operate",
+            "Cost Center",
+            "Export FOCUS@@@10"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "blue",
+            "label": "Beta version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "account:apiovh:finops/bucketExport/get",
+            "required": true
+          }
+        ],
+        "x-response-identifier": "id",
+        "x-expanded-response": "FinopsBucketExportAsyncConfiguration"
+      },
+      "post": {
+        "operationId": "createFinopsBucketExport",
+        "summary": "Create a FinOps bucket export configuration. The target bucket must be S3™*-compatible.",
+        "description": "<sup>*</sup> S3 is a trademark filed by Amazon Technologies,Inc. OVHcloud's service is not sponsored by, endorsed by, or otherwise affiliated with Amazon Technologies,Inc.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/finops.bucketExport.AsyncCreateConfiguration"
+              },
+              "examples": {
+                "Create bucket export": {
+                  "value": {
+                    "targetSpec": {
+                      "bucketConfiguration": {
+                        "accessKey": "abcdef1234567890",
+                        "bucketName": "my-finops",
+                        "endpointURL": "s3.gra.io.cloud.ovh.net",
+                        "pathPrefix": "/finops-reports/",
+                        "region": "gra",
+                        "secretKey": "abcdef1234567890"
+                      },
+                      "exportHour": 7,
+                      "filePolicy": "CREATE",
+                      "period": "DAILY"
+                    }
+                  },
+                  "summary": "Creation payload pointing at a GRA bucket"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finops.bucketExport.AsyncConfiguration"
+                },
+                "examples": {
+                  "Created bucket export": {
+                    "value": {
+                      "checksum": "12345678901234567890123456789012",
+                      "currentState": {
+                        "bucketConfiguration": {
+                          "accessKey": "abcdef1234567890",
+                          "bucketName": "my-finops",
+                          "endpointURL": "s3.gra.io.cloud.ovh.net",
+                          "pathPrefix": "/finops-reports/",
+                          "region": "gra",
+                          "secretKey": "abcdef1234567890"
+                        },
+                        "exportHour": 7,
+                        "filePolicy": "CREATE",
+                        "period": "DAILY",
+                        "scope": "urn:nichandle:nic1"
+                      },
+                      "currentTasks": [
+                        {
+                          "id": "9a1f7d2e-3c4b-4f5a-8d6e-7f8a9b0c1d2e",
+                          "link": "/finops/bucketExport/1241b431-2a13-4974-835f-78f0e231a9b1/task/9a1f7d2e-3c4b-4f5a-8d6e-7f8a9b0c1d2e",
+                          "type": "CreateBucketExport"
+                        }
+                      ],
+                      "id": "1241b431-2a13-4974-835f-78f0e231a9b1",
+                      "resourceStatus": "CREATING",
+                      "targetSpec": {
+                        "bucketConfiguration": {
+                          "accessKey": "abcdef1234567890",
+                          "bucketName": "my-finops",
+                          "endpointURL": "s3.gra.io.cloud.ovh.net",
+                          "pathPrefix": "/finops-reports/",
+                          "region": "gra",
+                          "secretKey": "abcdef1234567890"
+                        },
+                        "exportHour": 7,
+                        "filePolicy": "CREATE",
+                        "period": "DAILY",
+                        "scope": "urn:nichandle:nic1"
+                      }
+                    },
+                    "summary": "Configuration in CREATING state with a creation task"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Manage & Operate",
+            "Cost Center",
+            "Export FOCUS@@@30"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "blue",
+            "label": "Beta version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "account:apiovh:finops/bucketExport/create",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/finops/bucketExport/{id}": {
+      "delete": {
+        "operationId": "deleteFinopsBucketExport",
+        "summary": "Delete a FinOps bucket export configuration. The target bucket must be S3™*-compatible.",
+        "description": "<sup>*</sup> S3 is a trademark filed by Amazon Technologies,Inc. OVHcloud's service is not sponsored by, endorsed by, or otherwise affiliated with Amazon Technologies,Inc.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "Id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finops.bucketExport.AsyncConfiguration"
+                },
+                "examples": {
+                  "Deleting bucket export": {
+                    "value": {
+                      "checksum": "12345678901234567890123456789012",
+                      "currentState": {
+                        "bucketConfiguration": {
+                          "accessKey": "abcdef1234567890",
+                          "bucketName": "my-finops",
+                          "endpointURL": "s3.gra.io.cloud.ovh.net",
+                          "pathPrefix": "/finops-reports/",
+                          "region": "gra",
+                          "secretKey": "abcdef1234567890"
+                        },
+                        "exportHour": 7,
+                        "filePolicy": "CREATE",
+                        "period": "DAILY",
+                        "scope": "urn:nichandle:nic1"
+                      },
+                      "currentTasks": [
+                        {
+                          "id": "7e3f2a1b-4c5d-4e6f-8a9b-0c1d2e3f4a5b",
+                          "link": "/finops/bucketExport/1241b431-2a13-4974-835f-78f0e231a9b1/task/7e3f2a1b-4c5d-4e6f-8a9b-0c1d2e3f4a5b",
+                          "type": "DeleteBucketExport"
+                        }
+                      ],
+                      "id": "1241b431-2a13-4974-835f-78f0e231a9b1",
+                      "resourceStatus": "DELETING",
+                      "targetSpec": {
+                        "bucketConfiguration": {
+                          "accessKey": "abcdef1234567890",
+                          "bucketName": "my-finops",
+                          "endpointURL": "s3.gra.io.cloud.ovh.net",
+                          "pathPrefix": "/finops-reports/",
+                          "region": "gra",
+                          "secretKey": "abcdef1234567890"
+                        },
+                        "exportHour": 7,
+                        "filePolicy": "CREATE",
+                        "period": "DAILY",
+                        "scope": "urn:nichandle:nic1"
+                      }
+                    },
+                    "summary": "Configuration transitioning to DELETING with a delete task"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Manage & Operate",
+            "Cost Center",
+            "Export FOCUS@@@40"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "blue",
+            "label": "Beta version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "account:apiovh:finops/bucketExport/delete",
+            "required": true
+          }
+        ]
+      },
+      "get": {
+        "operationId": "getFinopsBucketExport",
+        "summary": "Get a FinOps bucket export configuration. The target bucket must be S3™*-compatible.",
+        "description": "<sup>*</sup> S3 is a trademark filed by Amazon Technologies,Inc. OVHcloud's service is not sponsored by, endorsed by, or otherwise affiliated with Amazon Technologies,Inc.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "Id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finops.bucketExport.AsyncConfiguration"
+                },
+                "examples": {
+                  "Ready bucket export": {
+                    "value": {
+                      "checksum": "12345678901234567890123456789012",
+                      "currentState": {
+                        "bucketConfiguration": {
+                          "accessKey": "abcdef1234567890",
+                          "bucketName": "my-finops",
+                          "endpointURL": "s3.gra.io.cloud.ovh.net",
+                          "pathPrefix": "/finops-reports/",
+                          "region": "gra",
+                          "secretKey": "abcdef1234567890"
+                        },
+                        "exportHour": 7,
+                        "filePolicy": "CREATE",
+                        "period": "DAILY",
+                        "scope": "urn:nichandle:nic1"
+                      },
+                      "currentTasks": [],
+                      "id": "1241b431-2a13-4974-835f-78f0e231a9b1",
+                      "resourceStatus": "READY",
+                      "targetSpec": {
+                        "bucketConfiguration": {
+                          "accessKey": "abcdef1234567890",
+                          "bucketName": "my-finops",
+                          "endpointURL": "s3.gra.io.cloud.ovh.net",
+                          "pathPrefix": "/finops-reports/",
+                          "region": "gra",
+                          "secretKey": "abcdef1234567890"
+                        },
+                        "exportHour": 7,
+                        "filePolicy": "CREATE",
+                        "period": "DAILY",
+                        "scope": "urn:nichandle:nic1"
+                      }
+                    },
+                    "summary": "A bucket export configuration in READY state"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Manage & Operate",
+            "Cost Center",
+            "Export FOCUS@@@20"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "blue",
+            "label": "Beta version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "account:apiovh:finops/bucketExport/get",
+            "required": true
+          }
+        ],
+        "x-response-identifier": "id"
+      },
+      "put": {
+        "operationId": "editFinopsBucketExport",
+        "summary": "Modify a FinOps bucket export configuration. The target bucket must be S3™*-compatible.",
+        "description": "<sup>*</sup> S3 is a trademark filed by Amazon Technologies,Inc. OVHcloud's service is not sponsored by, endorsed by, or otherwise affiliated with Amazon Technologies,Inc.",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "Id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/finops.bucketExport.AsyncConfiguration"
+              },
+              "examples": {
+                "Update bucket export": {
+                  "value": {
+                    "checksum": "12345678901234567890123456789012",
+                    "targetSpec": {
+                      "bucketConfiguration": {
+                        "accessKey": "abcdef1234567890",
+                        "bucketName": "my-finops",
+                        "endpointURL": "s3.gra.io.cloud.ovh.net",
+                        "pathPrefix": "/finops-reports/",
+                        "region": "gra",
+                        "secretKey": "abcdef1234567890"
+                      },
+                      "exportHour": 9,
+                      "filePolicy": "REPLACE"
+                    }
+                  },
+                  "summary": "Update changing the export hour and file policy"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finops.bucketExport.AsyncConfiguration"
+                },
+                "examples": {
+                  "Updated bucket export": {
+                    "value": {
+                      "checksum": "12345678901234567890123456789012",
+                      "currentState": {
+                        "bucketConfiguration": {
+                          "accessKey": "abcdef1234567890",
+                          "bucketName": "my-finops",
+                          "endpointURL": "s3.gra.io.cloud.ovh.net",
+                          "pathPrefix": "/finops-reports/",
+                          "region": "gra",
+                          "secretKey": "abcdef1234567890"
+                        },
+                        "exportHour": 7,
+                        "filePolicy": "CREATE",
+                        "period": "DAILY",
+                        "scope": "urn:nichandle:nic1"
+                      },
+                      "currentTasks": [
+                        {
+                          "id": "5b2c8e4f-1a9d-4e6b-9c7f-0d3e1a2b3c4d",
+                          "link": "/finops/bucketExport/1241b431-2a13-4974-835f-78f0e231a9b1/task/5b2c8e4f-1a9d-4e6b-9c7f-0d3e1a2b3c4d",
+                          "type": "UpdateBucketExport"
+                        }
+                      ],
+                      "id": "1241b431-2a13-4974-835f-78f0e231a9b1",
+                      "resourceStatus": "UPDATING",
+                      "targetSpec": {
+                        "bucketConfiguration": {
+                          "accessKey": "abcdef1234567890",
+                          "bucketName": "my-finops",
+                          "endpointURL": "s3.gra.io.cloud.ovh.net",
+                          "pathPrefix": "/finops-reports/",
+                          "region": "gra",
+                          "secretKey": "abcdef1234567890"
+                        },
+                        "exportHour": 9,
+                        "filePolicy": "REPLACE",
+                        "period": "DAILY",
+                        "scope": "urn:nichandle:nic1"
+                      }
+                    },
+                    "summary": "Configuration transitioning to UPDATING with an update task"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Manage & Operate",
+            "Cost Center",
+            "Export FOCUS@@@50"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "blue",
+            "label": "Beta version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "account:apiovh:finops/bucketExport/edit",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/finops/bucketExport/{id}/event": {
+      "get": {
+        "operationId": "getFinopsBucketExportEvents",
+        "summary": "Get a list of events",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Pagination-Cursor",
+            "description": "Pagination cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Pagination-Size",
+            "description": "Pagination size",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "description": "Id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/common.Event"
+                  }
+                },
+                "examples": {
+                  "Update event": {
+                    "value": [
+                      {
+                        "createdAt": "2026-05-07T08:00:00Z",
+                        "kind": "UPDATE_BUCKET_EXPORT",
+                        "link": "/v2/finops/bucketExport/1241b431-2a13-4974-835f-78f0e231a9b1/task/5b2c8e4f-1a9d-4e6b-9c7f-0d3e1a2b3c4d",
+                        "message": "Task started to update FinOps bucket export configuration '1241b431-2a13-4974-835f-78f0e231a9b1'",
+                        "type": "TASK_START"
+                      }
+                    ],
+                    "summary": "Event emitted when a bucket export update task starts"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Manage & Operate",
+            "Cost Center",
+            "Export FOCUS",
+            "Event"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "blue",
+            "label": "Beta version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "account:apiovh:finops/bucketExport/event/get",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/finops/bucketExport/{id}/task": {
+      "get": {
+        "operationId": "getAllFinopsBucketExportTasks",
+        "summary": "Get a list of tasks",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Pagination-Cursor",
+            "description": "Pagination cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Pagination-Size",
+            "description": "Pagination size",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "description": "Id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/common.Task"
+                  }
+                },
+                "examples": {
+                  "List of tasks": {
+                    "value": [
+                      {
+                        "createdAt": "2026-05-07T08:00:00Z",
+                        "errors": [],
+                        "id": "5b2c8e4f-1a9d-4e6b-9c7f-0d3e1a2b3c4d",
+                        "link": "/v2/finops/bucketExport/1241b431-2a13-4974-835f-78f0e231a9b1",
+                        "message": "Updating FinOps bucket export configuration '1241b431-2a13-4974-835f-78f0e231a9b1'",
+                        "progress": [
+                          {
+                            "name": "validating bucket configuration",
+                            "status": "DONE"
+                          },
+                          {
+                            "name": "applying new configuration",
+                            "status": "RUNNING"
+                          }
+                        ],
+                        "startedAt": "2026-05-07T08:01:00Z",
+                        "status": "RUNNING",
+                        "type": "UPDATE_BUCKET_EXPORT",
+                        "updatedAt": "2026-05-07T08:01:00Z"
+                      }
+                    ],
+                    "summary": "List containing a single running update task"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Manage & Operate",
+            "Cost Center",
+            "Export FOCUS",
+            "Task@@@10"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "blue",
+            "label": "Beta version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "account:apiovh:finops/bucketExport/task/get",
+            "required": true
+          }
+        ],
+        "x-response-identifier": "id",
+        "x-expanded-response": "CommonTask"
+      }
+    },
+    "/finops/bucketExport/{id}/task/{taskId}": {
+      "get": {
+        "operationId": "getFinopsBucketExportTask",
+        "summary": "Get a single task",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "Id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "taskId",
+            "description": "Task ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/common.Task"
+                },
+                "examples": {
+                  "Running update task": {
+                    "value": {
+                      "createdAt": "2026-05-07T08:00:00Z",
+                      "errors": [],
+                      "id": "5b2c8e4f-1a9d-4e6b-9c7f-0d3e1a2b3c4d",
+                      "link": "/v2/finops/bucketExport/1241b431-2a13-4974-835f-78f0e231a9b1",
+                      "message": "Updating FinOps bucket export configuration '1241b431-2a13-4974-835f-78f0e231a9b1'",
+                      "progress": [
+                        {
+                          "name": "validating bucket configuration",
+                          "status": "DONE"
+                        },
+                        {
+                          "name": "applying new configuration",
+                          "status": "RUNNING"
+                        }
+                      ],
+                      "startedAt": "2026-05-07T08:01:00Z",
+                      "status": "RUNNING",
+                      "type": "UPDATE_BUCKET_EXPORT",
+                      "updatedAt": "2026-05-07T08:01:00Z"
+                    },
+                    "summary": "Update task currently applying a new bucket configuration"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Manage & Operate",
+            "Cost Center",
+            "Export FOCUS",
+            "Task@@@20"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "blue",
+            "label": "Beta version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "account:apiovh:finops/bucketExport/task/get",
+            "required": true
+          }
+        ],
+        "x-response-identifier": "id"
+      }
+    }
+  }
+}

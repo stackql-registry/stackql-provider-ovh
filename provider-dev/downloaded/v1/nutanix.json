@@ -1,0 +1,2567 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "OVHcloud API specification",
+    "description": "Specification for OVHcloud API",
+    "version": "1.0",
+    "contact": {
+      "name": "OVH",
+      "email": "api@ml.ovh.net"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.eu.ovhcloud.com/v1"
+    }
+  ],
+  "components": {
+    "schemas": {
+      "any": {
+        "description": "Can be anything (text, int, bool, json, html, etc.)",
+        "example": "This is a content of any type !"
+      },
+      "duration": {
+        "type": "string",
+        "description": "Duration (e.g., P1Y2M3DT4H6M9S)",
+        "example": "P1Y2M3DT4H6M9S"
+      },
+      "email": {
+        "type": "string",
+        "description": "Email address (e.g., api@ml.ovh.net)",
+        "format": "email",
+        "example": "api@ml.ovh.net"
+      },
+      "iam.ResourceMetadata": {
+        "type": "object",
+        "description": "IAM resource metadata embedded in services models",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "description": "Resource display name",
+            "nullable": true,
+            "readOnly": true
+          },
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the resource",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "state": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/iam.ResourceMetadata.StateEnum"
+              }
+            ],
+            "description": "Resource state",
+            "nullable": true,
+            "readOnly": true
+          },
+          "tags": {
+            "type": "object",
+            "description": "Resource tags. Tags that were internally computed are prefixed with ovh:",
+            "nullable": true,
+            "additionalProperties": {
+              "type": "string"
+            },
+            "readOnly": true
+          },
+          "urn": {
+            "type": "string",
+            "description": "Unique resource name used in policies",
+            "readOnly": true
+          }
+        }
+      },
+      "iam.ResourceMetadata.StateEnum": {
+        "type": "string",
+        "description": "Resource state",
+        "enum": [
+          "EXPIRED",
+          "IN_CREATION",
+          "OK",
+          "SUSPENDED"
+        ]
+      },
+      "iam.resource.TagFilter": {
+        "type": "object",
+        "description": "Resource tag filter",
+        "properties": {
+          "operator": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/iam.resource.TagFilter.OperatorEnum"
+              }
+            ],
+            "description": "Operator to use in order to filter on the value (defaults to 'EQ')",
+            "nullable": true,
+            "readOnly": true
+          },
+          "value": {
+            "type": "string",
+            "description": "Value to use in order to filter tags",
+            "readOnly": true
+          }
+        }
+      },
+      "iam.resource.TagFilter.OperatorEnum": {
+        "type": "string",
+        "description": "Operator that can be used in order to filter resources tags",
+        "enum": [
+          "EQ",
+          "EXISTS",
+          "ILIKE",
+          "LIKE",
+          "NEQ",
+          "NEXISTS"
+        ]
+      },
+      "internationalPhoneNumber": {
+        "type": "string",
+        "description": "International phone number",
+        "format": "phone-number"
+      },
+      "ip": {
+        "type": "string",
+        "description": "IP address (e.g., 192.0.2.0)",
+        "format": "ipv4",
+        "example": "192.0.2.0"
+      },
+      "ipBlock": {
+        "type": "string",
+        "description": "IP (v4 or v6) CIDR notation (e.g., 192.0.2.0/24)",
+        "format": "ip-block",
+        "example": "192.0.2.0/24"
+      },
+      "ipInterface": {
+        "type": "string",
+        "description": "IP address (e.g., 192.0.2.0)",
+        "format": "ipv4",
+        "example": "192.0.2.0"
+      },
+      "ipv4": {
+        "type": "string",
+        "description": "IPv4 address (e.g., 192.0.2.0)",
+        "format": "ipv4",
+        "example": "192.0.2.0"
+      },
+      "ipv4Block": {
+        "type": "string",
+        "description": "IPv4 CIDR notation (e.g., 192.0.2.0/24)",
+        "format": "ipv4-block",
+        "example": "192.0.2.0/24"
+      },
+      "ipv6": {
+        "type": "string",
+        "description": "IPv6 address (e.g., 2001:41d0:1:1994::1)",
+        "format": "ipv6",
+        "example": "2001:41d0:1:1994::1"
+      },
+      "ipv6Block": {
+        "type": "string",
+        "description": "IPv6 CIDR notation (e.g., 2001:41d0::/128)",
+        "format": "ipv6-block",
+        "example": "2001:41d0::/128"
+      },
+      "macAddress": {
+        "type": "string",
+        "description": "MAC address (e.g., 00:00:5e:00:53:01)",
+        "format": "mac-address",
+        "example": "00:00:5e:00:53:01"
+      },
+      "nutanix.AvailabilitiesRaw": {
+        "type": "object",
+        "description": "Cluster availability",
+        "properties": {
+          "datacenters": {
+            "type": "array",
+            "description": "A structure describing the hardware availability for each datacenter",
+            "items": {
+              "$ref": "#/components/schemas/nutanix.AvailabilitiesRawDatacenter"
+            },
+            "readOnly": true
+          },
+          "deploymentType": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/nutanix.DeploymentTypeEnum"
+              }
+            ],
+            "description": "Deployment type",
+            "nullable": true,
+            "readOnly": true
+          },
+          "erasureCoding": {
+            "type": "boolean",
+            "description": "Erasure coding activation",
+            "nullable": true,
+            "readOnly": true
+          },
+          "fqn": {
+            "type": "string",
+            "description": "Fully qualified name and unique name of the hardware",
+            "readOnly": true
+          },
+          "memory": {
+            "type": "string",
+            "description": "Name of the memory hardware part",
+            "readOnly": true
+          },
+          "planCode": {
+            "type": "string",
+            "description": "Plan code in which the hardware is involved",
+            "readOnly": true
+          },
+          "redundancyFactor": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/nutanix.RedundancyFactorEnum"
+              }
+            ],
+            "description": "Redundancy factor",
+            "nullable": true,
+            "readOnly": true
+          },
+          "server": {
+            "type": "string",
+            "description": "Name of the base hardware",
+            "readOnly": true
+          },
+          "storage": {
+            "type": "string",
+            "description": "Name of the storage hardware part",
+            "readOnly": true
+          },
+          "systemStorage": {
+            "type": "string",
+            "description": "Name of the system storage hardware part",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "nutanix.AvailabilitiesRawDatacenter": {
+        "type": "object",
+        "description": "A structure describing the hardware raw availability for each datacenter",
+        "properties": {
+          "availability": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/nutanix.AvailabilityEnum"
+              }
+            ],
+            "description": "The availability",
+            "readOnly": true
+          },
+          "datacenter": {
+            "type": "string",
+            "description": "The datacenter code",
+            "readOnly": true
+          },
+          "lastRule": {
+            "type": "string",
+            "description": "Last availability rule applied",
+            "nullable": true,
+            "readOnly": true
+          },
+          "parentAvailable": {
+            "type": "integer",
+            "description": "Real stock including parent references",
+            "readOnly": true
+          },
+          "trueAvailable": {
+            "type": "integer",
+            "description": "Real stock",
+            "readOnly": true
+          }
+        }
+      },
+      "nutanix.AvailabilityEnum": {
+        "type": "string",
+        "description": "Cluster availability",
+        "enum": [
+          "1440H",
+          "240H",
+          "2880H",
+          "480H",
+          "720H",
+          "72H",
+          "comingSoon",
+          "unavailable"
+        ]
+      },
+      "nutanix.DatacenterAvailability": {
+        "type": "object",
+        "description": "Cluster datacenter availability",
+        "properties": {
+          "availability": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/nutanix.AvailabilityEnum"
+              }
+            ],
+            "description": "Availability status",
+            "readOnly": true
+          },
+          "datacenter": {
+            "type": "string",
+            "description": "Datacenter code",
+            "readOnly": true
+          }
+        }
+      },
+      "nutanix.DeploymentTypeEnum": {
+        "type": "string",
+        "description": "Cluster deployment type",
+        "enum": [
+          "NodeAwareness"
+        ]
+      },
+      "nutanix.PossibleActionsEnum": {
+        "type": "string",
+        "description": "Possible actions",
+        "enum": [
+          "INSTALL",
+          "POWER_OFF",
+          "POWER_ON",
+          "REINSTALL",
+          "TERMINATE",
+          "UNINSTALL"
+        ]
+      },
+      "nutanix.RedundancyFactorEnum": {
+        "type": "integer",
+        "description": "Cluster redundancy factor",
+        "enum": [
+          2,
+          3
+        ]
+      },
+      "nutanix.Requirements": {
+        "type": "object",
+        "description": "Return the needed requirements for a given cluster configuration",
+        "properties": {
+          "maxNodes": {
+            "type": "integer",
+            "description": "Maximum number of nodes",
+            "readOnly": true
+          },
+          "minNodes": {
+            "type": "integer",
+            "description": "Minimum number of nodes",
+            "readOnly": true
+          },
+          "scaleFactor": {
+            "type": "integer",
+            "description": "Number of added/removed nodes in case of scaling up/down",
+            "readOnly": true
+          }
+        }
+      },
+      "nutanix.availability": {
+        "type": "object",
+        "description": "Cluster availability",
+        "properties": {
+          "datacenters": {
+            "type": "array",
+            "description": "A structure describing the hardware availability for each datacenter",
+            "items": {
+              "$ref": "#/components/schemas/nutanix.DatacenterAvailability"
+            },
+            "readOnly": true
+          },
+          "deploymentType": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/nutanix.DeploymentTypeEnum"
+              }
+            ],
+            "description": "Deployment type",
+            "nullable": true,
+            "readOnly": true
+          },
+          "erasureCoding": {
+            "type": "boolean",
+            "description": "Erasure coding activation",
+            "nullable": true,
+            "readOnly": true
+          },
+          "fqn": {
+            "type": "string",
+            "description": "Fully qualified name and unique name of the hardware",
+            "readOnly": true
+          },
+          "memory": {
+            "type": "string",
+            "description": "Name of the memory hardware part",
+            "readOnly": true
+          },
+          "planCode": {
+            "type": "string",
+            "description": "Plan code in which the hardware is involved",
+            "readOnly": true
+          },
+          "redundancyFactor": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/nutanix.RedundancyFactorEnum"
+              }
+            ],
+            "description": "Redundancy factor",
+            "nullable": true,
+            "readOnly": true
+          },
+          "server": {
+            "type": "string",
+            "description": "Name of the base hardware",
+            "readOnly": true
+          },
+          "storage": {
+            "type": "string",
+            "description": "Name of the storage hardware part",
+            "readOnly": true
+          },
+          "systemStorage": {
+            "type": "string",
+            "description": "Name of the system storage hardware part",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "nutanix.cluster": {
+        "type": "object",
+        "description": "Cluster configuration",
+        "properties": {
+          "controlPanelURL": {
+            "type": "string",
+            "description": "Control Panel URL",
+            "readOnly": true
+          },
+          "dataserviceIp": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ip"
+              }
+            ],
+            "description": "Dataservice IP"
+          },
+          "erasureCoding": {
+            "type": "boolean",
+            "description": "Erasure coding activation"
+          },
+          "gatewayCidr": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ipBlock"
+              }
+            ],
+            "description": "Internal Gateway IP, with mask"
+          },
+          "infraVlanNumber": {
+            "type": "integer",
+            "description": "Infra-Vlan number"
+          },
+          "installPrismCentral": {
+            "type": "boolean",
+            "description": "Should Prism Central be installed on the cluster"
+          },
+          "ipfo": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ipBlock"
+              }
+            ],
+            "description": "External Gateway IP, with mask",
+            "readOnly": true
+          },
+          "iplb": {
+            "type": "string",
+            "description": "IPLB ID",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "description": "Cluster name",
+            "readOnly": true
+          },
+          "nodes": {
+            "type": "array",
+            "description": "Cluster node list",
+            "items": {
+              "$ref": "#/components/schemas/nutanix.nodes"
+            }
+          },
+          "prismCentral": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/nutanix.prismcentral"
+              }
+            ],
+            "description": "Prism Central Configuration"
+          },
+          "prismElementVip": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ipv4"
+              }
+            ],
+            "description": "Prism Element IP"
+          },
+          "prismSecretId": {
+            "type": "string",
+            "description": "UUID for secret",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "rackAwareness": {
+            "type": "boolean",
+            "description": "Rack Awareness activation",
+            "readOnly": true
+          },
+          "redundancyFactor": {
+            "type": "integer",
+            "description": "Redundancy Factor"
+          },
+          "version": {
+            "type": "string",
+            "description": "AOS Version"
+          },
+          "vrack": {
+            "type": "string",
+            "description": "vRack name",
+            "readOnly": true
+          }
+        }
+      },
+      "nutanix.clusterDetails": {
+        "type": "object",
+        "description": "Cluster configuration",
+        "properties": {
+          "controlPanelURL": {
+            "type": "string",
+            "description": "Control Panel URL",
+            "readOnly": true
+          },
+          "dataserviceIp": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ip"
+              }
+            ],
+            "description": "dataservice IP",
+            "readOnly": true
+          },
+          "erasureCoding": {
+            "type": "boolean",
+            "description": "Erasure coding activation",
+            "readOnly": true
+          },
+          "gatewayCidr": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ipBlock"
+              }
+            ],
+            "description": "Internal Gateway IP, with mask",
+            "readOnly": true
+          },
+          "infraVlanNumber": {
+            "type": "integer",
+            "description": "Infra-Vlan number",
+            "readOnly": true
+          },
+          "ipfo": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ipBlock"
+              }
+            ],
+            "description": "External Gateway IP, with mask",
+            "readOnly": true
+          },
+          "iplb": {
+            "type": "string",
+            "description": "IPLB ID",
+            "readOnly": true
+          },
+          "license": {
+            "type": "string",
+            "description": "Cluster license",
+            "readOnly": true
+          },
+          "metadata": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/nutanix.metadata"
+              }
+            ],
+            "description": "Cluster metadata",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "description": "Cluster name",
+            "readOnly": true
+          },
+          "nodes": {
+            "type": "array",
+            "description": "Cluster node list",
+            "items": {
+              "$ref": "#/components/schemas/nutanix.nodeDetails"
+            },
+            "readOnly": true
+          },
+          "prismCentral": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/nutanix.prismcentral"
+              }
+            ],
+            "description": "Prism Central Configuration",
+            "readOnly": true
+          },
+          "prismElementVip": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ipv4"
+              }
+            ],
+            "description": "Prism Element IP",
+            "readOnly": true
+          },
+          "prismSecretId": {
+            "type": "string",
+            "description": "UUID for secret",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "rackAwareness": {
+            "type": "boolean",
+            "description": "Rack Awareness activation",
+            "readOnly": true
+          },
+          "redundancyFactor": {
+            "type": "integer",
+            "description": "Redundancy Factor",
+            "readOnly": true
+          },
+          "version": {
+            "type": "string",
+            "description": "AOS Version",
+            "readOnly": true
+          },
+          "vrack": {
+            "type": "string",
+            "description": "vRack name",
+            "readOnly": true
+          }
+        }
+      },
+      "nutanix.clusterResponse": {
+        "type": "object",
+        "description": "Cluster configuration",
+        "properties": {
+          "controlPanelURL": {
+            "type": "string",
+            "description": "Control Panel URL",
+            "readOnly": true
+          },
+          "dataserviceIp": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ip"
+              }
+            ],
+            "description": "Dataservice IP",
+            "readOnly": true
+          },
+          "erasureCoding": {
+            "type": "boolean",
+            "description": "Erasure coding activation",
+            "readOnly": true
+          },
+          "gatewayCidr": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ipBlock"
+              }
+            ],
+            "description": "Internal Gateway IP, with mask",
+            "readOnly": true
+          },
+          "infraVlanNumber": {
+            "type": "integer",
+            "description": "Infra-Vlan number",
+            "readOnly": true
+          },
+          "ipfo": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ipBlock"
+              }
+            ],
+            "description": "External Gateway IP, with mask",
+            "readOnly": true
+          },
+          "iplb": {
+            "type": "string",
+            "description": "IPLB ID",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "description": "Cluster name",
+            "readOnly": true
+          },
+          "nodes": {
+            "type": "array",
+            "description": "Cluster node list",
+            "items": {
+              "$ref": "#/components/schemas/nutanix.nodes"
+            },
+            "readOnly": true
+          },
+          "prismCentral": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/nutanix.prismcentral"
+              }
+            ],
+            "description": "Prism Central Configuration",
+            "readOnly": true
+          },
+          "prismElementVip": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ipv4"
+              }
+            ],
+            "description": "Prism Element IP",
+            "readOnly": true
+          },
+          "prismSecretId": {
+            "type": "string",
+            "description": "UUID for secret",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "rackAwareness": {
+            "type": "boolean",
+            "description": "Rack Awareness activation",
+            "readOnly": true
+          },
+          "redundancyFactor": {
+            "type": "integer",
+            "description": "Redundancy Factor",
+            "readOnly": true
+          },
+          "version": {
+            "type": "string",
+            "description": "AOS Version",
+            "readOnly": true
+          },
+          "vrack": {
+            "type": "string",
+            "description": "vRack name",
+            "readOnly": true
+          }
+        }
+      },
+      "nutanix.deploy": {
+        "type": "object",
+        "description": "Node deployment payload",
+        "properties": {
+          "ahvIp": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ipv4"
+              }
+            ],
+            "description": "Hypervisor IP"
+          },
+          "cvmIp": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ipv4"
+              }
+            ],
+            "description": "Controler VM IP"
+          },
+          "version": {
+            "type": "string",
+            "description": "AOS Version"
+          }
+        }
+      },
+      "nutanix.metadata": {
+        "type": "object",
+        "description": "Cluster metadata",
+        "properties": {
+          "initialCommitmentSize": {
+            "type": "integer",
+            "description": "Cluster initial commitment size",
+            "readOnly": true
+          }
+        }
+      },
+      "nutanix.nodeDetails": {
+        "type": "object",
+        "description": "Node details in a nutanix cluster",
+        "properties": {
+          "ahvIp": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ipv4"
+              }
+            ],
+            "description": "Hypervisor IP",
+            "readOnly": true
+          },
+          "cvmIp": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ipv4"
+              }
+            ],
+            "description": "Controler VM IP",
+            "readOnly": true
+          },
+          "possibleActions": {
+            "type": "array",
+            "description": "Node possible actions",
+            "items": {
+              "$ref": "#/components/schemas/nutanix.possibleActions"
+            },
+            "readOnly": true
+          },
+          "server": {
+            "type": "string",
+            "description": "Name of the associated server",
+            "readOnly": true
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/nutanix.nodeStatusEnum"
+              }
+            ],
+            "description": "Node status",
+            "readOnly": true
+          }
+        }
+      },
+      "nutanix.nodeStatusEnum": {
+        "type": "string",
+        "description": "Node status",
+        "enum": [
+          "DEPLOYED",
+          "DEPLOYING",
+          "DEPLOY_CANCELLED",
+          "DEPLOY_FAILURE",
+          "UNDEPLOYED",
+          "UNDEPLOYING",
+          "UNDEPLOY_CANCELLED",
+          "UNDEPLOY_FAILURE",
+          "UNKNOWN"
+        ]
+      },
+      "nutanix.nodes": {
+        "type": "object",
+        "description": "Nodes in nutanix cluster",
+        "properties": {
+          "ahvIp": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ipv4"
+              }
+            ],
+            "description": "Hypervisor IP"
+          },
+          "cvmIp": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ipv4"
+              }
+            ],
+            "description": "Controler VM IP"
+          },
+          "server": {
+            "type": "string",
+            "description": "Name of the associated server",
+            "readOnly": true
+          }
+        }
+      },
+      "nutanix.pcsizeEnum": {
+        "type": "string",
+        "description": "Prism central size",
+        "enum": [
+          "large",
+          "small",
+          "xlarge",
+          "xsmall"
+        ]
+      },
+      "nutanix.pctypeEnum": {
+        "type": "string",
+        "description": "Prism Central deployment type",
+        "enum": [
+          "alone",
+          "scale"
+        ]
+      },
+      "nutanix.possibleActions": {
+        "type": "object",
+        "description": "Node possible actions",
+        "properties": {
+          "action": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/nutanix.PossibleActionsEnum"
+              }
+            ],
+            "description": "A string representation of the action to be performed",
+            "readOnly": true
+          },
+          "isPossible": {
+            "type": "boolean",
+            "description": "Is the action currently possible to perform",
+            "readOnly": true
+          },
+          "reason": {
+            "type": "string",
+            "description": "Reason the action is not possible",
+            "nullable": true,
+            "readOnly": true
+          }
+        }
+      },
+      "nutanix.prismcentral": {
+        "type": "object",
+        "description": "Prism Central Config",
+        "properties": {
+          "ips": {
+            "type": "array",
+            "description": "Prism Central IPs",
+            "items": {
+              "$ref": "#/components/schemas/ipv4"
+            }
+          },
+          "size": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/nutanix.pcsizeEnum"
+              }
+            ],
+            "description": "Prism Central size"
+          },
+          "type": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/nutanix.pctypeEnum"
+              }
+            ],
+            "description": "Prism Central type"
+          },
+          "vip": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ipv4"
+              }
+            ],
+            "description": "Prism Central IP"
+          }
+        }
+      },
+      "nutanix.reinstall": {
+        "type": "object",
+        "description": "Node reinstall payload",
+        "properties": {
+          "version": {
+            "type": "string",
+            "description": "AOS Version"
+          }
+        },
+        "required": [
+          "version"
+        ]
+      },
+      "nutanix.state": {
+        "type": "object",
+        "description": "Nutanix Cluster State",
+        "properties": {
+          "allowedRedundancyFactor": {
+            "type": "array",
+            "description": "Available redundancy Factor",
+            "items": {
+              "type": "integer"
+            },
+            "readOnly": true
+          },
+          "availableVersions": {
+            "type": "array",
+            "description": "Available versions to install",
+            "items": {
+              "type": "string"
+            },
+            "readOnly": true
+          },
+          "serviceName": {
+            "type": "string",
+            "description": "Cluster name",
+            "readOnly": true
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/nutanix.statusEnum"
+              }
+            ],
+            "description": "Current cluster's status",
+            "readOnly": true
+          },
+          "targetSpec": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/nutanix.clusterResponse"
+              }
+            ],
+            "description": "Target Spec after deployment",
+            "readOnly": true
+          }
+        }
+      },
+      "nutanix.stateDetails": {
+        "type": "object",
+        "description": "Nutanix Cluster State",
+        "properties": {
+          "allowedRedundancyFactor": {
+            "type": "array",
+            "description": "Available redundancy Factor",
+            "items": {
+              "type": "integer"
+            },
+            "readOnly": true
+          },
+          "availableVersions": {
+            "type": "array",
+            "description": "Available versions to install",
+            "items": {
+              "type": "string"
+            },
+            "readOnly": true
+          },
+          "serviceName": {
+            "type": "string",
+            "description": "Cluster name",
+            "readOnly": true
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/nutanix.statusEnum"
+              }
+            ],
+            "description": "Current cluster's status",
+            "readOnly": true
+          },
+          "targetSpec": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/nutanix.clusterDetails"
+              }
+            ],
+            "description": "Target Spec after deployment",
+            "readOnly": true
+          }
+        }
+      },
+      "nutanix.stateDetailsWithIAM": {
+        "type": "object",
+        "description": "Nutanix Cluster State",
+        "properties": {
+          "allowedRedundancyFactor": {
+            "type": "array",
+            "description": "Available redundancy Factor",
+            "items": {
+              "type": "integer"
+            },
+            "readOnly": true
+          },
+          "availableVersions": {
+            "type": "array",
+            "description": "Available versions to install",
+            "items": {
+              "type": "string"
+            },
+            "readOnly": true
+          },
+          "iam": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/iam.ResourceMetadata"
+              }
+            ],
+            "description": "IAM resource metadata",
+            "nullable": true,
+            "readOnly": true
+          },
+          "serviceName": {
+            "type": "string",
+            "description": "Cluster name",
+            "readOnly": true
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/nutanix.statusEnum"
+              }
+            ],
+            "description": "Current cluster's status",
+            "readOnly": true
+          },
+          "targetSpec": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/nutanix.clusterDetails"
+              }
+            ],
+            "description": "Target Spec after deployment",
+            "readOnly": true
+          }
+        }
+      },
+      "nutanix.statusEnum": {
+        "type": "string",
+        "description": "Cluster status",
+        "enum": [
+          "Active",
+          "Deploying",
+          "Error"
+        ]
+      },
+      "nutanix.vrack": {
+        "type": "object",
+        "description": "vRack update payload",
+        "properties": {
+          "vrackName": {
+            "type": "string",
+            "description": "vRack Name"
+          }
+        }
+      },
+      "phoneNumber": {
+        "type": "string",
+        "description": "Phone number",
+        "format": "phone-number"
+      },
+      "service.RenewType": {
+        "type": "object",
+        "description": "Map a possible renew for a specific service",
+        "properties": {
+          "automatic": {
+            "type": "boolean",
+            "description": "The service is automatically renewed"
+          },
+          "deleteAtExpiration": {
+            "type": "boolean",
+            "description": "The service will be deleted at expiration"
+          },
+          "forced": {
+            "type": "boolean",
+            "description": "The service forced to be renewed"
+          },
+          "manualPayment": {
+            "type": "boolean",
+            "description": "The service needs to be manually renewed and paid",
+            "nullable": true
+          },
+          "period": {
+            "type": "integer",
+            "description": "period of renew in month",
+            "nullable": true
+          }
+        }
+      },
+      "service.RenewalTypeEnum": {
+        "type": "string",
+        "description": "Detailed renewal type of a service",
+        "enum": [
+          "automaticForcedProduct",
+          "automaticV2012",
+          "automaticV2014",
+          "automaticV2016",
+          "manual",
+          "oneShot",
+          "option"
+        ]
+      },
+      "service.StateEnum": {
+        "type": "string",
+        "description": "service.StateEnum",
+        "enum": [
+          "autorenewInProgress",
+          "expired",
+          "inCreation",
+          "ok",
+          "pendingDebt",
+          "unPaid"
+        ]
+      },
+      "service.TerminationFutureUseEnum": {
+        "type": "string",
+        "description": "All future uses you can provide for a service termination",
+        "enum": [
+          "NOT_REPLACING_SERVICE",
+          "OTHER",
+          "SUBSCRIBE_AN_OTHER_SERVICE",
+          "SUBSCRIBE_OTHER_KIND_OF_SERVICE_WITH_COMPETITOR",
+          "SUBSCRIBE_SIMILAR_SERVICE_WITH_COMPETITOR"
+        ]
+      },
+      "service.TerminationReasonEnum": {
+        "type": "string",
+        "description": "All reasons you can provide for a service termination",
+        "enum": [
+          "FEATURES_DONT_SUIT_ME",
+          "LACK_OF_PERFORMANCES",
+          "MIGRATED_TO_ANOTHER_OVH_PRODUCT",
+          "MIGRATED_TO_COMPETITOR",
+          "NOT_ENOUGH_RECOGNITION",
+          "NOT_NEEDED_ANYMORE",
+          "NOT_RELIABLE",
+          "NO_ANSWER",
+          "OTHER",
+          "PRODUCT_DIMENSION_DONT_SUIT_ME",
+          "PRODUCT_TOOLS_DONT_SUIT_ME",
+          "TOO_EXPENSIVE",
+          "TOO_HARD_TO_USE",
+          "UNSATIFIED_BY_CUSTOMER_SUPPORT"
+        ]
+      },
+      "services.Service": {
+        "type": "object",
+        "description": "Details about a Service",
+        "properties": {
+          "canDeleteAtExpiration": {
+            "type": "boolean",
+            "description": "Indicates that the service can be set up to be deleted at expiration",
+            "readOnly": true
+          },
+          "contactAdmin": {
+            "type": "string",
+            "readOnly": true
+          },
+          "contactBilling": {
+            "type": "string",
+            "readOnly": true
+          },
+          "contactTech": {
+            "type": "string",
+            "readOnly": true
+          },
+          "creation": {
+            "type": "string",
+            "format": "date",
+            "readOnly": true
+          },
+          "domain": {
+            "type": "string",
+            "readOnly": true
+          },
+          "engagedUpTo": {
+            "type": "string",
+            "nullable": true,
+            "format": "date",
+            "readOnly": true
+          },
+          "expiration": {
+            "type": "string",
+            "format": "date",
+            "readOnly": true
+          },
+          "possibleRenewPeriod": {
+            "type": "array",
+            "description": "All the possible renew period of your service in month",
+            "nullable": true,
+            "items": {
+              "type": "integer"
+            },
+            "readOnly": true
+          },
+          "renew": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/service.RenewType"
+              }
+            ],
+            "description": "Way of handling the renew",
+            "nullable": true
+          },
+          "renewalType": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/service.RenewalTypeEnum"
+              }
+            ],
+            "readOnly": true
+          },
+          "serviceId": {
+            "type": "integer",
+            "readOnly": true
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/service.StateEnum"
+              }
+            ],
+            "readOnly": true
+          }
+        }
+      },
+      "services.changeContact": {
+        "type": "object",
+        "description": "Service change contact payload",
+        "properties": {
+          "contactAdmin": {
+            "type": "string",
+            "description": "The contact to set as admin contact"
+          },
+          "contactBilling": {
+            "type": "string",
+            "description": "The contact to set as billing contact"
+          },
+          "contactTech": {
+            "type": "string",
+            "description": "The contact to set as tech contact"
+          }
+        }
+      },
+      "services.confirmTermination": {
+        "type": "object",
+        "description": "Service confirm termination payload",
+        "properties": {
+          "commentary": {
+            "type": "string",
+            "description": "Commentary about your termination request"
+          },
+          "commentaryFutureUse": {
+            "type": "string",
+            "description": "Commentary about your future use"
+          },
+          "commentaryReason": {
+            "type": "string",
+            "description": "Commentary about your reason for termination request"
+          },
+          "futureUse": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/service.TerminationFutureUseEnum"
+              }
+            ],
+            "description": "All future uses you can provide for a service termination"
+          },
+          "reason": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/service.TerminationReasonEnum"
+              }
+            ],
+            "description": "All reasons you can provide for a service termination"
+          },
+          "token": {
+            "type": "string",
+            "description": "The termination token sent by email to the admin contact"
+          }
+        },
+        "required": [
+          "token"
+        ]
+      },
+      "time": {
+        "type": "string",
+        "description": "Time (e.g., 15:04:05)",
+        "format": "time",
+        "example": "15:04:05"
+      }
+    },
+    "securitySchemes": {
+      "oAuth2AuthCode": {
+        "type": "oauth2",
+        "description": "Oauth2",
+        "x-client-id": "1bb9c7df371741c0",
+        "x-client-secret": "a5b4de870aca620d10fbf63cd18d205b",
+        "flows": {
+          "authorizationCode": {
+            "authorizationUrl": "https://auth.eu.ovhcloud.com/oauth2/authorize",
+            "tokenUrl": "https://auth.eu.ovhcloud.com/oauth2/token",
+            "scopes": {
+              "account/all": "Manage your account",
+              "all": "Manage your whole account and all your services",
+              "services/all": "Manage your services lifecycle and billing"
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/nutanix": {
+      "get": {
+        "summary": "Get list of owned Nutanix Clusters",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "iamTags",
+            "description": "Filter resources on IAM tags",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/iam.resource.TagFilter"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Nutanix@@@3"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "nutanix:apiovh:get",
+            "required": true
+          }
+        ],
+        "x-expanded-response": "NutanixStateDetailsWithIAM"
+      }
+    },
+    "/nutanix/availabilities": {
+      "get": {
+        "summary": "Fetch the availabilities for a given cluster configuration",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "erasureCoding",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "memory",
+            "description": "The name of the memory hardware part",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "planCode",
+            "description": "The plan code in which the hardware is involved",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "quantity",
+            "description": "Node quantity",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "rackAwareness",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "redundancyFactor",
+            "schema": {
+              "$ref": "#/components/schemas/nutanix.RedundancyFactorEnum"
+            }
+          },
+          {
+            "in": "query",
+            "name": "server",
+            "description": "The name of the base hardware",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "storage",
+            "description": "The name of the storage hardware part",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "systemStorage",
+            "description": "The name of the system storage hardware part",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/nutanix.availability"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Nutanix@@@12"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-response-identifier": "fqn"
+      }
+    },
+    "/nutanix/availabilities/raw": {
+      "get": {
+        "summary": "List the raw availability for Nutanix cluster",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "datacenters",
+            "description": "The names of datacenters separated by commas",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "deploymentType",
+            "schema": {
+              "$ref": "#/components/schemas/nutanix.DeploymentTypeEnum"
+            }
+          },
+          {
+            "in": "query",
+            "name": "erasureCoding",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "excludeDatacenters",
+            "description": "If true, all datacenters are returned except those listed in datacenters parameter",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "excludeRegions",
+            "description": "If true, all regions are returned except those listed in regions parameter",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "memory",
+            "description": "The name of the memory hardware part",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "planCode",
+            "description": "The plan code in which the hardware is involved",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "quantity",
+            "description": "Node quantity",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "redundancyFactor",
+            "schema": {
+              "$ref": "#/components/schemas/nutanix.RedundancyFactorEnum"
+            }
+          },
+          {
+            "in": "query",
+            "name": "regions",
+            "description": "The names of regions separated by commas",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "server",
+            "description": "The name of the base hardware",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "storage",
+            "description": "The name of the storage hardware part",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "systemStorage",
+            "description": "The name of the system storage hardware part",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/nutanix.AvailabilitiesRaw"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Nutanix@@@13"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-response-identifier": "fqn"
+      }
+    },
+    "/nutanix/availableVersions": {
+      "get": {
+        "summary": "Fetch the available Nutanix versions to install",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "fqn",
+            "description": "Fully qualified name and unique name of the hardware",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Nutanix@@@14"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ]
+      }
+    },
+    "/nutanix/requirements": {
+      "get": {
+        "summary": "Fetch the requirements for a given cluster configuration",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "erasureCoding",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "rackAwareness",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "redundancyFactor",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/nutanix.RedundancyFactorEnum"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/nutanix.Requirements"
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Nutanix@@@16"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ]
+      }
+    },
+    "/nutanix/{serviceName}": {
+      "get": {
+        "summary": "Get nutanix cluster info",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/nutanix.stateDetailsWithIAM"
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Nutanix@@@11"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "nutanix:apiovh:get",
+            "required": true
+          }
+        ]
+      },
+      "put": {
+        "summary": "Update nutanix cluster info",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "redeploycluster",
+            "description": "I am aware that I am going to make changes that will reinstall my cluster",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "scaleOut",
+            "description": "I am aware that I am going to make changes that will scale-out my cluster",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/nutanix.cluster"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/nutanix.state"
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Nutanix@@@35"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "nutanix:apiovh:edit",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/nutanix/{serviceName}/changeContact": {
+      "post": {
+        "summary": "Launch a contact change procedure",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/services.changeContact"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Nutanix@@@18"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "nutanix:apiovh:changeContact",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/nutanix/{serviceName}/confirmTermination": {
+      "post": {
+        "summary": "Confirm service termination",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/services.confirmTermination"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Nutanix@@@22"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "nutanix:apiovh:confirmTermination",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/nutanix/{serviceName}/nodes": {
+      "get": {
+        "summary": "Get all nodes in a cluster",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/nutanix.nodeDetails"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Nutanix@@@6"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "nutanix:apiovh:nodes/get",
+            "required": true
+          }
+        ],
+        "x-response-identifier": "server",
+        "x-expanded-response": "NutanixNodeDetails"
+      }
+    },
+    "/nutanix/{serviceName}/nodes/{server}": {
+      "get": {
+        "summary": "Get a node details in a cluster",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "server",
+            "description": "Server",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/nutanix.nodeDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Nutanix@@@15"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "nutanix:apiovh:nodes/get",
+            "required": true
+          }
+        ],
+        "x-response-identifier": "server"
+      },
+      "put": {
+        "summary": "Reinstall a node in a cluster",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "server",
+            "description": "Server",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/nutanix.reinstall"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Nutanix@@@50"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "nutanix:apiovh:node/edit",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/nutanix/{serviceName}/nodes/{server}/deploy": {
+      "put": {
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "server",
+            "description": "Server",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/nutanix.deploy"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Nutanix@@@60"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "nutanix:apiovh:deploy",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/nutanix/{serviceName}/nodes/{server}/terminate": {
+      "post": {
+        "summary": "Terminate a node",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "server",
+            "description": "Server",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Nutanix@@@24"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "nutanix:apiovh:node/terminate",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/nutanix/{serviceName}/serviceInfos": {
+      "get": {
+        "summary": "Get service information",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/services.Service"
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Nutanix@@@17"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "nutanix:apiovh:serviceInfos/get",
+            "required": true
+          }
+        ]
+      },
+      "put": {
+        "summary": "Update service information",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/services.Service"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Nutanix@@@70"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "nutanix:apiovh:serviceInfos/edit",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/nutanix/{serviceName}/terminate": {
+      "post": {
+        "summary": "Ask for the termination of your service",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Nutanix@@@26"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "nutanix:apiovh:terminate",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/nutanix/{serviceName}/vrack": {
+      "put": {
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/nutanix.vrack"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        },
+        "x-developer-hub-navigation": [
+          [
+            "Private Cloud",
+            "Nutanix@@@80"
+          ]
+        ],
+        "x-badges": [
+          {
+            "color": "green",
+            "label": "Stable production version"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "nutanix:apiovh:vrack/edit",
+            "required": true
+          }
+        ]
+      }
+    }
+  }
+}

@@ -12,11 +12,20 @@
 //    (protecting backtick-wrapped `<placeholder>` tokens as <code>), and
 //    leave every structural line byte-for-byte untouched.
 //
-// 2. Scope annotations (when provider.js exports scopeVariable and
-//    scopeEnvVar). docgen merges server variables into every method's
-//    required parameters and example WHERE clauses, which is right only
-//    when the env var is unset; every `<var> = '{{ <var> }}' -- required`
-//    example is annotated "required unless <ENV> is set".
+// 2. Server variables. docgen merges every server variable into each
+//    method's required parameters and example statements. Two corrections:
+//    a. api_host is never required: its x-stackQL-envVarSelector resolves
+//       it from OVH_ENDPOINT with a declared default. It is removed from
+//       the Required Params cells and from every example (WHERE / AND
+//       lines, INSERT column and value lists, EXEC arguments, manifest
+//       props) and stays documented, as optional, in the Parameters table.
+//    b. The Public Cloud project variable (service_name in the API v1
+//       services, project_id in the API v2 services) is required only when
+//       OVH_CLOUD_PROJECT_SERVICE is unset; every example of a method
+//       served from the scoped server is annotated "required unless
+//       OVH_CLOUD_PROJECT_SERVICE is set". The methods on the root paths of
+//       those services (projects get / update) take the project as a true
+//       path parameter and are left alone.
 //
 // 3. Landing-page resource count. docgen's total includes each service
 //    index page; recount from the generated service directories.
@@ -24,39 +33,191 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {
+  API_HOST_VARIABLE, ENDPOINT_ENV_VAR, DEFAULT_ENDPOINT, API_HOSTS, PROJECT_ENV_VAR, SCOPES, CONFIG_DIR,
+  makeServiceResolver, parseCsv
+} from '../../provider-dev/scripts/lib/spec_helpers.mjs';
 
 const siteDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const docsDir = path.join(siteDir, 'docs');
-// provider.js is an ES module in a package without "type": "module" (the
-// vendored shared config is CommonJS), so read the two exports as text.
-const providerJs = fs.readFileSync(path.join(siteDir, 'provider.js'), 'utf8');
-const exportOf = (name) => {
-  const m = providerJs.match(new RegExp(`export\\s+const\\s+${name}\\s*=\\s*(?:'([^']*)'|"([^"]*)"|(null))`));
-  return m ? (m[1] ?? m[2] ?? null) : null;
-};
-const SCOPE_VAR = exportOf('scopeVariable');
-const SCOPE_ENV = exportOf('scopeEnvVar');
+
+// The scoped services and their project variable, and the methods of those
+// services that are served from the unscoped server (root paths keep their
+// full /cloud/... or /publicCloud/... key in all_services.csv).
+const { scopeOfService } = makeServiceResolver();
+const rootMethods = new Set(); // `${service}/${resource}/${method}`
+// root methods whose path carries the project as a true path parameter
+// (/cloud/project/{serviceName}); the others never take a project at all
+const rootMethodsWithParam = new Set();
+{
+  const rows = parseCsv(fs.readFileSync(path.join(CONFIG_DIR, 'all_services.csv'), 'utf8'));
+  const col = Object.fromEntries(rows[0].map((h, i) => [h, i]));
+  for (const row of rows.slice(1)) {
+    const service = row[col.filename].replace(/\.yaml$/, '');
+    const scopeName = scopeOfService[service];
+    if (!scopeName) continue;
+    const familyRoot = `/${SCOPES[scopeName].prefix.split('/')[2]}/`; // /cloud/ or /publicCloud/
+    if (!row[col.path].startsWith(familyRoot)) continue;
+    const key = `${service}/${row[col.stackql_resource_name]}/${row[col.stackql_method_name]}`;
+    rootMethods.add(key);
+    if (row[col.path].includes(`{${SCOPES[scopeName].param}}`)) rootMethodsWithParam.add(key);
+  }
+}
+const SELECTOR_DESCRIPTION = `The OVHcloud API host. Optional: selected by ${ENDPOINT_ENV_VAR} (${Object.keys(API_HOSTS).join(', ')}; default ${DEFAULT_ENDPOINT}).`;
 
 const TD_LINE = /^(\s*<td>)(.*)(<\/td>\s*)$/;
 const LINK_TOKEN = '<a href="#[^"]*">(?:<CopyableCode\\b[^<>]*\\/>|<code>[^<>]*<\\/code>)<\\/a>';
 const LINK_TOKEN_CELL = new RegExp(`^${LINK_TOKEN}(?:,\\s*${LINK_TOKEN})*$`);
 const BACKTICKED = /`<([A-Za-z][A-Za-z0-9_.:-]*)>`/g;
 // Control-char sentinels: cannot occur in generated markdown.
-const OPEN = '';
-const CLOSE = '';
+const OPEN = '\u0001';
+const CLOSE = '\u0002';
 
 let filesChanged = 0;
 let cellsEscaped = 0;
 let scopeAnnotated = 0;
+let selectorRemoved = 0;
 
-function annotateScope(lines) {
-  if (!SCOPE_VAR || !SCOPE_ENV) return false;
-  const sqlRe = new RegExp(`(${SCOPE_VAR}\\s*=\\s*'\\{\\{ ${SCOPE_VAR} \\}\\}'\\s*--\\s*required)(?!\\s+unless)`);
-  const execRe = new RegExp(`(@${SCOPE_VAR}='\\{\\{ ${SCOPE_VAR} \\}\\}'\\s*--required)(?!\\s+unless)`);
-  let changed = false;
+// The method a line belongs to: an example tab (<TabItem value="get">) or a
+// row of the Methods table (<td><a href="#get">...).
+function methodTracker() {
+  let method = null;
+  return (line) => {
+    const t = line.trim();
+    const tab = /^<TabItem value="([^"]+)">/.exec(t);
+    if (tab) method = tab[1];
+    else if (/^<\/TabItem>/.test(t) || /^<\/tr>/.test(t)) method = null;
+    else {
+      const row = /^<td><a href="#([^"]+)"><CopyableCode code="[^"]+" \/><\/a><\/td>$/.exec(t);
+      if (row) method = row[1];
+    }
+    return method;
+  };
+}
+
+// 2a. Remove a variable from the required parameters and the examples of
+// the methods `applies(method)` selects. Returns the new line array.
+function removeVariable(lines, V, applies, { selector = false } = {}) {
+  const tpl = `'{{ ${V} }}'`;
+  const out = [];
+  const prev = () => out[out.length - 1] ?? '';
+  const setPrev = (v) => { out[out.length - 1] = v; };
+  const track = methodTracker();
+  let removed = 0;
   for (let i = 0; i < lines.length; i++) {
-    if (sqlRe.test(lines[i])) { lines[i] = lines[i].replace(sqlRe, `$1 unless ${SCOPE_ENV} is set`); changed = true; scopeAnnotated++; }
-    else if (execRe.test(lines[i])) { lines[i] = lines[i].replace(execRe, `$1 unless ${SCOPE_ENV} is set`); changed = true; scopeAnnotated++; }
+    const line = lines[i];
+    const t = line.trim();
+    const method = track(line);
+    if (!line.includes(V) || !applies(method)) { out.push(line); continue; }
+
+    // Methods table: the Required Params cell
+    const td = TD_LINE.exec(line);
+    if (td && td[2].includes(`#parameter-${V}"`)) {
+      const kept = td[2].split(/,\s*/).filter((tok) => !tok.includes(`#parameter-${V}"`)).join(', ');
+      out.push(td[1] + kept + td[3]);
+      removed++;
+      continue;
+    }
+    // Parameters table: the selector's row stays, minus the raw annotation dump
+    if (selector && td && td[2].includes('x-stackQL-envVarSelector')) { out.push(td[1] + SELECTOR_DESCRIPTION + td[3]); continue; }
+    // manifest props: three lines
+    if (t === `- name: ${V}` && /^\s*value:/.test(lines[i + 1] || '') && /^\s*description:/.test(lines[i + 2] || '')) { i += 2; removed++; continue; }
+    // WHERE / AND predicates
+    if (t === `AND ${V} = ${tpl} -- required` || t === `AND ${V} = ${tpl} --required`) { removed++; continue; }
+    if (t === `AND ${V} = ${tpl} --required;`) { setPrev(`${prev().replace(/\s+$/, '')};`); removed++; continue; }
+    if (t === `WHERE ${V} = ${tpl} -- required` || t === `WHERE ${V} = ${tpl} --required`) {
+      if (/^AND /.test(lines[i + 1] || '')) lines[i + 1] = `WHERE ${lines[i + 1].slice(4)}`;
+      removed++;
+      continue;
+    }
+    if (t === `${V} = ${tpl} --required;`) { // the only predicate under a bare WHERE line
+      if (prev().trim() === 'WHERE') out.pop();
+      setPrev(`${prev().replace(/\s+$/, '')};`);
+      removed++;
+      continue;
+    }
+    if (t === `${V} = ${tpl} --required`) { // the first predicate under a bare WHERE line
+      if (/^AND /.test(lines[i + 1] || '')) lines[i + 1] = lines[i + 1].slice(4);
+      removed++;
+      continue;
+    }
+    // INSERT column and value lists
+    if (t === `${V},` || t === `${tpl},`) { removed++; continue; }
+    if (t === V || t === tpl) {
+      // the only column / value stays (an INSERT needs one); otherwise the
+      // previous entry loses its trailing comma
+      if (/\($/.test(prev().trim()) || /^SELECT\s*$/.test(prev().trim())) { out.push(line); continue; }
+      setPrev(prev().replace(/,\s*$/, ''));
+      removed++;
+      continue;
+    }
+    // EXEC arguments
+    const execArg = `@${V}=${tpl} --required`;
+    if (t.startsWith(execArg)) {
+      const last = !t.slice(execArg.length).trim().startsWith(',');
+      if (last && /^@/.test(prev().trim()) && /,\s*$/.test(prev())) setPrev(prev().replace(/,\s*$/, /\s$/.test(line) ? ' ' : ''));
+      removed++;
+      continue;
+    }
+    out.push(line);
+  }
+  return { lines: out, removed };
+}
+
+// Drop a <tr id="parameter-X"> ... </tr> row from the Parameters table.
+function dropParameterRow(lines, name) {
+  const start = lines.findIndex((l) => l.trim() === `<tr id="parameter-${name}">`);
+  if (start === -1) return lines;
+  let end = start;
+  while (end < lines.length && lines[end].trim() !== '</tr>') end++;
+  return [...lines.slice(0, start), ...lines.slice(end + 1)];
+}
+
+// 2a, per page: the selector variable everywhere; on the root-path methods
+// of a scoped service, the server variable those methods do not use.
+function correctServerVariables(lines, page) {
+  let r = removeVariable(lines, API_HOST_VARIABLE, () => true, { selector: true });
+  selectorRemoved += r.removed;
+  let out = r.lines;
+  const scopeName = scopeOfService[page.service];
+  if (!scopeName) return out;
+  const { variable, param } = SCOPES[scopeName];
+  const key = (m) => `${page.service}/${page.resource}/${m}`;
+  // a root method with no project in its path (the project list): the
+  // server variable is not a parameter of it at all
+  r = removeVariable(out, variable, (m) => !!m && rootMethods.has(key(m)) && !rootMethodsWithParam.has(key(m)));
+  out = r.lines;
+  // a root method with the project as a path parameter: docgen lists both
+  // the camelCase path parameter and the server variable; one name remains
+  // (the snake_case one, which is what the statement is written with)
+  let any = false;
+  r = removeVariable(out, param, (m) => { const hit = !!m && rootMethodsWithParam.has(key(m)); any = any || hit; return hit; });
+  out = r.lines;
+  if (any && out.some((l) => l.trim() === `<tr id="parameter-${variable}">`)) out = dropParameterRow(out, param);
+  return out;
+}
+
+// 2b. Annotate the project variable on the methods served from the scoped
+// server. `page` is { service, resource } from the file path.
+function annotateScope(lines, page) {
+  const scopeName = page ? scopeOfService[page.service] : null;
+  if (!scopeName) return false;
+  const VAR = SCOPES[scopeName].variable;
+  const sqlRe = new RegExp(`(${VAR}\\s*=\\s*'\\{\\{ ${VAR} \\}\\}'\\s*--\\s*required)(?!\\s+unless)`);
+  const execRe = new RegExp(`(@${VAR}='\\{\\{ ${VAR} \\}\\}'\\s*--required)(?!\\s+unless)`);
+  let changed = false;
+  let method = null;
+  for (let i = 0; i < lines.length; i++) {
+    const tab = /^<TabItem value="([^"]+)">/.exec(lines[i].trim());
+    if (tab) { method = tab[1]; continue; }
+    if (lines[i].includes('x-stackQL-envVar:')) { // the Parameters table description
+      const cleaned = lines[i].replace(/ \(x-stackQL-envVar: [A-Z0-9_]+\)/, '');
+      if (cleaned !== lines[i]) { lines[i] = cleaned; changed = true; }
+      continue;
+    }
+    if (method && rootMethods.has(`${page.service}/${page.resource}/${method}`)) continue;
+    if (sqlRe.test(lines[i])) { lines[i] = lines[i].replace(sqlRe, `$1 unless ${PROJECT_ENV_VAR} is set`); changed = true; scopeAnnotated++; }
+    else if (execRe.test(lines[i])) { lines[i] = lines[i].replace(execRe, `$1 unless ${PROJECT_ENV_VAR} is set`); changed = true; scopeAnnotated++; }
   }
   return changed;
 }
@@ -75,7 +236,7 @@ function escapeDescription(inner) {
     // GFM autolinks bare "scheme://..." literals on the DECODED text tree
     // and Docusaurus crashes on regex-shaped ones. A zero-width space inside
     // "://" is invisible in rendering but breaks the autolink prefix match.
-    .replace(/:\/\//g, ':​//');
+    .replace(/:\/\/(?!​)/g, ':​//');
   out = out.split(OPEN).join('<code>&lt;').split(CLOSE).join('&gt;</code>');
   return out;
 }
@@ -89,9 +250,14 @@ function escapeTemplateLiteral(line) {
     .replace(/(?<!\\)\$\{/g, '\\${');
 }
 
-function sanitize(text) {
-  const lines = text.split('\n');
-  let changed = annotateScope(lines);
+function sanitize(text, page) {
+  const original = text.split('\n');
+  let lines = page ? correctServerVariables(original, page) : original;
+  // docgen renders a hyphenated header parameter (X-Pagination-Size) as
+  // x-_pagination-_size; the name stackql resolves is x_pagination_size
+  lines = lines.map((l) => l.replace(/[a-z0-9]+(?:-_[a-z0-9]+)+/g, (m) => m.replace(/-_/g, '_')));
+  let changed = lines.length !== original.length || lines.some((l, i) => l !== original[i]);
+  if (annotateScope(lines, page)) changed = true;
   let inFence = false;
   let inTabItemProse = false;
   let inCodeBlock = false;
@@ -119,7 +285,7 @@ function sanitize(text) {
     const m = TD_LINE.exec(line);
     if (m) {
       const inner = m[2];
-      if (/^<CopyableCode\b[^<>]*\/>$/.test(inner)) continue;
+      if (inner === '' || /^<CopyableCode\b[^<>]*\/>$/.test(inner)) continue;
       // Structural link cells in the Methods/Parameters tables stay verbatim.
       if (LINK_TOKEN_CELL.test(inner)) continue;
       const codeCell = /^<code>([^<>]*)<\/code>$/.exec(inner);
@@ -131,7 +297,7 @@ function sanitize(text) {
           .replace(/\]/g, '&#93;')
           .replace(/\{/g, '&#123;')
           .replace(/\}/g, '&#125;')
-          .replace(/:\/\//g, ':​//');
+          .replace(/:\/\/(?!​)/g, ':​//');
         if (escaped !== codeCell[1]) {
           lines[i] = m[1] + '<code>' + escaped + '</code>' + m[3];
           cellsEscaped++;
@@ -169,7 +335,10 @@ function walk(dir) {
     if (entry.isDirectory()) walk(p);
     else if (entry.name.endsWith('.md') || entry.name.endsWith('.mdx')) {
       const before = fs.readFileSync(p, 'utf8');
-      const { text: after, changed } = sanitize(before);
+      // docs/services/<service>/<resource>/index.md is a resource page
+      const rel = path.relative(path.join(docsDir, 'services'), p).split(path.sep);
+      const page = rel[0] !== '..' && rel.length === 3 ? { service: rel[0], resource: rel[1] } : null;
+      const { text: after, changed } = sanitize(before, page);
       if (changed) { fs.writeFileSync(p, after); filesChanged++; }
     }
   }
@@ -200,4 +369,4 @@ if (!fs.existsSync(docsDir)) {
 }
 walk(docsDir);
 const recount = fixResourceCount();
-console.log(`sanitize-docs: escaped ${cellsEscaped} description cell(s) across ${filesChanged} file(s); ${scopeAnnotated} scope annotation(s)${recount ? `; landing page resource count set to ${recount}` : ''}`);
+console.log(`sanitize-docs: ${filesChanged} file(s) changed; escaped ${cellsEscaped} description cell(s); removed ${selectorRemoved} ${API_HOST_VARIABLE} occurrence(s) (resolved from ${ENDPOINT_ENV_VAR}); ${scopeAnnotated} project scope annotation(s)${recount ? `; landing page resource count set to ${recount}` : ''}`);

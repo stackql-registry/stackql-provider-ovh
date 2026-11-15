@@ -7,11 +7,12 @@
 //
 // Usage: npm run probe -- "SELECT ..." "EXEC ..." [--env KEY=VALUE ...] [--unset KEY]
 
-import { startMockServer, EXPECTED_TOKEN, ORG_ID } from './mock_myprovider_server.mjs';
+import { startMockServer, CLIENT_ID, CLIENT_SECRET, PROJECT_ID } from './mock_ovh_server.mjs';
 import { buildTestRegistry, registryArg, makeRunSql, findStackql } from './harness.mjs';
 
-// TODO(template): the environment the provider reads (as in run_integration_tests.mjs)
-const PROVIDER_ENV = { MYPROVIDER_API_TOKEN: EXPECTED_TOKEN, MYPROVIDER_ORG_ID: ORG_ID };
+// The environment the provider reads (as in run_integration_tests.mjs).
+// OVH_ENDPOINT is unset so the selector default (ovh-eu) applies.
+const PROVIDER_ENV = { OVH_CLIENT_ID: CLIENT_ID, OVH_CLIENT_SECRET: CLIENT_SECRET, OVH_CLOUD_PROJECT_SERVICE: PROJECT_ID, OVH_ENDPOINT: undefined };
 
 const args = process.argv.slice(2);
 const sqls = [];
@@ -36,9 +37,12 @@ try {
     const mark = log.length;
     const { stdout, stderr } = await runSql(sql, envOverrides);
     console.log(`\n=== ${sql}`);
-    console.log(`stdout: ${stdout.slice(0, 1200)}`);
-    if (stderr) console.log(`stderr: ${stderr.slice(0, 800)}`);
-    for (const e of log.slice(mark)) console.log(`wire: ${e.method} ${e.path} query=${JSON.stringify(e.query)} ct=${e.contentType} body=${JSON.stringify(e.body)}`);
+    console.log(`stdout: ${stdout.slice(0, 1500)}`);
+    if (stderr) console.log(`stderr: ${stderr.slice(0, 1000)}`);
+    for (const e of log.slice(mark)) {
+      const paging = Object.entries(e.headers).filter(([k]) => k.startsWith('x-pagination')).map(([k, v]) => `${k}=${v}`).join(' ');
+      console.log(`wire: ${e.method} ${e.host}${e.path} query=${JSON.stringify(e.query)}${paging ? ` ${paging}` : ''} auth=${e.authorization ? e.authorization.split(' ')[0] : '-'} ct=${e.contentType} body=${JSON.stringify(e.body)}`);
+    }
   }
 } finally {
   server.close();

@@ -1,21 +1,20 @@
 ---
-title: myprovider
+title: ovh
 hide_title: false
 hide_table_of_contents: false
 keywords:
-  - myprovider
+  - ovh
+  - ovhcloud
   - stackql
   - infrastructure-as-code
   - configuration-as-data
   - cloud inventory
-description: Query, provision and manage My Provider resources using SQL
+description: Query, provision and manage OVHcloud resources using SQL
 custom_edit_url: null
-image: /img/stackql-myprovider-provider-featured-image.png
+image: /img/stackql-ovh-provider-featured-image.png
 id: 'provider-intro'
 ---
 
 import CopyableCode from '@site/src/components/CopyableCode/CopyableCode';
 
-TODO(template): one paragraph - what the provider covers (the API surface, the
-services in plain words) and the two or three queries it exists for (estate
-inventory, the posture set, the flagship capability). Measured copy, no hyperbole.
+The `ovh` provider maps the OVHcloud API (v1 and v2) to SQL: Public Cloud projects and everything in them (instances, Managed Kubernetes, managed databases, object and block storage, networks and load balancers), bare metal servers, VPS, Hosted Private Cloud, domains and DNS zones, IP addresses, vRack, load balancers, web hosting and email, the account itself (`me`) and IAM. Use it to inventory an estate across projects and regions, read quotas, policies and configuration as rows, and create, change and remove resources with `INSERT`, `UPDATE`, `DELETE` and `EXEC`.

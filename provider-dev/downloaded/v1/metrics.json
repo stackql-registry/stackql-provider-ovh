@@ -1,0 +1,1682 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "OVHcloud API specification",
+    "description": "Specification for OVHcloud API",
+    "version": "1.0",
+    "contact": {
+      "name": "OVH",
+      "email": "api@ml.ovh.net"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.eu.ovhcloud.com/v1"
+    }
+  ],
+  "components": {
+    "schemas": {
+      "any": {
+        "description": "Can be anything (text, int, bool, json, html, etc.)",
+        "example": "This is a content of any type !"
+      },
+      "duration": {
+        "type": "string",
+        "description": "Duration (e.g., P1Y2M3DT4H6M9S)",
+        "example": "P1Y2M3DT4H6M9S"
+      },
+      "email": {
+        "type": "string",
+        "description": "Email address (e.g., api@ml.ovh.net)",
+        "format": "email",
+        "example": "api@ml.ovh.net"
+      },
+      "iam.ResourceMetadata": {
+        "type": "object",
+        "description": "IAM resource metadata embedded in services models",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "description": "Resource display name",
+            "nullable": true,
+            "readOnly": true
+          },
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the resource",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "state": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/iam.ResourceMetadata.StateEnum"
+              }
+            ],
+            "description": "Resource state",
+            "nullable": true,
+            "readOnly": true
+          },
+          "tags": {
+            "type": "object",
+            "description": "Resource tags. Tags that were internally computed are prefixed with ovh:",
+            "nullable": true,
+            "additionalProperties": {
+              "type": "string"
+            },
+            "readOnly": true
+          },
+          "urn": {
+            "type": "string",
+            "description": "Unique resource name used in policies",
+            "readOnly": true
+          }
+        }
+      },
+      "iam.ResourceMetadata.StateEnum": {
+        "type": "string",
+        "description": "Resource state",
+        "enum": [
+          "EXPIRED",
+          "IN_CREATION",
+          "OK",
+          "SUSPENDED"
+        ]
+      },
+      "iam.resource.TagFilter": {
+        "type": "object",
+        "description": "Resource tag filter",
+        "properties": {
+          "operator": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/iam.resource.TagFilter.OperatorEnum"
+              }
+            ],
+            "description": "Operator to use in order to filter on the value (defaults to 'EQ')",
+            "nullable": true,
+            "readOnly": true
+          },
+          "value": {
+            "type": "string",
+            "description": "Value to use in order to filter tags",
+            "readOnly": true
+          }
+        }
+      },
+      "iam.resource.TagFilter.OperatorEnum": {
+        "type": "string",
+        "description": "Operator that can be used in order to filter resources tags",
+        "enum": [
+          "EQ",
+          "EXISTS",
+          "ILIKE",
+          "LIKE",
+          "NEQ",
+          "NEXISTS"
+        ]
+      },
+      "internationalPhoneNumber": {
+        "type": "string",
+        "description": "International phone number",
+        "format": "phone-number"
+      },
+      "ip": {
+        "type": "string",
+        "description": "IP address (e.g., 192.0.2.0)",
+        "format": "ipv4",
+        "example": "192.0.2.0"
+      },
+      "ipBlock": {
+        "type": "string",
+        "description": "IP (v4 or v6) CIDR notation (e.g., 192.0.2.0/24)",
+        "format": "ip-block",
+        "example": "192.0.2.0/24"
+      },
+      "ipInterface": {
+        "type": "string",
+        "description": "IP address (e.g., 192.0.2.0)",
+        "format": "ipv4",
+        "example": "192.0.2.0"
+      },
+      "ipv4": {
+        "type": "string",
+        "description": "IPv4 address (e.g., 192.0.2.0)",
+        "format": "ipv4",
+        "example": "192.0.2.0"
+      },
+      "ipv4Block": {
+        "type": "string",
+        "description": "IPv4 CIDR notation (e.g., 192.0.2.0/24)",
+        "format": "ipv4-block",
+        "example": "192.0.2.0/24"
+      },
+      "ipv6": {
+        "type": "string",
+        "description": "IPv6 address (e.g., 2001:41d0:1:1994::1)",
+        "format": "ipv6",
+        "example": "2001:41d0:1:1994::1"
+      },
+      "ipv6Block": {
+        "type": "string",
+        "description": "IPv6 CIDR notation (e.g., 2001:41d0::/128)",
+        "format": "ipv6-block",
+        "example": "2001:41d0::/128"
+      },
+      "macAddress": {
+        "type": "string",
+        "description": "MAC address (e.g., 00:00:5e:00:53:01)",
+        "format": "mac-address",
+        "example": "00:00:5e:00:53:01"
+      },
+      "metrics.LookupTokenCreation": {
+        "type": "object",
+        "description": "Missing description",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "description": "access token"
+          }
+        },
+        "required": [
+          "accessToken"
+        ]
+      },
+      "metrics.QuotaUpdate": {
+        "type": "object",
+        "description": "Missing description",
+        "properties": {
+          "quota": {
+            "type": "integer",
+            "description": "New value for overquota"
+          }
+        },
+        "required": [
+          "quota"
+        ]
+      },
+      "metrics.TokenCreation": {
+        "type": "object",
+        "description": "Missing description",
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "Description for the new token",
+            "nullable": true
+          },
+          "labels": {
+            "type": "array",
+            "description": "Labels for the new token",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/metrics.api.Label"
+            }
+          },
+          "permission": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/metrics.api.PermissionEnum"
+              }
+            ],
+            "description": "Type of the new token. Read or Write"
+          }
+        },
+        "required": [
+          "permission"
+        ]
+      },
+      "metrics.TokenUpdate": {
+        "type": "object",
+        "description": "Missing description",
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "New description for your token",
+            "nullable": true
+          }
+        }
+      },
+      "metrics.Update": {
+        "type": "object",
+        "description": "Missing description",
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "New description for your service",
+            "nullable": true
+          }
+        }
+      },
+      "metrics.api.Consumption": {
+        "type": "object",
+        "description": "Structure holding the consumption",
+        "properties": {
+          "ddp": {
+            "type": "integer",
+            "description": "Current Daily data points",
+            "readOnly": true
+          },
+          "mads": {
+            "type": "integer",
+            "description": "Current monthly active data streams",
+            "readOnly": true
+          }
+        }
+      },
+      "metrics.api.Label": {
+        "type": "object",
+        "description": "Structure holding the elements about a label",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "Label key"
+          },
+          "value": {
+            "type": "string",
+            "description": "Label value"
+          }
+        }
+      },
+      "metrics.api.OfferTypeEnum": {
+        "type": "string",
+        "description": "Type of the service",
+        "enum": [
+          "cloud",
+          "live"
+        ]
+      },
+      "metrics.api.Option": {
+        "type": "object",
+        "description": "Structure holding the options for a service",
+        "properties": {
+          "ddp": {
+            "type": "integer",
+            "description": "Daily data points",
+            "readOnly": true
+          },
+          "lastModification": {
+            "type": "string",
+            "description": "Time of last modification",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "mads": {
+            "type": "integer",
+            "description": "Monthly active device streams",
+            "readOnly": true
+          }
+        }
+      },
+      "metrics.api.PermissionEnum": {
+        "type": "string",
+        "description": "Metrics service token permissions",
+        "enum": [
+          "read",
+          "write"
+        ]
+      },
+      "metrics.api.Region": {
+        "type": "object",
+        "description": "Structure holding the elements about a region",
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "Description of a region",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of a region",
+            "readOnly": true
+          }
+        }
+      },
+      "metrics.api.Service": {
+        "type": "object",
+        "description": "Structure holding the elements about a service",
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "Description of a service",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of a service",
+            "readOnly": true
+          },
+          "offer": {
+            "type": "string",
+            "description": "Offer used for the service",
+            "readOnly": true
+          },
+          "quota": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/metrics.api.Option"
+              }
+            ],
+            "description": "Quota used for the service",
+            "readOnly": true
+          },
+          "region": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/metrics.api.Region"
+              }
+            ],
+            "description": "Region holding the service",
+            "readOnly": true
+          },
+          "shouldUpgrade": {
+            "type": "boolean",
+            "description": "Indicator if the service should be upgraded based on current quota and offer",
+            "readOnly": true
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/metrics.api.ServiceStatusEnum"
+              }
+            ],
+            "description": "Status of a service",
+            "readOnly": true
+          },
+          "type": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/metrics.api.OfferTypeEnum"
+              }
+            ],
+            "description": "Type of the service: cloud or live",
+            "readOnly": true
+          }
+        }
+      },
+      "metrics.api.ServiceStatusEnum": {
+        "type": "string",
+        "description": "Status of of the service",
+        "enum": [
+          "alive",
+          "dead",
+          "disabled",
+          "new"
+        ]
+      },
+      "metrics.api.ServiceWithIAM": {
+        "type": "object",
+        "description": "Structure holding the elements about a service",
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "Description of a service",
+            "readOnly": true
+          },
+          "iam": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/iam.ResourceMetadata"
+              }
+            ],
+            "description": "IAM resource metadata",
+            "nullable": true,
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of a service",
+            "readOnly": true
+          },
+          "offer": {
+            "type": "string",
+            "description": "Offer used for the service",
+            "readOnly": true
+          },
+          "quota": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/metrics.api.Option"
+              }
+            ],
+            "description": "Quota used for the service",
+            "readOnly": true
+          },
+          "region": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/metrics.api.Region"
+              }
+            ],
+            "description": "Region holding the service",
+            "readOnly": true
+          },
+          "shouldUpgrade": {
+            "type": "boolean",
+            "description": "Indicator if the service should be upgraded based on current quota and offer",
+            "readOnly": true
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/metrics.api.ServiceStatusEnum"
+              }
+            ],
+            "description": "Status of a service",
+            "readOnly": true
+          },
+          "type": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/metrics.api.OfferTypeEnum"
+              }
+            ],
+            "description": "Type of the service: cloud or live",
+            "readOnly": true
+          }
+        }
+      },
+      "metrics.api.Token": {
+        "type": "object",
+        "description": "Structure holding the elements about a token",
+        "properties": {
+          "access": {
+            "type": "string",
+            "description": "The actual access token",
+            "format": "password",
+            "readOnly": true
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "Token creation date",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the token",
+            "readOnly": true
+          },
+          "expiryAt": {
+            "type": "string",
+            "description": "Token expiration date",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "id": {
+            "type": "string",
+            "description": "Id of the token",
+            "readOnly": true
+          },
+          "isRevoked": {
+            "type": "boolean",
+            "description": "Is your token revoked?",
+            "readOnly": true
+          },
+          "labels": {
+            "type": "array",
+            "description": "Labels for the token if set",
+            "items": {
+              "$ref": "#/components/schemas/metrics.api.Label"
+            },
+            "readOnly": true
+          },
+          "permission": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/metrics.api.PermissionEnum"
+              }
+            ],
+            "description": "Token permission: read or write",
+            "readOnly": true
+          }
+        }
+      },
+      "phoneNumber": {
+        "type": "string",
+        "description": "Phone number",
+        "format": "phone-number"
+      },
+      "service.RenewType": {
+        "type": "object",
+        "description": "Map a possible renew for a specific service",
+        "properties": {
+          "automatic": {
+            "type": "boolean",
+            "description": "The service is automatically renewed"
+          },
+          "deleteAtExpiration": {
+            "type": "boolean",
+            "description": "The service will be deleted at expiration"
+          },
+          "forced": {
+            "type": "boolean",
+            "description": "The service forced to be renewed"
+          },
+          "manualPayment": {
+            "type": "boolean",
+            "description": "The service needs to be manually renewed and paid",
+            "nullable": true
+          },
+          "period": {
+            "type": "integer",
+            "description": "period of renew in month",
+            "nullable": true
+          }
+        }
+      },
+      "service.RenewalTypeEnum": {
+        "type": "string",
+        "description": "Detailed renewal type of a service",
+        "enum": [
+          "automaticForcedProduct",
+          "automaticV2012",
+          "automaticV2014",
+          "automaticV2016",
+          "manual",
+          "oneShot",
+          "option"
+        ]
+      },
+      "service.StateEnum": {
+        "type": "string",
+        "description": "service.StateEnum",
+        "enum": [
+          "autorenewInProgress",
+          "expired",
+          "inCreation",
+          "ok",
+          "pendingDebt",
+          "unPaid"
+        ]
+      },
+      "service.TerminationFutureUseEnum": {
+        "type": "string",
+        "description": "All future uses you can provide for a service termination",
+        "enum": [
+          "NOT_REPLACING_SERVICE",
+          "OTHER",
+          "SUBSCRIBE_AN_OTHER_SERVICE",
+          "SUBSCRIBE_OTHER_KIND_OF_SERVICE_WITH_COMPETITOR",
+          "SUBSCRIBE_SIMILAR_SERVICE_WITH_COMPETITOR"
+        ]
+      },
+      "service.TerminationReasonEnum": {
+        "type": "string",
+        "description": "All reasons you can provide for a service termination",
+        "enum": [
+          "FEATURES_DONT_SUIT_ME",
+          "LACK_OF_PERFORMANCES",
+          "MIGRATED_TO_ANOTHER_OVH_PRODUCT",
+          "MIGRATED_TO_COMPETITOR",
+          "NOT_ENOUGH_RECOGNITION",
+          "NOT_NEEDED_ANYMORE",
+          "NOT_RELIABLE",
+          "NO_ANSWER",
+          "OTHER",
+          "PRODUCT_DIMENSION_DONT_SUIT_ME",
+          "PRODUCT_TOOLS_DONT_SUIT_ME",
+          "TOO_EXPENSIVE",
+          "TOO_HARD_TO_USE",
+          "UNSATIFIED_BY_CUSTOMER_SUPPORT"
+        ]
+      },
+      "services.Service": {
+        "type": "object",
+        "description": "Details about a Service",
+        "properties": {
+          "canDeleteAtExpiration": {
+            "type": "boolean",
+            "description": "Indicates that the service can be set up to be deleted at expiration",
+            "readOnly": true
+          },
+          "contactAdmin": {
+            "type": "string",
+            "readOnly": true
+          },
+          "contactBilling": {
+            "type": "string",
+            "readOnly": true
+          },
+          "contactTech": {
+            "type": "string",
+            "readOnly": true
+          },
+          "creation": {
+            "type": "string",
+            "format": "date",
+            "readOnly": true
+          },
+          "domain": {
+            "type": "string",
+            "readOnly": true
+          },
+          "engagedUpTo": {
+            "type": "string",
+            "nullable": true,
+            "format": "date",
+            "readOnly": true
+          },
+          "expiration": {
+            "type": "string",
+            "format": "date",
+            "readOnly": true
+          },
+          "possibleRenewPeriod": {
+            "type": "array",
+            "description": "All the possible renew period of your service in month",
+            "nullable": true,
+            "items": {
+              "type": "integer"
+            },
+            "readOnly": true
+          },
+          "renew": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/service.RenewType"
+              }
+            ],
+            "description": "Way of handling the renew",
+            "nullable": true
+          },
+          "renewalType": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/service.RenewalTypeEnum"
+              }
+            ],
+            "readOnly": true
+          },
+          "serviceId": {
+            "type": "integer",
+            "readOnly": true
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/service.StateEnum"
+              }
+            ],
+            "readOnly": true
+          }
+        }
+      },
+      "services.changeContact": {
+        "type": "object",
+        "description": "Service change contact payload",
+        "properties": {
+          "contactAdmin": {
+            "type": "string",
+            "description": "The contact to set as admin contact"
+          },
+          "contactBilling": {
+            "type": "string",
+            "description": "The contact to set as billing contact"
+          },
+          "contactTech": {
+            "type": "string",
+            "description": "The contact to set as tech contact"
+          }
+        }
+      },
+      "services.confirmTermination": {
+        "type": "object",
+        "description": "Service confirm termination payload",
+        "properties": {
+          "commentary": {
+            "type": "string",
+            "description": "Commentary about your termination request"
+          },
+          "commentaryFutureUse": {
+            "type": "string",
+            "description": "Commentary about your future use"
+          },
+          "commentaryReason": {
+            "type": "string",
+            "description": "Commentary about your reason for termination request"
+          },
+          "futureUse": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/service.TerminationFutureUseEnum"
+              }
+            ],
+            "description": "All future uses you can provide for a service termination"
+          },
+          "reason": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/service.TerminationReasonEnum"
+              }
+            ],
+            "description": "All reasons you can provide for a service termination"
+          },
+          "token": {
+            "type": "string",
+            "description": "The termination token sent by email to the admin contact"
+          }
+        },
+        "required": [
+          "token"
+        ]
+      },
+      "time": {
+        "type": "string",
+        "description": "Time (e.g., 15:04:05)",
+        "format": "time",
+        "example": "15:04:05"
+      }
+    },
+    "securitySchemes": {
+      "oAuth2AuthCode": {
+        "type": "oauth2",
+        "description": "Oauth2",
+        "x-client-id": "1bb9c7df371741c0",
+        "x-client-secret": "a5b4de870aca620d10fbf63cd18d205b",
+        "flows": {
+          "authorizationCode": {
+            "authorizationUrl": "https://auth.eu.ovhcloud.com/oauth2/authorize",
+            "tokenUrl": "https://auth.eu.ovhcloud.com/oauth2/token",
+            "scopes": {
+              "account/all": "Manage your account",
+              "all": "Manage your whole account and all your services",
+              "services/all": "Manage your services lifecycle and billing"
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/metrics": {
+      "get": {
+        "operationId": "listMetricsServices",
+        "summary": "List available services",
+        "deprecated": true,
+        "x-deprecation-date": "2026-10-17T00:00:00Z",
+        "x-deletion-date": "2026-12-17T00:00:00Z",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "iamTags",
+            "description": "Filter resources on IAM tags",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/iam.resource.TagFilter"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "red",
+            "label": "Deprecated, will be removed"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "metrics:apiovh:get",
+            "required": true
+          }
+        ],
+        "x-expanded-response": "MetricsApiServiceWithIAM"
+      }
+    },
+    "/metrics/{serviceName}": {
+      "get": {
+        "operationId": "getMetricsService",
+        "summary": "Get service",
+        "deprecated": true,
+        "x-deprecation-date": "2026-10-17T00:00:00Z",
+        "x-deletion-date": "2026-12-17T00:00:00Z",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/metrics.api.ServiceWithIAM"
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "red",
+            "label": "Deprecated, will be removed"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "metrics:apiovh:get",
+            "required": true
+          }
+        ]
+      },
+      "put": {
+        "operationId": "editMetricsService",
+        "summary": "Modify service",
+        "deprecated": true,
+        "x-deprecation-date": "2026-10-17T00:00:00Z",
+        "x-deletion-date": "2026-12-17T00:00:00Z",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/metrics.Update"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/metrics.api.Service"
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "red",
+            "label": "Deprecated, will be removed"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "metrics:apiovh:put",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/metrics/{serviceName}/changeContact": {
+      "post": {
+        "summary": "Launch a contact change procedure",
+        "deprecated": true,
+        "x-deprecation-date": "2026-10-17T00:00:00Z",
+        "x-deletion-date": "2026-12-17T00:00:00Z",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/services.changeContact"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "red",
+            "label": "Deprecated, will be removed"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "metrics:apiovh:changeContact",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/metrics/{serviceName}/confirmTermination": {
+      "post": {
+        "summary": "Confirm service termination",
+        "deprecated": true,
+        "x-deprecation-date": "2026-10-17T00:00:00Z",
+        "x-deletion-date": "2026-12-17T00:00:00Z",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/services.confirmTermination"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "red",
+            "label": "Deprecated, will be removed"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "metrics:apiovh:confirmTermination",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/metrics/{serviceName}/consumption": {
+      "get": {
+        "operationId": "getMetricsServiceConsumption",
+        "summary": "Get consumption for your service",
+        "deprecated": true,
+        "x-deprecation-date": "2026-10-17T00:00:00Z",
+        "x-deletion-date": "2026-12-17T00:00:00Z",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "duration",
+            "description": "Last 'm' minutes. Default is 60min",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/metrics.api.Consumption"
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "red",
+            "label": "Deprecated, will be removed"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "metrics:apiovh:consumption/get",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/metrics/{serviceName}/lookup/token": {
+      "post": {
+        "operationId": "lookupMetricsToken",
+        "summary": "Find TokenID for a specific token",
+        "deprecated": true,
+        "x-deprecation-date": "2026-10-17T00:00:00Z",
+        "x-deletion-date": "2026-12-17T00:00:00Z",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/metrics.LookupTokenCreation"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "red",
+            "label": "Deprecated, will be removed"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "metrics:apiovh:lookup/token/create",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/metrics/{serviceName}/quota": {
+      "put": {
+        "operationId": "setMetricsServiceQuota",
+        "summary": "Set overquota",
+        "deprecated": true,
+        "x-deprecation-date": "2026-10-17T00:00:00Z",
+        "x-deletion-date": "2026-12-17T00:00:00Z",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/metrics.QuotaUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "red",
+            "label": "Deprecated, will be removed"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "metrics:apiovh:quota/edit",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/metrics/{serviceName}/serviceInfos": {
+      "get": {
+        "summary": "Get service information",
+        "deprecated": true,
+        "x-deprecation-date": "2026-10-17T00:00:00Z",
+        "x-deletion-date": "2026-12-17T00:00:00Z",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/services.Service"
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "red",
+            "label": "Deprecated, will be removed"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "metrics:apiovh:serviceInfos/get",
+            "required": true
+          }
+        ]
+      },
+      "put": {
+        "summary": "Update service information",
+        "deprecated": true,
+        "x-deprecation-date": "2026-10-17T00:00:00Z",
+        "x-deletion-date": "2026-12-17T00:00:00Z",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/services.Service"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        },
+        "x-badges": [
+          {
+            "color": "red",
+            "label": "Deprecated, will be removed"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "metrics:apiovh:serviceInfos/edit",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/metrics/{serviceName}/terminate": {
+      "post": {
+        "summary": "Ask for the termination of your service",
+        "deprecated": true,
+        "x-deprecation-date": "2026-10-17T00:00:00Z",
+        "x-deletion-date": "2026-12-17T00:00:00Z",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "red",
+            "label": "Deprecated, will be removed"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "metrics:apiovh:terminate",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/metrics/{serviceName}/token": {
+      "get": {
+        "operationId": "listMetricsTokens",
+        "summary": "Get list of tokens",
+        "deprecated": true,
+        "x-deprecation-date": "2026-10-17T00:00:00Z",
+        "x-deletion-date": "2026-12-17T00:00:00Z",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "red",
+            "label": "Deprecated, will be removed"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "metrics:apiovh:token/get",
+            "required": true
+          }
+        ],
+        "x-expanded-response": "MetricsApiToken"
+      },
+      "post": {
+        "operationId": "createMetricsToken",
+        "summary": "Create a token",
+        "deprecated": true,
+        "x-deprecation-date": "2026-10-17T00:00:00Z",
+        "x-deletion-date": "2026-12-17T00:00:00Z",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/metrics.TokenCreation"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/metrics.api.Token"
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "red",
+            "label": "Deprecated, will be removed"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "metrics:apiovh:token/create",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/metrics/{serviceName}/token/{tokenId}": {
+      "delete": {
+        "operationId": "deleteMetricsToken",
+        "summary": "Revoke a token",
+        "deprecated": true,
+        "x-deprecation-date": "2026-10-17T00:00:00Z",
+        "x-deletion-date": "2026-12-17T00:00:00Z",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "tokenId",
+            "description": "Token ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        },
+        "x-badges": [
+          {
+            "color": "red",
+            "label": "Deprecated, will be removed"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "metrics:apiovh:token/delete",
+            "required": true
+          }
+        ]
+      },
+      "get": {
+        "operationId": "getMetricsToken",
+        "summary": "Get a specific token",
+        "deprecated": true,
+        "x-deprecation-date": "2026-10-17T00:00:00Z",
+        "x-deletion-date": "2026-12-17T00:00:00Z",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "tokenId",
+            "description": "Token ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/metrics.api.Token"
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "red",
+            "label": "Deprecated, will be removed"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "metrics:apiovh:token/get",
+            "required": true
+          }
+        ],
+        "x-response-identifier": "id"
+      },
+      "put": {
+        "operationId": "editMetricsToken",
+        "summary": "Modify a token",
+        "deprecated": true,
+        "x-deprecation-date": "2026-10-17T00:00:00Z",
+        "x-deletion-date": "2026-12-17T00:00:00Z",
+        "security": [
+          {
+            "oAuth2AuthCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceName",
+            "description": "Service name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "tokenId",
+            "description": "Token ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/metrics.TokenUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/metrics.api.Token"
+                }
+              }
+            }
+          }
+        },
+        "x-badges": [
+          {
+            "color": "red",
+            "label": "Deprecated, will be removed"
+          }
+        ],
+        "x-iam-actions": [
+          {
+            "name": "metrics:apiovh:token/edit",
+            "required": true
+          }
+        ]
+      }
+    }
+  }
+}

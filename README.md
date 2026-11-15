@@ -1,31 +1,40 @@
-# StackQL provider template
+# StackQL OVHcloud provider
 
-A template repository for building a [StackQL](https://github.com/stackql/stackql) provider to the current standard: a deterministic `make` pipeline from a pinned upstream spec to a generated provider, every any-sdk primitive available where the API warrants it (snake_case surface, request and response transforms, pagination, query-parameter pushdown, `x-stackQL-envVar` scoping, `objectKey`, lifecycle `EXEC` methods, GraphQL merge, provider views), three credential-free test layers, a budgeted live smoke suite, a Docusaurus microsite and CI.
+The `ovh` provider for [StackQL](https://github.com/stackql/stackql): query, provision and manage OVHcloud resources using SQL. It maps the OVHcloud API (v1 and v2) - 88 API families, 7,313 operations - to 98 services and 2,470 resources: Public Cloud projects and their products, bare metal servers, VPS, Hosted Private Cloud, domains and DNS, IP addresses, vRack, load balancers, web hosting, email, telephony, ordering, the account and IAM.
 
-The procedure is the bundled Claude Code skill, [`.claude/skills/stackql-provider-development`](.claude/skills/stackql-provider-development/SKILL.md). The repository is laid out so a coding agent session (or a person) can complete it for a given provider by working the skill's steps in order; every decision left open is marked `TODO(template)`. The skill also uplifts an existing provider repository - copy the `.claude/skills` directory there and start from its `references/uplift-checklist.md`.
+This repository is the build: a deterministic `make` pipeline from the pinned upstream specs to the generated provider, three credential-free test layers, a live smoke suite, the Docusaurus microsite ([ovh-provider.stackql.io](https://ovh-provider.stackql.io)) and CI. It was created from [stackql-provider-TEMPLATE](https://github.com/stackql-registry/stackql-provider-TEMPLATE); the procedure is the bundled skill, [`.claude/skills/stackql-provider-development`](.claude/skills/stackql-provider-development/SKILL.md), the settled decisions are in [AGENTS.md](AGENTS.md) and the findings behind them in [NOTES.md](NOTES.md).
 
-The rest of this file is the shape of the finished provider README (numbered build guide, steps 0-8, with counts that match the committed artifacts). Replace the sections as the build settles them.
+```sql
+REGISTRY PULL ovh;
 
-## Using the template
-
-1. Create the repository from this template (GitHub "Use this template", or clone and re-init) and run `npm install`.
-2. Rewrite the placeholders: `bin/init-provider.sh <name> "<Title>" [https://api.vendor.com]` replaces `myprovider`, `My Provider`, `MYPROVIDER`, `api.example.com` and the `stackql-provider-myprovider` repository slug across the files that carry them (`grep -rn myprovider .` afterwards should find nothing outside `.claude/`).
-3. Fill the constants in `provider-dev/scripts/lib/spec_helpers.mjs` (`SPEC_URL`, `SPEC_FILE`, `PATH_VERSION_PREFIX`, `SCOPE_PREFIX` / `ROOT_PATHS` for a scoped API, `WIRE_CASING`) and `provider-dev/config/` (`servers.json`, `provider_config.json`, `service_names.json`). `SOURCE_PROJECT` in the Makefile defaults to `https://github.com/stackql-registry/stackql-provider-<name>`; set it to the repository's own URL when it lives elsewhere.
-4. Open a coding agent session in the repository (Claude Code, GitHub Copilot or Codex) and ask it to build the provider - it picks up [AGENTS.md](AGENTS.md), the shared project guidance (Codex directly, Claude Code through `CLAUDE.md`, GitHub Copilot through `.github/copilot-instructions.md`), and the skill it points to. Or work the skill's steps by hand: `make fetch-spec`, `make inventory`, add service rules, `make split`, `make mappings-report` / `make mappings`, and so on to `make all`.
-5. `grep -rn "TODO(template)" --exclude-dir=node_modules .` lists what is still open.
-
-What the template is not: a publisher. Publishing to the public registry is a separate, human-in-the-loop step (section 7).
+SELECT project_id, project_name, status, plan_code, creation_date
+FROM ovh.cloud.projects
+ORDER BY project_name;
+```
 
 ## What is StackQL
 
-[StackQL](https://github.com/stackql/stackql) is an open-source SQL interface for cloud and SaaS APIs. A provider is a versioned set of OpenAPI documents plus `x-stackQL-resources` extensions that the [any-sdk](https://github.com/stackql/any-sdk) engine turns into SQL tables: `SELECT` for reads, `INSERT` / `UPDATE` / `REPLACE` / `DELETE` for lifecycle, `EXEC` for actions, with `json_extract` over nested fields and joins across providers.
+[StackQL](https://github.com/stackql/stackql) is an open-source SQL interface for cloud and SaaS APIs. A provider is a versioned set of OpenAPI documents plus `x-stackQL-resources` extensions that the engine turns into SQL tables: `SELECT` for reads, `INSERT` / `UPDATE` / `DELETE` for lifecycle, `EXEC` for actions, with `json_extract` over nested fields and joins across providers.
+
+## Authentication and configuration
+
+The provider reads the same environment variables as the OVHcloud Terraform provider.
+
+| Variable | Purpose |
+|---|---|
+| `OVH_ENDPOINT` | The API region: `ovh-eu` (default), `ovh-ca` or `ovh-us`. Selects the API host (`api.<region>.ovhcloud.com`) and the OAuth2 token host (`auth.<region>.ovhcloud.com`). |
+| `OVH_CLIENT_ID`, `OVH_CLIENT_SECRET` | A service account, used with the OAuth2 client credentials grant. The default authentication. |
+| `OVH_ACCESS_TOKEN` | A pre-issued access token, used with `--auth='{"ovh": {"type": "bearer", "credentialsenvvar": "OVH_ACCESS_TOKEN"}}'`. |
+| `OVH_CLOUD_PROJECT_SERVICE` | The Public Cloud project ID. Resolves the project variable (`service_name`, `project_id`) of the Public Cloud services so queries need no `WHERE` clause for it. |
+
+A service account has no rights until an IAM policy names it. Application key signing (`OVH_APPLICATION_KEY`, `OVH_APPLICATION_SECRET`, `OVH_CONSUMER_KEY`) is not available yet: it needs a request signing method StackQL does not have ([stackql-labs/omnisdk#56](https://github.com/stackql-labs/omnisdk/issues/56)).
 
 ## Prerequisites
 
 - Node.js >= 22.19
-- A `stackql` binary (`$STACKQL`, `./stackql`, or on `PATH`; `bin/start-server.sh` downloads one if none is found)
+- A `stackql` binary, v1.0.888 or later (`$STACKQL`, `./stackql`, or on `PATH`; `bin/start-server.sh` downloads one if none is found)
 - GNU make and bash (Linux, macOS or WSL); Python 3 for the smoke suite; yarn for the website
-- For live smoke tests: a dedicated dev account for the provider (never a production account) and its credentials in `.env` (see `.env.example`)
+- For live smoke tests: a dedicated OVHcloud dev account (never a production account), a service account with an IAM policy on it, and its credentials in `.env` (see `.env.example`)
 
 ## Makefile
 
@@ -33,25 +42,27 @@ Every step is a `make` target (`make help` lists them). The composites:
 
 ```bash
 make all      # deps, full pipeline (fetch/pin verify, inventory, split, mappings, pre-normalize,
-              # normalize, generate, post-process, GraphQL merge), offline + integration + meta-route
-              # tests, docs generation, website build - no credentials needed
+              # normalize, generate, post-process), offline + integration + meta-route tests,
+              # docs generation, website build - no credentials needed
 make build    # the spec -> provider pipeline only
 make test     # the three credential-free test layers
 make smoke    # live smoke suite against the dev account (sources .env if present)
 ```
 
-`make all` never touches a real account. The live suites are `smoke`, `smoke-live` (the published provider, post-publish verification), `smoke-read-only`, `smoke-gated-lifecycle` (the expensive create/delete, gated) and `smoke-cleanup` (sweep `stackql-smoke-*` breadcrumbs).
+`make all` never touches a real account. It takes about 25 minutes on a warm checkout (23 measured; the meta-route walk, the docs generation and the site build are the long steps). The live suites are `smoke`, `smoke-live` (the published provider, post-publish verification), `smoke-read-only`, `smoke-instance-lifecycle` (the billable instance create / delete, gated) and `smoke-cleanup` (sweep `stackql-smoke-*` breadcrumbs).
 
-## 0. Download and pin the spec
+## 0. Download and pin the specs
 
 ```bash
 make fetch-spec      # verify against the recorded pin (fails on drift)
 make refresh-spec    # accept an upstream change (rewrites the pin - review the diff)
 ```
 
-`bin/fetch-spec.sh` downloads the spec to a temp dir; `provider-dev/scripts/record_spec_pin.mjs` applies the deterministic fix classes (counted in the pin), validates with `@apidevtools/swagger-parser`, redacts credential-shaped example values, verifies the upstream sha256 against `provider-dev/config/spec_pin.json` and only then writes the snapshot into `provider-dev/downloaded/` (committed, so every refresh is a reviewable diff). Before accepting a refresh: `node .claude/skills/stackql-provider-development/scripts/spec_diff.mjs <pinned> <fetched>` and record the summary in `NOTES.md`.
+OVHcloud publishes one OpenAPI 3.0.0 document per API family and version: `https://api.eu.ovhcloud.com/<v1|v2>/` lists the families and `<version><family>.json?format=openapi3` is a family's document. `provider-dev/scripts/record_spec_pin.mjs` fetches the family lists and every document, applies the deterministic fix classes (counted in the pin), validates each with `@apidevtools/swagger-parser`, verifies the upstream hashes against `provider-dev/config/spec_pin.json` and only then writes the snapshots into `provider-dev/downloaded/<version>/<family>.json` (committed, so every refresh is a reviewable diff). The EU endpoint is pinned because it serves the superset of families.
 
-TODO(template): the pinned snapshot's title, OpenAPI version, path and operation counts, fetch date and the fix classes applied.
+Pinned 2026-11-15: 88 documents (70 API v1, 18 API v2), 5,289 paths, 7,313 operations, 28.7 MB upstream. Fix classes applied: `vendor_scalar_type_lowered` 6 (`type: long`, `type: duration`), `code_samples_removed` 7,313 (the console's client snippets). The pinned hash is taken over the parsed document with its `tags` sorted, because upstream serialises that array in an unstable order.
+
+Before accepting a refresh: `node .claude/skills/stackql-provider-development/scripts/spec_diff.mjs <pinned> <fetched>` for each changed family, and record the summary in `NOTES.md`.
 
 ## 1. Endpoint inventory and service split
 
@@ -59,17 +70,39 @@ TODO(template): the pinned snapshot's title, OpenAPI version, path and operation
 make inventory
 ```
 
-Writes `provider-dev/config/endpoint_inventory.csv`: one row per operation with scope, path params, pagination-looking query params, request body presence / media types / bare-array flag, the update-semantics presumption, vendor labels, response shape and envelope candidates, the proposed service / resource / method / verb / objectKey and a skip reason code.
+Writes `provider-dev/config/endpoint_inventory.csv`: one row per operation with the API version and family, scope, path params, pagination-looking parameters (OVHcloud pages with `X-Pagination-*` request headers), request body presence / media types / kind, the update-semantics presumption, vendor labels, response shape, whether an identifier list is expandable, the proposed service, a draft resource and verb, and a skip reason code.
 
-The service split is the ordered path rules in `provider-dev/config/service_names.json` (first match wins; an unmatched path fails the build; `"excluded": true` classifies a service whose every operation is skip-coded without emitting it). Then:
+| | Operations |
+|---|---|
+| Total | 7,313 (API v1 6,369, API v2 944) |
+| Mapped | 6,590 |
+| Skipped: `deprecated_superseded` (deprecated, with a vendor-named replacement route) | 703 |
+| Skipped: `untyped_map_response` / `untyped_map_body` (free-form maps, no columns) | 8 / 7 |
+| Skipped: `no_response_schema` | 3 |
+| Skipped: `bare_array_body` | 2 |
+| Mapped and labelled beta / alpha / deprecated | 1,024 / 133 / 123 |
+| Identifier lists expanded into full objects | 817 |
+
+The service split is the ordered rules in `provider-dev/config/service_names.json`, matched against the qualified path (the vendor path prefixed with the API version, `/v1/cloud/project/{serviceName}/instance`); first match wins and an unmatched path fails the build. One service per API family; the two Public Cloud families are sub-split by product. Then:
 
 ```bash
 make split
 ```
 
-writes `provider-dev/source/<service>.yaml` (committed build artifacts), rebased onto the scoped server template in `provider-dev/config/servers.json` when `SCOPE_PREFIX` is set.
+writes `provider-dev/source/<service>.yaml` (98 committed build artifacts), each with the server template of its kind from `provider-dev/config/servers.json`. Operations the vendor left without an `operationId` (6,097) get a deterministic one. The Public Cloud services are rebased onto the project-scoped server template.
 
-TODO(template): the inventory counts (operations, mapped, skipped by reason code, labelled) and the service table (service -> resources).
+| Services | |
+|---|---|
+| Public Cloud (API v1) | `cloud`, `cloud_ai`, `cloud_container_registry`, `cloud_database`, `cloud_kube`, `cloud_network`, `cloud_storage` |
+| Public Cloud (API v2) | `public_cloud`, `public_cloud_analytics`, `public_cloud_database`, `public_cloud_kubernetes`, `public_cloud_network`, `public_cloud_storage` |
+| Bare metal and private cloud | `dedicated_server`, `dedicated_server_v2`, `dedicated_cloud`, `dedicated_ceph`, `dedicated_cluster`, `dedicated_housing`, `dedicated_installation_template`, `dedicated_nasha`, `nutanix`, `vps`, `vmware_cloud_director`, `horizon_view`, `cluster_hadoop` |
+| Network | `ip`, `ip_loadbalancing`, `vrack`, `vrack_services`, `ovh_cloud_connect`, `cdn_dedicated`, `ssl`, `ssl_gateway`, `network_defense` |
+| Storage and backup | `storage`, `backup_services`, `veeam_cloud_connect`, `veeam_enterprise` |
+| Domains, web and email | `domain`, `domain_v2`, `all_dom`, `hosting_web`, `hosting_private_database`, `webhosting`, `managed_cms`, `email_domain`, `email_exchange`, `email_mxplan`, `email_pro`, `zimbra`, `ms_services`, `saas_csp2` |
+| Account, IAM and billing | `me`, `account`, `auth`, `iam`, `okms`, `services`, `service`, `order`, `price`, `finops`, `commercial_catalog`, `notification`, `location`, `new_account`, `partner`, `startup`, `support`, `contact`, `secret`, `vip` |
+| Observability and data | `dbaas_logs`, `metrics`, `videocenter` |
+| Licenses | `license_cloud_linux`, `license_cpanel`, `license_directadmin`, `license_hycu`, `license_office`, `license_office_prepaid`, `license_plesk`, `license_redhat`, `license_sqlserver`, `license_virtuozzo`, `license_windows`, `license_worklight` |
+| Telecom | `telephony`, `sms`, `xdsl`, `pack_xdsl`, `pack_siptrunk`, `over_the_box`, `connectivity`, `freefax`, `stack_mis`, `supply_mondial_relay` |
 
 ## 2. Mappings
 
@@ -78,20 +111,20 @@ make mappings-report   # print every derived mapping without writing
 make mappings          # regenerate all_services.csv from scratch and apply the rules
 ```
 
-`provider-dev/scripts/map_operations.mjs` fills `stackql_resource_name`, `stackql_method_name`, `stackql_verb` and `stackql_object_key` from the mechanical derivation plus `RESOURCE_RULES` / `METHOD_RULES`, and validates: every row mapped or skipped with a reason, every spec operation present, `(service, resource, method)` unique, unique required-parameter signatures per `(resource, sqlVerb)`. Fails without writing on any violation.
+`provider-dev/scripts/map_operations.mjs` fills `stackql_resource_name`, `stackql_method_name` and `stackql_verb` from the derivation in `provider-dev/scripts/lib/mapping.mjs` plus `RESOURCE_RULES` / `METHOD_RULES`, and validates: every row mapped or skipped with a reason, every spec operation present, `(service, resource, method)` unique, unique required-parameter signatures per `(resource, sqlVerb)`. Fails without writing on any violation. `--notes` lists the overloads the derivation resolved on its own.
 
 `provider-dev/config/all_services.csv` is the committed contract of every operation -> resource.method mapping; a diff on regeneration is a breaking-change review.
 
 | Operation pattern | StackQL verb | Resource / method |
 |---|---|---|
-| GET collection | `SELECT` | `<resource>.list` (objectKey from the envelope) |
-| GET single | `SELECT` | `<resource>.get` |
-| POST create | `INSERT` | `<resource>.create` |
-| PATCH / PUT | `UPDATE` | `<resource>.update` |
+| GET returning an array | `SELECT` | `<resource>.list` |
+| GET returning anything else | `SELECT` | `<resource>.get` |
+| POST on a readable path | `INSERT` | `<resource>.create` |
+| PUT / PATCH | `UPDATE` | `<resource>.update` (where a path has both, PUT is `EXEC` `<resource>.replace`) |
 | DELETE | `DELETE` | `<resource>.delete` |
-| PATCH / PUT action segment | `EXEC` | `<parent>.update_<segment>` |
-| POST action segment | `EXEC` | `<parent>.<segment>` |
-| POST read (search / query) | `SELECT` | `<resource>.list` (objectKey in post-process) |
+| any verb on a path with no read (an action segment) | `EXEC` | `<nearest readable ancestor>.<segments>` (`servers.reboot`, `storages.delete_cors`) |
+
+A resource is every static path segment under its family, snake_cased, the last one pluralized (`/ip/{ip}/firewall/{ipOnFirewall}/rule` -> `ovh.ip.firewall_rules`). Result: 3,665 `SELECT`, 895 `INSERT`, 495 `UPDATE`, 586 `DELETE` and 949 `EXEC` methods on 2,470 resources, 2,451 of them selectable.
 
 ## 3. Normalize
 
@@ -100,48 +133,50 @@ make pre-normalize   # provider-specific passes in provider-dev/scripts/pre_norm
 make normalize       # provider-utils: allOf flatten, oneOf/anyOf lowering, bare-array wrap
 ```
 
+The pre-normalize passes: (1) identifier lists expanded into full objects - 817 lists get the `X-Pagination-Mode: CachedObjectList-Pages` header as a defaulted parameter and the keyed read's schema as their row type; (2) 255 scalar lists marked for a single `value` column; (3) 63 scalar reads typed as a `value` object; (4) the vendor's status label appended to 1,983 operation descriptions. Normalize wraps 1,681 bare-array responses.
+
 ## 4. Generate
 
 ```bash
-make generate        # rm output, generate (servers, auth, naive bodies, views), post-process, GraphQL merge
+make generate        # rm output, generate (auth, naive bodies), post-process, GraphQL merge (no-op)
 ```
 
-Output: `provider-dev/openapi/src/<name>/v00.00.00000/provider.yaml` + `services/*.yaml` (committed). `provider-dev/scripts/post_process.mjs` re-applies everything the generator cannot express as numbered rules (root-path server overrides, `nativeCasing`, DELETE-body translation, objectKeys on POST reads, pagination, transforms, pushdown, aliases). GraphQL fragments in `provider-dev/source-graphql/` and views in `views/<service>/views.yaml` are merged here.
+Output: `provider-dev/openapi/src/ovh/v00.00.00000/provider.yaml` + 98 `services/*.yaml` (committed). `provider-dev/scripts/post_process.mjs` re-applies what the generator cannot express, as numbered rules: path-level `servers` on the 10 root paths of the project-scoped services, `request.nativeCasing: camel` on all 6,590 methods, the response transforms for scalar reads and scalar lists, and `objectKey: $` on the 3 single-object responses that carry an `items` property. OVHcloud has no GraphQL API, so `provider-dev/source-graphql/manifest.yaml` lists no operations.
 
 ## 5. Test
 
 ```bash
-make test-offline        # SHOW / DESCRIBE against the local file registry
-make test-integration    # mock API, row-level and wire-level assertions
-make test-meta           # meta-route walk over a local stackql server
+make test-offline        # SHOW / DESCRIBE against the local file registry (28 checks)
+make test-integration    # mock API, row-level and wire-level assertions (57 checks)
+make test-meta           # meta-route walk over a local stackql server (2,470 resources, about 10 minutes)
 make smoke               # live (needs .env)
 ```
 
 `npm run probe -- "SELECT ..."` runs ad-hoc SQL against the mock and prints the wire calls.
 
-TODO(template): the smoke suite's design (which Terraform examples it mirrors), its budget, and the gated lifecycle.
+The offline layer checks, for every service, that the resources stackql shows are exactly the ones `all_services.csv` maps. The integration layer runs against `tests/integration/mock_ovh_server.mjs`, which serves the real wire shapes, implements the OAuth2 token endpoint and enforces the bearer token; the endpoint selector is exercised for real by reaching the one mock under two host names.
+
+The smoke suite (`tests/smoke_test.py`, pystackql) mirrors the resources the OVHcloud Terraform provider documents first: read smokes across API v1 and v2 (the project inventory, regions, quotas, flavors, instances, SSH keys, Kubernetes, vRack, IP blocks, IAM policies and resources, locations), then free self-cleaning write lifecycles - a Public Cloud SSH key (`INSERT ... RETURNING`, `SELECT`, `DELETE`), a project description toggle-and-restore (`UPDATE`) and an IAM resource group through API v2 (`INSERT`, `UPDATE`, `DELETE`). The default run creates nothing billable. `make smoke-instance-lifecycle` adds an instance create / rename / reboot / delete on the smallest hourly flavor (a few cents). Everything created is named `stackql-smoke-<stamp>` and swept at the start of the next run.
 
 ## 6. Docs
 
 ```bash
-make docs        # generate website/docs (snake_case surface) and sanitize for MDX
+make docs        # generate website/docs (snake_case surface) and sanitize
 make website     # yarn install && yarn build (vendors the shared stackql/docusaurus-config)
 make website-start
 ```
 
-`provider-dev/docgen/provider-data/headerContent1.txt` is the landing-page front matter and pitch; `headerContent2.txt` is the getting-started page (installation, scope, authentication, the scoping variable, rate limit, labelling, example queries - lead with the queries the provider exists for). The examples close the file under an `## Example Queries` heading, the same table-of-contents entry on every provider site: one intro sentence under the H2 (so no heading sits directly on another), then one H3 per example with a one-sentence lead-in ending in a colon and one `sql` block. `website/provider.js` carries the site identity; `website/static/CNAME` the hostname; add `website/static/img/stackql-<name>-provider-featured-image.png`, and keep the favicon files at the `static/` root (the shared config links them root-relative). Commit `website/docs` after every regeneration.
-
-`make docs` also passes `--source-project $(SOURCE_PROJECT)`, which adds a `source project` row to the Provider Summary on the landing page linking to this repository. The default is the `stackql-registry/stackql-provider-<name>` convention; a repository hosted elsewhere sets `SOURCE_PROJECT` in the Makefile (or runs `make docs SOURCE_PROJECT=<url>`).
+`provider-dev/docgen/provider-data/headerContent1.txt` is the landing-page front matter and pitch; `headerContent2.txt` is the getting-started page (installation, scope, authentication, the regional endpoint, the project scope, lists and pagination, labelling, example queries). `website/scripts/sanitize-docs.mjs` escapes MDX-hostile vendor text and corrects what docgen cannot know about the server variables: `api_host` is removed from required parameters and examples, the project variable is annotated "required unless OVH_CLOUD_PROJECT_SERVICE is set". `website/provider.js` carries the site identity, `website/static/CNAME` the hostname and `website/static/img/stackql-ovh-provider-featured-image.png` the social image. Commit `website/docs` (2,569 pages) after every regeneration.
 
 To publish the site: rename `.github/workflows/prod-web-deploy.yml.disabled` and `test-web-deploy.yml.disabled`, enable GitHub Pages (source: GitHub Actions) and add the DNS record:
 
 | Source domain | Record type | Target |
 |---|---|---|
-| `<name>-provider.stackql.io` | CNAME | `stackql.github.io.` |
+| `ovh-provider.stackql.io` | CNAME | `stackql.github.io.` |
 
 ## 7. Publish
 
-Push the generated `provider-dev/openapi/src/<name>` directory to `providers/src` in a feature branch of [stackql-provider-registry](https://github.com/stackql/stackql-provider-registry) and follow the [registry release flow](https://github.com/stackql/stackql-provider-registry/blob/dev/docs/build-and-deployment.md). Verify from the dev registry, then `make smoke-live`:
+Push the generated `provider-dev/openapi/src/ovh` directory to `providers/src` in a feature branch of [stackql-provider-registry](https://github.com/stackql/stackql-provider-registry) and follow the [registry release flow](https://github.com/stackql/stackql-provider-registry/blob/dev/docs/build-and-deployment.md). Verify from the dev registry, then `make smoke-live`:
 
 ```bash
 export DEV_REG='{ "url": "https://registry-dev.stackql.app/providers" }'
@@ -149,26 +184,12 @@ stackql --registry="${DEV_REG}" shell
 ```
 
 ```sql
-REGISTRY PULL myprovider;
+REGISTRY PULL ovh;
 ```
 
 ## 8. CI
 
-`.github/workflows/build-and-test.yml`: on push / PR - `npm ci`, `stackql/setup-stackql`, pin verification (warns on drift), the build steps, a hard failure on uncommitted generation drift, the three credential-free test layers, docs generation; a live smoke job that is skipped at the job level on pull requests, until a spec is pinned and until the secrets are configured (never the gated lifecycle); a weekly `spec-drift` job that fetches, compares with the pin and opens a labelled issue. The web deploy workflows build the site from `main` once enabled.
-
-## Authentication reference
-
-`provider-dev/config/provider_config.json` becomes `config:` in `provider.yaml`. Env var names follow the vendor's Terraform provider (unless it only offers `TF_VAR_*` names, then the vendor CLI's). The common `auth.type` values (the full table is in the skill's `scoping-and-auth.md`):
-
-```json
-{"auth": {"type": "bearer", "credentialsenvvar": "VENDOR_TOKEN"}}
-{"auth": {"type": "api_key", "credentialsenvvar": "VENDOR_API_KEY", "valuePrefix": "SSWS "}}
-{"auth": {"type": "basic", "username_var": "VENDOR_KEY_ID", "password_var": "VENDOR_KEY_SECRET"}}
-{"auth": {"type": "custom", "location": "header", "name": "X-API-Key", "credentialsenvvar": "VENDOR_API_KEY"}}
-{"auth": {"type": "oauth2", "grant_type": "client_credentials", "client_id_env_var": "VENDOR_CLIENT_ID", "client_secret_env_var": "VENDOR_CLIENT_SECRET", "token_url": "https://auth.vendor.com/oauth/token"}}
-```
-
-A user can override at runtime with `stackql --auth='{"<provider>": {...}}'`.
+`.github/workflows/build-and-test.yml`: on push / PR - `npm ci`, `stackql/setup-stackql`, pin verification (warns on drift), the build steps, a hard failure on uncommitted generation drift, the three credential-free test layers, docs generation; a live smoke job that is skipped at the job level on pull requests and until the secrets are configured (`OVH_CLIENT_ID`, `OVH_CLIENT_SECRET`, `OVH_ENDPOINT`, `OVH_CLOUD_PROJECT_SERVICE`; never the instance lifecycle); a weekly `spec-drift` job that fetches, compares with the pin and opens a labelled issue. The web deploy workflows build the site from `main` once enabled.
 
 ## Contributing
 

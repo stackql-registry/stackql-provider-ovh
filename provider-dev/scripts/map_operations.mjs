@@ -8,188 +8,117 @@
 // Manual mapping decisions are applied as rules here, never as hand-edits
 // to the CSV.
 //
-// Mechanical derivation (lib/spec_helpers.mjs), then the override tables:
-//   GET collection            -> SELECT <resource>.list   (objectKey from the envelope)
-//   GET single                -> SELECT <resource>.get
-//   POST create               -> INSERT <resource>.create
-//   PATCH/PUT edit            -> UPDATE <resource>.update
-//   DELETE                    -> DELETE <resource>.delete
-//   PATCH/PUT action segment  -> EXEC   <parent>.update_<segment>
-//   POST action segment       -> EXEC   <parent>.<segment>
-//   POST read segment         -> SELECT <resource>.list (objectKey set in post_process)
-//   skip rules                -> skip_this_resource (reason-coded in the inventory)
+// The derivation is lib/mapping.mjs (read its header for the rules):
+//   GET  array response        -> SELECT <resource>.list
+//   GET  anything else         -> SELECT <resource>.get
+//   POST on a readable node    -> INSERT <resource>.create
+//   PUT / PATCH                -> UPDATE <resource>.update
+//   DELETE                     -> DELETE <resource>.delete
+//   any verb on a node with no read (an action segment)
+//                              -> EXEC   <nearest readable ancestor>.<segments>
+//   skip rules                 -> skip_this_resource (reason-coded in the inventory)
+//
+// stackql_object_key stays blank on every row: the v1 and v2 APIs return
+// bare arrays and bare objects, never an envelope; bare arrays are wrapped
+// by normalize + generate and carry no objectKey of their own.
 //
 // Validates before writing: every CSV row mapped or skipped with a reason,
 // every spec operation present in the CSV, (service, resource, method)
 // unique, and unique required-parameter signatures per (resource, sqlVerb).
 // Fails without writing on violations.
 //
-// Usage: npm run map-operations [-- --report] [-- --out other.csv]
+// Usage: npm run map-operations [-- --report] [-- --notes] [-- --out other.csv]
 //   --report prints every derived mapping without writing - the fastest way
 //   to design RESOURCE_RULES / METHOD_RULES for a new service.
+//   --notes prints the overloads and signature clashes the derivation
+//   resolved on its own.
 
 import fs from 'fs';
 import path from 'path';
 import yaml from 'js-yaml';
-import pluralize from 'pluralize';
 import {
-  REPO_ROOT, HTTP_VERBS, camelToSnake, pathParams, normalizePath, makeResolver,
-  classifyResponse, proposeObjectKey, hasRowArray, skipReason, scopedSegments,
-  ACTION_SEGMENTS, POST_EXEC_SEGMENTS, POST_READ_SEGMENTS, deriveResource
+  CONFIG_DIR, SOURCE_DIR, HTTP_VERBS, pathParams, makeResolver, makeServiceResolver, parseCsv, csvField
 } from './lib/spec_helpers.mjs';
+import { mapService } from './lib/mapping.mjs';
 
-const sourceDir = path.join(REPO_ROOT, 'provider-dev', 'source');
-const csvPath = path.join(REPO_ROOT, 'provider-dev', 'config', 'all_services.csv');
+const csvPath = path.join(CONFIG_DIR, 'all_services.csv');
 const report = process.argv.includes('--report');
+const showNotes = process.argv.includes('--notes');
 
 // ---------------------------------------------------------------------------
-// Override tables. TODO(template): add rules as services come online.
+// Override tables. Matched on the qualified path with parameters collapsed
+// to {} (/v1/cloud/project/{}/kube/{}/nodepool). First match wins.
 // ---------------------------------------------------------------------------
 
-// Explicit resource-name overrides, matched on (service optional, verb
-// optional, normalized path with params collapsed to {}). First match wins.
+// Explicit resource names for a node (the path without trailing parameters).
+// Used where the mechanical name would collide or mislead.
+//
+// The cases here are singular / plural sibling segments that are different
+// things but pluralize to one name. A global collection and its per-service
+// twin (/sms/virtualNumbers and /sms/{serviceName}/virtualNumbers) are left
+// to the overload rule: one resource, list and list_by_<parameter>.
 const RESOURCE_RULES = [
-  // { service: 'services', re: /\/clickhouseSettings\/schema$/, resource: 'clickhouse_settings_schemas' },
-  // { service: 'postgres', re: /\/postgres(\/\{\})?$/, resource: 'services' }
+  // servicePack is the pack in force (a status object); servicePacks lists the packs on offer
+  { service: 'dedicated_cloud', re: /^\/v1\/dedicatedCloud\/\{\}\/servicePack$/, resource: 'service_pack_statuses' },
+  // option lists / reads / removes one option; options is one summary object for the domain
+  { service: 'domain', re: /^\/v1\/domain\/\{\}\/options$/, resource: 'service_options' },
+  // /license/hycu/{serviceName} is the license; .../license is its downloadable file
+  { service: 'license_hycu', re: /^\/v1\/license\/hycu\/\{\}\/license$/, resource: 'license_files' },
+  // offerChange is the one scheduled change (read, schedule, cancel); offerChanges lists the offers available
+  { service: 'telephony', re: /^\/v1\/telephony\/\{\}\/service\/\{\}\/offerChange$/, resource: 'service_scheduled_offer_changes' }
 ];
 
-// Method-name / verb / objectKey overrides for cases the generic rules
-// cannot express, matched on (verb, normalized path). First match wins.
+// Method name / SQL verb overrides: { verb, re, method?, sqlVerb?, resource?, service? }
 const METHOD_RULES = [
-  // { verb: 'get', re: /\/usageCost$/, method: 'list', sqlVerb: 'select', objectKey: '$.result.costs' },
-  // { verb: 'get', re: /\/settings$/, method: 'list', sqlVerb: 'select', objectKey: '$.result' }
+  // POST .../kube/{kubeId}/update forces a version update; hoisted onto
+  // clusters it would take the name of the PUT that edits the cluster
+  { service: 'cloud_kube', verb: 'post', re: /^\/v1\/cloud\/project\/\{\}\/kube\/\{\}\/update$/, method: 'force_update' }
 ];
 
 // ---------------------------------------------------------------------------
-// Index every operation in the split service specs
+// Map every split service specification
 // ---------------------------------------------------------------------------
 
-const ops = new Map(); // `${filename}::${path}::${verb}` -> { op, pathItem, resolve }
-const specFiles = fs.existsSync(sourceDir) ? fs.readdirSync(sourceDir).filter((f) => f.endsWith('.yaml')).sort() : [];
+const resolver = makeServiceResolver();
+const specFiles = fs.existsSync(SOURCE_DIR) ? fs.readdirSync(SOURCE_DIR).filter((f) => f.endsWith('.yaml')).sort() : [];
 if (specFiles.length === 0) {
-  console.error(`Error: no service specs in ${sourceDir} - run make split first`);
+  console.error(`Error: no service specs in ${SOURCE_DIR} - run make split first`);
   process.exit(1);
 }
+
+const errors = [];
+const mappings = new Map(); // `${filename}::${path}::${verb}` -> mapping
+const signatures = new Map(); // same key -> required-parameter signature
+const allNotes = [];
 for (const filename of specFiles) {
-  const spec = yaml.load(fs.readFileSync(path.join(sourceDir, filename), 'utf8'));
-  const resolve = makeResolver(spec);
-  for (const [pathKey, pathItem] of Object.entries(spec.paths || {})) {
+  const service = filename.replace(/\.yaml$/, '');
+  const doc = yaml.load(fs.readFileSync(path.join(SOURCE_DIR, filename), 'utf8'));
+  let result;
+  try {
+    result = mapService(doc, service, resolver, { resourceRules: RESOURCE_RULES, methodRules: METHOD_RULES });
+  } catch (err) {
+    errors.push(`${filename}: ${err.message}`);
+    continue;
+  }
+  const resolve = makeResolver(doc);
+  for (const [k, m] of result.rows) {
+    const [pathKey, verb] = k.split('::');
+    mappings.set(`${filename}::${pathKey}::${verb}`, m);
+    const op = doc.paths[pathKey][verb];
+    const requiredQuery = (op.parameters || []).map((p) => resolve(p)).filter((p) => p && p.in === 'query' && p.required).map((p) => p.name);
+    signatures.set(`${filename}::${pathKey}::${verb}`, [...pathParams(pathKey), ...requiredQuery].sort().join(','));
+  }
+  for (const [pathKey, pathItem] of Object.entries(doc.paths || {})) {
     for (const verb of HTTP_VERBS) {
-      if (!pathItem[verb]) continue;
-      ops.set(`${filename}::${pathKey}::${verb}`, { op: pathItem[verb], pathItem, resolve });
+      if (pathItem[verb] && !result.rows.has(`${pathKey}::${verb}`)) errors.push(`${filename} ${verb} ${pathKey}: not mapped and not skipped`);
     }
   }
+  allNotes.push(...result.notes);
 }
 
 // ---------------------------------------------------------------------------
-// Mapping
+// CSV read / transform
 // ---------------------------------------------------------------------------
-
-function resourceFor(service, pathKey, verb) {
-  const norm = normalizePath(pathKey);
-  for (const rule of RESOURCE_RULES) {
-    if (rule.service && rule.service !== service) continue;
-    if (rule.verb && rule.verb !== verb) continue;
-    if (rule.re.test(norm)) return rule.resource;
-  }
-  return deriveResource(pathKey, verb, service, pluralize);
-}
-
-// (service.resource) pairs that have a GET ending in a path parameter - used
-// to classify a keyless GET on the same resource as the collection read.
-const resourcesWithKeyedGet = new Set();
-for (const key of ops.keys()) {
-  const [filename, pathKey, verb] = key.split('::');
-  if (verb !== 'get' || !/\}$/.test(pathKey)) continue;
-  const service = filename.replace(/\.yaml$/, '');
-  resourcesWithKeyedGet.add(`${service}.${resourceFor(service, pathKey, verb)}`);
-}
-
-function mapOperation(filename, pathKey, verb) {
-  const entry = ops.get(`${filename}::${pathKey}::${verb}`);
-  if (!entry) return { error: `operation not found in ${sourceDir}` };
-  const { op, resolve } = entry;
-  const service = filename.replace(/\.yaml$/, '');
-
-  const skip = skipReason(pathKey, op, resolve, verb);
-  if (skip) return { resource: 'skip_this_resource', method: '', sqlVerb: '', objectKey: '', skip };
-
-  const norm = normalizePath(pathKey);
-  const resource = resourceFor(service, pathKey, verb);
-  const methodRule = METHOD_RULES.find((r) => r.verb === verb && r.re.test(norm));
-  if (methodRule) return { resource, method: methodRule.method, sqlVerb: methodRule.sqlVerb, objectKey: methodRule.objectKey || '' };
-
-  const { segs } = scopedSegments(pathKey);
-  const statics = segs.filter((s) => !s.startsWith('{'));
-  const lastStatic = statics[statics.length - 1];
-  const lastSegIsParam = /\}$/.test(pathKey);
-  const resp = classifyResponse(op, resolve);
-
-  if (verb === 'get') {
-    // the generator applies the CSV objectKey to GET only
-    if (lastSegIsParam) return { resource, method: 'get', sqlVerb: 'select', objectKey: singleEnvelopeKey(resp, resolve, op) };
-    // a keyless GET is the collection read when the response carries a row
-    // array, or when the same resource also has a keyed GET (a nested
-    // envelope the inventory could not see through); otherwise a singleton
-    // read (configs, windows, schedules)
-    const isCollection = hasRowArray(resp) || resourcesWithKeyedGet.has(`${service}.${resource}`);
-    if (isCollection) return { resource, method: 'list', sqlVerb: 'select', objectKey: proposeObjectKey(resp) };
-    return { resource, method: 'get', sqlVerb: 'select', objectKey: singleEnvelopeKey(resp, resolve, op) };
-  }
-  if (verb === 'delete') return { resource, method: 'delete', sqlVerb: 'delete', objectKey: '' };
-  if (verb === 'patch' || verb === 'put') {
-    if (ACTION_SEGMENTS.has(lastStatic)) return { resource, method: `update_${camelToSnake(lastStatic)}`, sqlVerb: 'exec', objectKey: '' };
-    return { resource, method: 'update', sqlVerb: 'update', objectKey: '' };
-  }
-  // post
-  if (POST_EXEC_SEGMENTS.has(lastStatic) || ACTION_SEGMENTS.has(lastStatic)) return { resource, method: camelToSnake(lastStatic), sqlVerb: 'exec', objectKey: '' };
-  if (POST_READ_SEGMENTS.has(lastStatic)) return { resource, method: 'list', sqlVerb: 'select', objectKey: '' }; // objectKey in post_process
-  return { resource, method: 'create', sqlVerb: 'insert', objectKey: '' };
-}
-
-// A single read whose body is {"result": {...}} / {"data": {...}} projects
-// the inner object; only when the preferred envelope key holds an object.
-function singleEnvelopeKey(resp, resolve, op) {
-  const { schema } = (() => { const r = op.responses?.[resp.code]?.content || {}; const t = Object.keys(r).find((m) => m.includes('json')); return { schema: t ? r[t].schema : null }; })();
-  const s = resolve(schema) || {};
-  const props = s.properties || {};
-  for (const k of ['result', 'data']) {
-    if (props[k] && (resolve(props[k]) || {}).properties) return `$.${k}`;
-  }
-  return '';
-}
-
-// ---------------------------------------------------------------------------
-// CSV read/transform/write (RFC 4180, preserves column order)
-// ---------------------------------------------------------------------------
-
-function parseCsv(text) {
-  const rows = [];
-  let row = [], field = '', inQuotes = false;
-  for (let i = 0; i < text.length; i++) {
-    const c = text[i];
-    if (inQuotes) {
-      if (c === '"') {
-        if (text[i + 1] === '"') { field += '"'; i++; } else { inQuotes = false; }
-      } else { field += c; }
-    } else if (c === '"') {
-      inQuotes = true;
-    } else if (c === ',') {
-      row.push(field); field = '';
-    } else if (c === '\n' || c === '\r') {
-      if (c === '\r' && text[i + 1] === '\n') i++;
-      row.push(field); field = '';
-      if (row.length > 1 || row[0] !== '') rows.push(row);
-      row = [];
-    } else { field += c; }
-  }
-  if (field !== '' || row.length > 0) { row.push(field); rows.push(row); }
-  return rows;
-}
-
-function csvField(v) {
-  return /[",\n\r]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v;
-}
 
 if (!fs.existsSync(csvPath)) {
   console.error(`Error: ${csvPath} not found - run the generate-mappings (analyze) step first (make mappings)`);
@@ -205,17 +134,15 @@ for (const required of ['filename', 'path', 'verb', 'operationId', 'stackql_reso
   }
 }
 
-const errors = [];
 const seenKeys = new Set();
 const stats = { select: 0, insert: 0, update: 0, delete: 0, exec: 0, skipped: 0 };
 const skipsByReason = {};
-
 for (const row of rows.slice(1)) {
-  const filename = row[col.filename], pathKey = row[col.path], verb = row[col.verb];
-  seenKeys.add(`${filename}::${pathKey}::${verb}`);
-  const m = mapOperation(filename, pathKey, verb);
-  if (m.error) {
-    errors.push(`${filename} ${verb} ${pathKey}: ${m.error}`);
+  const key = `${row[col.filename]}::${row[col.path]}::${row[col.verb]}`;
+  seenKeys.add(key);
+  const m = mappings.get(key);
+  if (!m) {
+    errors.push(`in CSV but not in the split specs: ${key}`);
     continue;
   }
   row[col.stackql_resource_name] = m.resource;
@@ -232,9 +159,8 @@ for (const row of rows.slice(1)) {
   row[col.stackql_object_key] = m.objectKey;
   stats[m.sqlVerb]++;
 }
-
 // every spec operation must have a CSV row (else generate-provider misses it)
-for (const key of ops.keys()) {
+for (const key of mappings.keys()) {
   if (!seenKeys.has(key)) errors.push(`in spec but not in CSV: ${key}`);
 }
 
@@ -248,6 +174,8 @@ for (const row of rows.slice(1)) {
   const resource = row[col.stackql_resource_name];
   if (!resource || resource === 'skip_this_resource') continue;
   const service = row[col.filename].replace(/\.yaml$/, '');
+  if (!/^[a-z][a-z0-9_]*$/.test(resource)) errors.push(`${service}: resource name "${resource}" is not snake_case (${row[col.path]})`);
+  if (!/^[a-z][a-z0-9_]*$/.test(row[col.stackql_method_name])) errors.push(`${service}.${resource}: method name "${row[col.stackql_method_name]}" is not snake_case (${row[col.path]})`);
   const methodKey = `${service}.${resource}.${row[col.stackql_method_name]}`;
   if (methodSeen.has(methodKey)) {
     errors.push(`duplicate method ${methodKey} (${methodSeen.get(methodKey)} and ${row[col.path]}:${row[col.verb]}) - add a RESOURCE_RULES or METHOD_RULES entry`);
@@ -256,13 +184,7 @@ for (const row of rows.slice(1)) {
 
   const sqlVerb = row[col.stackql_verb];
   if (sqlVerb === 'exec') continue;
-  // signature = required inputs: path params plus required query params
-  const entry = ops.get(`${row[col.filename]}::${row[col.path]}::${row[col.verb]}`);
-  const requiredQuery = [...(entry?.pathItem?.parameters || []), ...(entry?.op.parameters || [])]
-    .map((p) => entry.resolve(p))
-    .filter((p) => p && p.in === 'query' && p.required)
-    .map((p) => p.name);
-  const sig = [...pathParams(row[col.path]), ...requiredQuery].sort().join(',');
+  const sig = signatures.get(`${row[col.filename]}::${row[col.path]}::${row[col.verb]}`);
   const sigKey = `${service}.${resource}.${sqlVerb}::${sig}`;
   if (sigSeen.has(sigKey)) {
     errors.push(`signature clash on ${service}.${resource} ${sqlVerb} [${sig}] (${sigSeen.get(sigKey)} and ${row[col.stackql_method_name]}) - split the resource or make one EXEC`);
@@ -276,13 +198,18 @@ if (report) {
     console.log([row[col.filename].replace(/\.yaml$/, ''), row[col.stackql_resource_name], row[col.stackql_method_name], row[col.stackql_verb], row[col.stackql_object_key], row[col.path], row[col.verb]].join(','));
   }
 }
+if (showNotes) {
+  console.log(`\n${allNotes.length} overload / signature note(s):`);
+  for (const n of allNotes) console.log(`  ${n}`);
+}
 if (errors.length > 0) {
   console.error(`FAILED with ${errors.length} error(s), nothing written:`);
-  for (const e of errors) console.error(`  ${e}`);
+  for (const e of errors.slice(0, 200)) console.error(`  ${e}`);
+  if (errors.length > 200) console.error(`  ... and ${errors.length - 200} more`);
   process.exit(1);
 }
 if (report) {
-  console.log(`\n(report only - nothing written)`);
+  console.log('\n(report only - nothing written)');
   process.exit(0);
 }
 
@@ -293,15 +220,20 @@ fs.writeFileSync(outPath, out);
 
 // summary
 const resourcesByService = new Map();
+const selectable = new Set();
 for (const row of rows.slice(1)) {
   const resource = row[col.stackql_resource_name];
   if (!resource || resource === 'skip_this_resource') continue;
   const service = row[col.filename].replace(/\.yaml$/, '');
   if (!resourcesByService.has(service)) resourcesByService.set(service, new Set());
   resourcesByService.get(service).add(resource);
+  if (row[col.stackql_verb] === 'select') selectable.add(`${service}.${resource}`);
 }
-console.log(`Mapped: select ${stats.select}, insert ${stats.insert}, update ${stats.update}, delete ${stats.delete}, exec ${stats.exec}; skipped ${stats.skipped}${stats.skipped ? ` (${Object.entries(skipsByReason).map(([k, v]) => `${k}: ${v}`).join(', ')})` : ''}`);
+let resourceCount = 0;
+for (const set of resourcesByService.values()) resourceCount += set.size;
+console.log(`Mapped ${rows.length - 1} operations: select ${stats.select}, insert ${stats.insert}, update ${stats.update}, delete ${stats.delete}, exec ${stats.exec}; skipped ${stats.skipped}${stats.skipped ? ` (${Object.entries(skipsByReason).sort().map(([k, v]) => `${k}: ${v}`).join(', ')})` : ''}`);
+console.log(`${resourcesByService.size} services, ${resourceCount} resources (${selectable.size} selectable, ${resourceCount - selectable.size} not selectable); ${allNotes.length} overload / signature note(s) resolved by rule (--notes lists them)`);
 console.log('Resources per service:');
 for (const [service, resources] of [...resourcesByService.entries()].sort()) {
-  console.log(`  ${service}: ${[...resources].sort().join(', ')}`);
+  console.log(`  ${service}: ${resources.size}`);
 }

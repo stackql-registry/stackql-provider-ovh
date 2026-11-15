@@ -4,10 +4,11 @@
 // and the test harnesses. Single-sourced so the inventory and the
 // authoritative mapping can never disagree on a classification.
 //
-// TODO(template): fill in the constants block, then extend the rule tables
-// (SKIP_RULES, ACTION_SEGMENTS, POST_EXEC_SEGMENTS, ENVELOPE_KEY_PREFERENCE)
-// as the inventory reveals what the API needs. Everything below the
-// constants is generic and normally needs no change.
+// OVHcloud publishes one OpenAPI 3.0 document per API family (cloud, me,
+// dedicated/server, ...) for each API version (v1, v2). The pin, the
+// inventory and the split all work on "qualified paths": the path as the
+// vendor writes it, prefixed with the API version (/v1/cloud/project,
+// /v2/iam/policy), so a rule can never confuse /v1/domain with /v2/domain.
 
 import fs from 'fs';
 import path from 'path';
@@ -18,52 +19,77 @@ import yaml from 'js-yaml';
 // Provider constants
 // ---------------------------------------------------------------------------
 
-export const PROVIDER_NAME = 'myprovider';
-export const PROVIDER_TITLE = 'My Provider';
+export const PROVIDER_NAME = 'ovh';
+export const PROVIDER_TITLE = 'OVHcloud';
 
-// The bare API base (no trailing slash). Used for path-level server overrides
-// of root paths and by the integration runner to redirect to the mock.
-export const API_BASE_URL = 'https://api.example.com';
+// Where the vendor publishes the specs. The EU endpoint serves the superset
+// of API families (CA and US serve subsets of the same documents), so it is
+// the one pinned. <base>/<version>/ lists the families; each family document
+// is <base>/<version><family>.json?format=openapi3.
+export const SPEC_BASE_URL = 'https://api.eu.ovhcloud.com';
+export const API_VERSIONS = ['v1', 'v2'];
+export const SPEC_FORMAT_QUERY = '?format=openapi3';
 
-// Where the vendor publishes the spec and the snapshot filename under
-// provider-dev/downloaded/ (.json or .yaml - both are handled).
-export const SPEC_URL = 'https://api.example.com/openapi.json';
-export const SPEC_FILE = `${PROVIDER_NAME}-v1.json`;
+// Regional API hosts and OAuth2 token hosts, keyed by the OVH_ENDPOINT values
+// the vendor's Terraform provider and go-ovh client accept. The server
+// variable `api_host` resolves through an x-stackQL-envVarSelector on
+// OVH_ENDPOINT (provider-dev/config/servers.json); the token URL variable
+// `auth_host` does the same (provider-dev/config/provider_config.json).
+export const ENDPOINT_ENV_VAR = 'OVH_ENDPOINT';
+export const DEFAULT_ENDPOINT = 'ovh-eu';
+export const API_HOSTS = {
+  'ovh-eu': 'api.eu.ovhcloud.com',
+  'ovh-ca': 'api.ca.ovhcloud.com',
+  'ovh-us': 'api.us.ovhcloud.com'
+};
+export const AUTH_HOSTS = {
+  'ovh-eu': 'auth.eu.ovhcloud.com',
+  'ovh-ca': 'auth.ca.ovhcloud.com',
+  'ovh-us': 'auth.us.ovhcloud.com'
+};
+export const API_HOST_VARIABLE = 'api_host';
 
-// A static path prefix stripped before resource-name derivation (the API
-// version segment, typically). Set to '' if paths carry no such prefix.
-export const PATH_VERSION_PREFIX = '/v1';
+// Scoping: the Public Cloud project. Paths under these prefixes are rebased
+// onto a server template whose project variable carries x-stackQL-envVar
+// OVH_CLOUD_PROJECT_SERVICE (the Terraform provider's variable). Each scope
+// names the qualified path prefix it strips, the vendor path parameter it
+// replaces and the server variable users write in WHERE; its key is also the
+// server kind in provider-dev/config/servers.json.
+export const PROJECT_ENV_VAR = 'OVH_CLOUD_PROJECT_SERVICE';
+export const SCOPES = {
+  cloud_project: { version: 'v1', prefix: '/v1/cloud/project/{serviceName}', param: 'serviceName', variable: 'service_name' },
+  public_cloud_project: { version: 'v2', prefix: '/v2/publicCloud/project/{projectId}', param: 'projectId', variable: 'project_id' }
+};
 
-// Scoping: when most paths share one parent (/v1/organizations/{orgId}/...,
-// /v1/projects/{ref}/...), set SCOPE_PREFIX to that prefix (with the vendor's
-// path parameter name), list the paths outside it that must keep their full
-// key in ROOT_PATHS, and author the server template with the x-stackQL-envVar
-// variable in provider-dev/config/servers.json. bin/split.mjs rebases the
-// paths; post_process.mjs pins ROOT_PATHS back to API_BASE_URL. Leave
-// SCOPE_PREFIX null for a fixed-host API.
-export const SCOPE_PREFIX = null;              // e.g. '/v1/organizations/{organizationId}'
-export const ROOT_PATHS = [];                  // e.g. ['/v1/organizations', '/v1/organizations/{organizationId}']
-export const SCOPE_PARAM = SCOPE_PREFIX ? (SCOPE_PREFIX.match(/\{([^}]+)\}/) || [])[1] : null;
+// Wire casing of parameters and body properties. post_process sets
+// request.nativeCasing on every method and the provider config carries
+// snake_case_aliases: true so the user surface is snake_case.
+export const WIRE_CASING = 'camel';
 
-// Wire casing of parameters and body properties. When 'camel' (or 'pascal',
-// 'kebab'), post_process sets request.nativeCasing on every method and the
-// provider config carries snake_case_aliases: true so the user surface is
-// snake_case. Leave null when the wire is already snake_case.
-export const WIRE_CASING = null;               // null | 'camel' | 'pascal' | 'kebab'
+// The header that turns a v1 list of identifiers into a list of the full
+// objects (the vendor's console and Terraform provider use the same mode).
+// pre_normalize declares it, with this default, on every identifier list
+// that has a keyed read; stackql sends a defaulted header parameter on every
+// call.
+export const EXPAND_HEADER = 'X-Pagination-Mode';
+export const EXPAND_HEADER_VALUE = 'CachedObjectList-Pages';
 
-// Envelope keys, in order of preference, that hold the row array of a list
-// response ({"result": [...]}, {"data": [...]}, {"items": [...]}). The
-// inventory reports the candidates per operation; map_operations picks the
-// first preferred key present, else the only array property.
-export const ENVELOPE_KEY_PREFERENCE = ['result', 'data', 'items', 'results', 'records', 'value'];
+// The single column a scalar response (a bare string / number / boolean, or
+// an array of them with no keyed read to expand through) surfaces as.
+export const SCALAR_COLUMN = 'value';
 
 export const HTTP_VERBS = ['get', 'post', 'put', 'patch', 'delete'];
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 export const REPO_ROOT = repoRoot;
+export const DOWNLOAD_DIR = path.join(repoRoot, 'provider-dev', 'downloaded');
+export const CONFIG_DIR = path.join(repoRoot, 'provider-dev', 'config');
+export const SOURCE_DIR = path.join(repoRoot, 'provider-dev', 'source');
+export const PIN_FILE = path.join(CONFIG_DIR, 'spec_pin.json');
 export const PROVIDER_DIR = path.join(repoRoot, 'provider-dev', 'openapi', 'src', PROVIDER_NAME, 'v00.00.00000');
 export const SERVICES_DIR = path.join(PROVIDER_DIR, 'services');
-const serviceNamesPath = path.join(repoRoot, 'provider-dev', 'config', 'service_names.json');
+const serviceNamesPath = path.join(CONFIG_DIR, 'service_names.json');
+const serversPath = path.join(CONFIG_DIR, 'servers.json');
 
 // ---------------------------------------------------------------------------
 // Generic utilities
@@ -108,19 +134,99 @@ export function makeResolver(spec) {
   };
 }
 
-// Service resolution from the ordered path rules in service_names.json.
-// Every operation path must match a rule; a miss is an error the caller
-// must surface (fail without writing). Rules with "excluded": true classify
-// the path but the service is never emitted.
+// ---------------------------------------------------------------------------
+// Pinned documents
+// ---------------------------------------------------------------------------
+
+// '/dedicated/server' -> 'dedicated_server' (the vendor's casing is kept)
+export function familySlug(familyPath) {
+  return familyPath.replace(/^\//, '').replace(/\//g, '_');
+}
+export function docKey(version, familyPath) {
+  return `${version}_${familySlug(familyPath)}`;
+}
+export function docFile(version, familyPath) {
+  return `${version}/${familySlug(familyPath)}.json`;
+}
+export function qualify(version, pathKey) {
+  return `/${version}${pathKey}`;
+}
+
+// Every pinned family document, in pin order (sorted by key):
+// [{ key, version, family, file, doc }]
+export function loadPinnedDocs({ parse = true } = {}) {
+  if (!fs.existsSync(PIN_FILE)) throw new Error(`no spec pin at ${PIN_FILE} - run make fetch-spec first`);
+  const pin = JSON.parse(fs.readFileSync(PIN_FILE, 'utf8'));
+  const out = [];
+  for (const key of Object.keys(pin.specs).sort()) {
+    const entry = pin.specs[key];
+    const file = path.join(DOWNLOAD_DIR, entry.filename);
+    if (!fs.existsSync(file)) throw new Error(`pinned document ${entry.filename} is missing from provider-dev/downloaded - run make fetch-spec`);
+    out.push({ key, version: entry.version, family: entry.family, file, doc: parse ? JSON.parse(fs.readFileSync(file, 'utf8')) : null });
+  }
+  return out;
+}
+
+// A deterministic operationId for the operations the vendor leaves without
+// one (most of v1): the verb plus the qualified path, snake_cased.
+//   get /v1/cloud/project/{serviceName}/instance -> get_v1_cloud_project_service_name_instance
+export function synthesizeOperationId(verb, qualifiedPath) {
+  const segs = qualifiedPath.split('/').filter(Boolean).map((s) => camelToSnake(s.replace(/[{}]/g, '')));
+  return [verb, ...segs].join('_');
+}
+
+// ---------------------------------------------------------------------------
+// Service rules (provider-dev/config/service_names.json)
+// ---------------------------------------------------------------------------
+
+// Ordered rules against the qualified path; first match wins; a path that
+// matches no rule is an error the caller surfaces. A rule carries:
+//   service  the stackql service the path belongs to
+//   prefix   the qualified-path prefix that is the naming root (stripped
+//            before resource names are derived)
+//   root     the resource name of the prefix itself (when nothing remains)
+//   scope    a key of SCOPES when the service is rebased onto a scoped server
+//   excluded classify for the inventory but never emit the service
 export function makeServiceResolver() {
   const config = JSON.parse(fs.readFileSync(serviceNamesPath, 'utf8'));
-  const rules = (config.rules || []).map((r) => ({ re: new RegExp(r.pathRegex), service: r.service, excluded: !!r.excluded }));
+  const rules = (config.rules || []).map((r) => ({ ...r, re: new RegExp(r.pathRegex), excluded: !!r.excluded }));
+  const services = config.services || {};
   const excludedServices = new Set(rules.filter((r) => r.excluded).map((r) => r.service));
-  const resolveService = (pathKey) => {
-    for (const rule of rules) if (rule.re.test(pathKey)) return rule.service;
+  const resolveRule = (qualifiedPath) => {
+    for (const rule of rules) if (rule.re.test(qualifiedPath)) return rule;
     return null;
   };
-  return { resolveService, excludedServices, rules };
+  const resolveService = (qualifiedPath) => resolveRule(qualifiedPath)?.service || null;
+  // one scope per service (a service document has one document-level server)
+  const scopeOfService = {};
+  for (const r of rules) {
+    const scope = r.scope || null;
+    const seen = scopeOfService[r.service];
+    if (seen !== undefined && seen !== null && scope !== null && seen !== scope) {
+      throw new Error(`service ${r.service} mixes scopes ${seen} and ${scope}`);
+    }
+    if (seen === undefined || scope) scopeOfService[r.service] = scope;
+  }
+  return { resolveRule, resolveService, excludedServices, rules, services, scopeOfService };
+}
+
+export function loadServers() {
+  return JSON.parse(fs.readFileSync(serversPath, 'utf8'));
+}
+
+// The path key a qualified path takes inside its service document, relative
+// to the server it is served from: the version is always dropped (it is part
+// of every server URL); inside a scoped service the scope prefix is dropped
+// too, and a path outside the prefix is a "root path" that keeps its key and
+// is pinned to the unscoped server of its version.
+export function servicePathKey(qualifiedPath, scopeName) {
+  const version = qualifiedPath.split('/')[1];
+  if (scopeName) {
+    const scope = SCOPES[scopeName];
+    if (qualifiedPath.startsWith(scope.prefix + '/')) return { key: qualifiedPath.slice(scope.prefix.length), root: false };
+    return { key: qualifiedPath.slice(version.length + 1), root: true };
+  }
+  return { key: qualifiedPath.slice(version.length + 1), root: false };
 }
 
 // ---------------------------------------------------------------------------
@@ -138,73 +244,51 @@ export function success2xx(op) {
   return { code: codes[0] || null, schema: null, mediaTypes: [] };
 }
 
+export const SCALAR_TYPES = ['string', 'number', 'integer', 'boolean'];
+
 // Response shape per the inventory contract:
-//   bare-array    - the 2xx body is a JSON array
-//   object        - a JSON object; arrayProps lists its top-level array
-//                   properties (envelope candidates for objectKey)
-//   scalar        - a JSON string/number/boolean
-//   untyped-json  - application/json with an empty schema
-//   non-json      - text/plain, octet-stream, PDF, ...
+//   array-object  - a JSON array of objects (a row per item)
+//   array-scalar  - a JSON array of strings / numbers (identifiers, values)
+//   object        - a JSON object with declared properties
+//   map           - a JSON object with additionalProperties only (no columns)
+//   scalar        - a JSON string / number / boolean
 //   none          - no 2xx content
 export function classifyResponse(op, resolve) {
   const { code, schema, mediaTypes } = success2xx(op);
-  if (!schema) {
-    if (mediaTypes.some((m) => m.includes('json'))) return { shape: 'untyped-json', arrayProps: [], mediaTypes, code };
-    if (mediaTypes.length > 0) return { shape: 'non-json', arrayProps: [], mediaTypes, code };
-    return { shape: 'none', arrayProps: [], mediaTypes, code };
-  }
+  if (!schema) return { shape: 'none', mediaTypes, code };
+  // an operation already wrapped (pre_normalize / normalize ran) keeps the
+  // shape it had on the wire, so a re-run classifies it the same way
+  const wrap = op['x-stackql-bare-array-wrap'];
+  if (wrap) return { shape: wrap.scalar ? 'array-scalar' : 'array-object', itemType: wrap.scalar ? 'string' : 'object', mediaTypes, code };
+  if (op['x-stackQL-scalarWrap']) return { shape: 'scalar', itemType: op['x-stackQL-scalarWrap'].type, mediaTypes, code };
   const s = resolve(schema) || {};
-  if (s.type === 'array' || (s.items && !s.properties)) return { shape: 'bare-array', arrayProps: [], mediaTypes, code };
-  if (['string', 'number', 'integer', 'boolean'].includes(s.type)) return { shape: 'scalar', arrayProps: [], mediaTypes, code };
+  if (s.type === 'array' || (s.items && !s.properties)) {
+    const items = resolve(s.items) || {};
+    const scalar = SCALAR_TYPES.includes(items.type) && !items.properties;
+    return { shape: scalar ? 'array-scalar' : 'array-object', itemType: scalar ? items.type : 'object', mediaTypes, code };
+  }
+  if (SCALAR_TYPES.includes(s.type)) return { shape: 'scalar', itemType: s.type, mediaTypes, code };
   const props = s.properties || (s.allOf || []).reduce((acc, part) => ({ ...acc, ...((resolve(part) || {}).properties || {}) }), {});
-  if (Object.keys(props).length === 0 && !s.allOf) return { shape: 'untyped-json', arrayProps: [], mediaTypes, code };
-  const isArray = (p) => { const r = resolve(p) || {}; return r.type === 'array' || (!!r.items && !r.properties); };
-  const arrayProps = Object.entries(props).filter(([, p]) => isArray(p)).map(([name]) => name);
-  // nested envelopes: {result: {items: [...]}} / {data: {costs: [...]}} -
-  // the array properties of each preferred envelope key that holds an object
-  const nestedArrayProps = {};
-  for (const key of ENVELOPE_KEY_PREFERENCE) {
-    const inner = props[key] ? resolve(props[key]) : null;
-    if (inner?.properties) {
-      const arrays = Object.entries(inner.properties).filter(([, p]) => isArray(p)).map(([name]) => name);
-      if (arrays.length) nestedArrayProps[key] = arrays;
-    }
-  }
-  return { shape: 'object', arrayProps, nestedArrayProps, mediaTypes, code };
+  if (Object.keys(props).length === 0) return { shape: 'map', mediaTypes, code };
+  return { shape: 'object', mediaTypes, code };
 }
 
-// The objectKey a list read should project: the first preferred envelope key
-// present, else the only top-level array property, else a nested envelope
-// ({result: {items: [...]}} -> $.result.items), else blank (bare arrays are
-// wrapped by normalize + generate and carry no objectKey of their own).
-export function proposeObjectKey(classification) {
-  if (classification.shape !== 'object') return '';
-  const { arrayProps, nestedArrayProps = {} } = classification;
-  const preferred = ENVELOPE_KEY_PREFERENCE.find((k) => arrayProps.includes(k));
-  if (preferred) return `$.${preferred}`;
-  if (arrayProps.length === 1) return `$.${arrayProps[0]}`;
-  for (const key of ENVELOPE_KEY_PREFERENCE) {
-    const arrays = nestedArrayProps[key];
-    if (!arrays) continue;
-    const inner = ENVELOPE_KEY_PREFERENCE.find((k) => arrays.includes(k)) || (arrays.length === 1 ? arrays[0] : null);
-    if (inner) return `$.${key}.${inner}`;
-  }
-  return '';
-}
-
-// True when the response carries a row array somewhere a list read can project.
-export function hasRowArray(classification) {
-  return classification.shape === 'bare-array' || proposeObjectKey(classification) !== '';
-}
-
+// Request body kind: object (named properties - naive translation gives
+// columns), array (a bare array - not addressable), map (free-form keys).
 export function classifyBody(op, resolve) {
-  if (!op.requestBody) return { present: false, mediaTypes: [], bareArray: false };
+  if (!op.requestBody) return { present: false, mediaTypes: [], kind: '' };
   const content = (resolve(op.requestBody) || {}).content || {};
   const mediaTypes = Object.keys(content);
   const jsonType = mediaTypes.find((m) => m.includes('json'));
   const schema = jsonType ? resolve(content[jsonType].schema) : null;
-  const bareArray = !!schema && (schema.type === 'array' || (!!schema.items && !schema.properties));
-  return { present: true, mediaTypes, bareArray };
+  let kind = 'other';
+  if (schema) {
+    if (schema.type === 'array' || (schema.items && !schema.properties)) kind = 'array';
+    else if (schema.properties || schema.allOf) kind = 'object';
+    else if (schema.additionalProperties) kind = 'map';
+    else kind = schema.type || 'other';
+  }
+  return { present: true, mediaTypes, kind };
 }
 
 // PUT is not REPLACE until proven live; PATCH is presumed partial.
@@ -214,175 +298,104 @@ export function updateSemantics(verb) {
   return '';
 }
 
-// Vendor labels carried into the docs, never hidden.
+// Vendor labels carried into the docs, never hidden. OVHcloud states the
+// status of every operation in x-badges and flags deprecation explicitly.
 export function vendorLabels(op) {
-  const text = `${op.summary || ''} ${op.description || ''}`;
   const labels = [];
-  if (/\[beta\]|\bbeta\b/i.test(text)) labels.push('beta');
-  if (/\[alpha\]|\balpha\b/i.test(text)) labels.push('alpha');
-  if (/\bpreview\b/i.test(text)) labels.push('preview');
+  for (const badge of op['x-badges'] || []) {
+    const label = String(badge.label || '');
+    if (/^beta/i.test(label)) labels.push('beta');
+    else if (/^alpha/i.test(label)) labels.push('alpha');
+  }
   if (op.deprecated) labels.push('deprecated');
   return labels;
 }
 
-// Pagination-looking query parameters present on the operation: a
-// per-endpoint confirmation for the inventory, never an assumption.
-const PAGINATION_PARAM_NAMES = ['limit', 'offset', 'page', 'pageSize', 'page_size', 'per_page', 'perPage', 'cursor', 'next', 'nextToken', 'next_token', 'nextPageToken', 'page_token', 'pageToken', 'maxResults', 'max_results', 'startAt', 'start', 'marker', 'after', 'before', 'skip', 'top', '$top', '$skip'];
+// Pagination-looking parameters present on the operation: a per-endpoint
+// confirmation for the inventory, never an assumption. OVHcloud pages with
+// request headers (X-Pagination-*), so header parameters are reported too.
+const PAGINATION_PARAM_NAMES = ['limit', 'offset', 'page', 'pageSize', 'page_size', 'per_page', 'perPage', 'cursor', 'next', 'nextToken', 'next_token', 'nextPageToken', 'page_token', 'pageToken', 'maxResults', 'max_results', 'startAt', 'start', 'marker', 'after', 'before', 'skip', 'top', 'size'];
 export function paginationParams(op, pathItem, resolve) {
   return [...(pathItem?.parameters || []), ...(op.parameters || [])]
     .map((p) => resolve(p))
-    .filter((p) => p && p.in === 'query')
-    .map((p) => p.name)
-    .filter((n) => PAGINATION_PARAM_NAMES.includes(n));
+    .filter((p) => p && ((p.in === 'query' && PAGINATION_PARAM_NAMES.includes(p.name)) || (p.in === 'header' && /^X-Pagination-/i.test(p.name))))
+    .map((p) => (p.in === 'header' ? `header:${p.name}` : p.name));
 }
 
-// Which path parameter addresses the operation (org, project, account, ...).
-// With SCOPE_PREFIX set, operations under it are scoped by SCOPE_PARAM.
-export function scopeOf(pathKey) {
-  if (SCOPE_PREFIX && pathKey.startsWith(SCOPE_PREFIX)) return SCOPE_PARAM;
-  const params = pathParams(pathKey);
+// Which parameter addresses the operation: the project variable inside a
+// scoped service, else the first path parameter, else none.
+export function scopeOf(qualifiedPath) {
+  for (const scope of Object.values(SCOPES)) {
+    if (qualifiedPath === scope.prefix || qualifiedPath.startsWith(scope.prefix + '/')) return scope.param;
+  }
+  const params = pathParams(qualifiedPath);
   return params.length ? params[0] : 'none';
 }
 
 // ---------------------------------------------------------------------------
 // Skip rules - operations that stay visible in the CSV artifacts but are not
-// mapped to StackQL methods. Standard reason codes (see the skill's
-// inventory-and-mapping.md); add provider-specific rules with their own code.
+// mapped to StackQL methods. Each rule: (ctx) => boolean, where ctx carries
+// { qualifiedPath, verb, op, body, resp }.
 // ---------------------------------------------------------------------------
 
 export const SKIP_RULES = [
-  { code: 'multipart_upload', test: (p, op, body) => body.present && body.mediaTypes.some((m) => /multipart|octet-stream/.test(m)) && !body.mediaTypes.some((m) => m.includes('json')) },
-  { code: 'non_json_text_response', test: (p, op, body, resp) => resp.shape === 'non-json' },
-  { code: 'untyped_json_response', test: (p, op, body, resp) => resp.shape === 'untyped-json' && (op.method === 'get') },
-  { code: 'bare_array_bulk_body', test: (p, op, body) => body.bareArray && /bulk|batch/i.test(p) },
-  { code: 'head_count_endpoint', test: (p, op) => op.method === 'head' },
-  { code: 'oauth_user_agent_flow', test: (p) => /\/oauth\/(authorize|callback)/i.test(p) },
-  { code: 'websocket_or_sse_stream', test: (p, op, body, resp) => resp.mediaTypes.some((m) => /event-stream/.test(m)) || /\/(ws|websocket|stream)$/i.test(p) }
-  // TODO(template): provider-specific rules, e.g.
-  // { code: 'prometheus_text_metrics', test: (p) => /\/prometheus$/.test(p) },
-  // { code: 'deprecated_superseded', test: (p, op) => op.deprecated && /\/scaling$/.test(p) }
+  // the vendor marks the operation deprecated AND names the route that
+  // replaces it (x-replacement-route): the replacement is mapped instead.
+  // Deprecated operations with no replacement stay mapped and labelled.
+  { code: 'deprecated_superseded', test: ({ op }) => !!op.deprecated && !!op['x-replacement-route'] },
+  // a read that declares no response content has no columns to project
+  { code: 'no_response_schema', test: ({ verb, resp }) => verb === 'get' && resp.shape === 'none' },
+  // a read whose response is a free-form map (additionalProperties only) has
+  // no declared columns
+  { code: 'untyped_map_response', test: ({ verb, resp }) => verb === 'get' && resp.shape === 'map' },
+  // a bare-array or free-form-map request body is not addressable by naive
+  // body translation and has no single-item form on these endpoints
+  { code: 'bare_array_body', test: ({ body }) => body.present && body.kind === 'array' },
+  { code: 'untyped_map_body', test: ({ body }) => body.present && body.kind === 'map' }
 ];
 
-export function skipReason(pathKey, op, resolve, verb) {
-  const body = classifyBody(op, resolve);
-  const resp = classifyResponse(op, resolve);
-  const opWithVerb = { ...op, method: verb };
-  for (const rule of SKIP_RULES) {
-    if (rule.test(pathKey, opWithVerb, body, resp)) return rule.code;
-  }
+export function skipReason(qualifiedPath, op, resolve, verb) {
+  const ctx = { qualifiedPath, verb, op, body: classifyBody(op, resolve), resp: classifyResponse(op, resolve) };
+  for (const rule of SKIP_RULES) if (rule.test(ctx)) return rule.code;
   return '';
 }
 
 // ---------------------------------------------------------------------------
-// Resource, method and verb derivation, shared by build_inventory.mjs (draft
-// columns) and map_operations.mjs (authoritative mapping, plus RESOURCE_RULES
-// / METHOD_RULES overrides there)
+// Resource naming, shared by build_inventory.mjs (draft columns) and
+// map_operations.mjs (authoritative mapping)
 // ---------------------------------------------------------------------------
 
-// PATCH/PUT on these trailing static segments is a state/credential command
-// on the parent resource (EXEC update_<segment>), not an entity update
-export const ACTION_SEGMENTS = new Set(['state', 'status', 'password', 'enable', 'disable']);
-// POST on these trailing static segments is an action on the parent
-// resource (EXEC <segment>), not a create
-export const POST_EXEC_SEGMENTS = new Set([
-  'start', 'stop', 'restart', 'pause', 'resume', 'suspend', 'activate', 'deactivate', 'apply', 'merge', 'restore',
-  'retry', 'cancel', 'run', 'trigger', 'validate', 'verify', 'rotate', 'refresh', 'sync', 'clone', 'copy', 'move',
-  'archive', 'unarchive', 'lock', 'unlock', 'approve', 'reject', 'publish', 'unpublish', 'reset', 'invalidate', 'test'
-]);
-// POST on these trailing segments is really a read (no side effects) and maps
-// as SELECT list; the objectKey for a POST read is set in post_process
-export const POST_READ_SEGMENTS = new Set(['search', 'query', 'retrieve', 'list', 'lookup']);
-
-// Strips the version prefix, then iteratively strips scoping pairs (a static
-// segment followed by a path parameter) while more segments follow:
-// organizations/{orgId}/services/{serviceId}/backups -> backups. The last
-// stripped parent is kept so action segments can resolve to it.
-export function scopedSegments(pathKey) {
-  let p = pathKey;
-  if (SCOPE_PREFIX && p.startsWith(SCOPE_PREFIX)) p = p.slice(SCOPE_PREFIX.length);
-  if (PATH_VERSION_PREFIX && p.startsWith(PATH_VERSION_PREFIX + '/')) p = p.slice(PATH_VERSION_PREFIX.length);
-  let segs = p.split('/').filter(Boolean);
-  let parent = null;
-  while (segs.length > 2 && !segs[0].startsWith('{') && segs[1].startsWith('{')) {
-    parent = segs[0];
-    segs = segs.slice(2);
+// The static segments of a qualified path after the rule's naming prefix.
+export function staticsAfterPrefix(qualifiedPath, rule) {
+  const prefix = rule.prefix || '';
+  // a prefix that ends in a parameter (/v1/cloud/project/{serviceName}) is
+  // also the root when the parameter is absent: the keyed read's node
+  if (qualifiedPath === prefix.replace(/(\/\{[^}]+\})+$/, '')) return [];
+  if (prefix && !(qualifiedPath === prefix || qualifiedPath.startsWith(prefix + '/'))) {
+    throw new Error(`path ${qualifiedPath} matched rule ${rule.pathRegex} but is not under its prefix ${prefix}`);
   }
-  return { segs, parent };
+  return qualifiedPath.slice(prefix.length).split('/').filter(Boolean).filter((s) => !s.startsWith('{'));
 }
 
-export function deriveResource(pathKey, verb, service, pluralizeFn) {
-  const { segs, parent } = scopedSegments(pathKey);
-  let statics = segs.filter((s) => !s.startsWith('{'));
-  const last = statics[statics.length - 1];
-  if (verb !== 'get' && ACTION_SEGMENTS.has(last)) statics = statics.slice(0, -1);
-  else if (verb === 'post' && (POST_EXEC_SEGMENTS.has(last) || POST_READ_SEGMENTS.has(last))) statics = statics.slice(0, -1);
-  if (statics.length === 0 && parent) statics = [parent];
-  if (statics.length === 0) statics = [service];
-  // drop a leading segment that just restates the service name
-  if (statics.length > 1 && camelToSnake(statics[0]) === service) statics = statics.slice(1);
+// pluralize() turns "me" into "us" and mangles a few vendor words; these are
+// kept or pluralized as written.
+const PLURAL_OVERRIDES = { me: 'me', vps: 'vps', dns: 'dns', nas: 'nas', sms: 'sms', cdn: 'cdn', xdsl: 'xdsl', dnssec: 'dnssec', ceph: 'ceph', ipv4: 'ipv4', ipv6: 'ipv6', smtp: 'smtp', data: 'data', metadata: 'metadata', quota: 'quotas', info: 'infos' };
+export function pluralizeSegment(snake, pluralizeFn) {
+  const parts = snake.split('_');
+  const last = parts[parts.length - 1];
+  const plural = last in PLURAL_OVERRIDES ? PLURAL_OVERRIDES[last] : pluralizeFn(last);
+  return [...parts.slice(0, -1), plural].join('_');
+}
+
+// Resource name from static segments: snake_case each, pluralize the last.
+// An empty list is the rule's root resource.
+export function resourceNameFromStatics(statics, rule, pluralizeFn) {
+  if (statics.length === 0) {
+    if (!rule.root) throw new Error(`rule ${rule.pathRegex} needs a "root" resource name (a path equals its prefix)`);
+    return rule.root;
+  }
   const snake = statics.map(camelToSnake);
-  const lastSnake = snake[snake.length - 1];
-  return [...snake.slice(0, -1), pluralizeFn(lastSnake)].join('_');
-}
-
-export function deriveVerb(verb, pathKey) {
-  const { segs } = scopedSegments(pathKey);
-  const statics = segs.filter((s) => !s.startsWith('{'));
-  const last = statics[statics.length - 1];
-  if (verb === 'get') return 'select';
-  if (verb === 'delete') return 'delete';
-  if (verb === 'patch' || verb === 'put') return ACTION_SEGMENTS.has(last) ? 'exec' : 'update';
-  if (POST_EXEC_SEGMENTS.has(last) || ACTION_SEGMENTS.has(last)) return 'exec';
-  if (POST_READ_SEGMENTS.has(last)) return 'select';
-  return 'insert';
-}
-
-export function deriveMethod(verb, pathKey) {
-  const { segs } = scopedSegments(pathKey);
-  const statics = segs.filter((s) => !s.startsWith('{'));
-  const last = statics[statics.length - 1];
-  const lastSegIsParam = /\}$/.test(pathKey);
-  if (verb === 'get') return lastSegIsParam ? 'get' : 'list';
-  if (verb === 'delete') return 'delete';
-  if (verb === 'patch' || verb === 'put') return ACTION_SEGMENTS.has(last) ? `update_${camelToSnake(last)}` : 'update';
-  if (POST_EXEC_SEGMENTS.has(last) || ACTION_SEGMENTS.has(last)) return camelToSnake(last);
-  if (POST_READ_SEGMENTS.has(last)) return 'list';
-  return 'create';
-}
-
-// ---------------------------------------------------------------------------
-// Scoped server rebase (bin/split.mjs; post_process.mjs pins ROOT_PATHS back)
-// ---------------------------------------------------------------------------
-
-// Rewrites a split service document in place: sets the scoped servers,
-// strips SCOPE_PREFIX from every non-root path and drops the SCOPE_PARAM
-// path parameter from those operations. Returns counts for the split summary.
-export function rebaseScopedPaths(doc, servers) {
-  if (!SCOPE_PREFIX) throw new Error('rebaseScopedPaths called with SCOPE_PREFIX unset');
-  const newPaths = {};
-  let rebased = 0, kept = 0;
-  for (const [pathKey, pathItem] of Object.entries(doc.paths || {})) {
-    if (ROOT_PATHS.includes(pathKey)) {
-      newPaths[pathKey] = pathItem;
-      kept++;
-      continue;
-    }
-    if (!pathKey.startsWith(SCOPE_PREFIX + '/')) {
-      throw new Error(`path ${pathKey} is neither a ROOT_PATHS entry nor under ${SCOPE_PREFIX} - add it to ROOT_PATHS or fix SCOPE_PREFIX`);
-    }
-    const shortPath = pathKey.slice(SCOPE_PREFIX.length);
-    if (shortPath in newPaths) throw new Error(`rebase collision: ${pathKey} -> ${shortPath}`);
-    const dropScopeParam = (params) => (params || []).filter((p) => !(p && p.in === 'path' && p.name === SCOPE_PARAM));
-    if (pathItem.parameters) pathItem.parameters = dropScopeParam(pathItem.parameters);
-    for (const verb of HTTP_VERBS) {
-      if (pathItem[verb] && pathItem[verb].parameters) pathItem[verb].parameters = dropScopeParam(pathItem[verb].parameters);
-    }
-    newPaths[shortPath] = pathItem;
-    rebased++;
-  }
-  doc.paths = newPaths;
-  doc.servers = JSON.parse(JSON.stringify(servers));
-  return { rebased, kept };
+  return [...snake.slice(0, -1), pluralizeSegment(snake[snake.length - 1], pluralizeFn)].join('_');
 }
 
 // ---------------------------------------------------------------------------
@@ -417,4 +430,34 @@ export function sqlVerbOf(resource, resourceName, methodName) {
     if ((list || []).some((x) => x.$ref === ref)) return verb;
   }
   return 'exec';
+}
+
+// RFC 4180 CSV helpers shared by the inventory and the mapping scripts.
+export function parseCsv(text) {
+  const rows = [];
+  let row = [], field = '', inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQuotes) {
+      if (c === '"') {
+        if (text[i + 1] === '"') { field += '"'; i++; } else { inQuotes = false; }
+      } else { field += c; }
+    } else if (c === '"') {
+      inQuotes = true;
+    } else if (c === ',') {
+      row.push(field); field = '';
+    } else if (c === '\n' || c === '\r') {
+      if (c === '\r' && text[i + 1] === '\n') i++;
+      row.push(field); field = '';
+      if (row.length > 1 || row[0] !== '') rows.push(row);
+      row = [];
+    } else { field += c; }
+  }
+  if (field !== '' || row.length > 0) { row.push(field); rows.push(row); }
+  return rows;
+}
+
+export function csvField(v) {
+  const s = String(v ?? '');
+  return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }

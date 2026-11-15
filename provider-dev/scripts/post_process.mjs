@@ -4,21 +4,23 @@
 // Idempotent; re-run after every generate. Every rule is numbered and
 // commented; the run validates and fails without writing.
 //
-// Rules the shipped providers needed (see the skill's request-response-
-// shaping.md, pagination-and-pushdown.md, scoping-and-auth.md), each
-// available as a helper below:
-//   1. path-level `servers` overrides pinning ROOT_PATHS back to API_BASE_URL
-//      (normalize strips path-level servers, so this runs here)
-//   2. request.nativeCasing on every method when the wire is camel/pascal
-//      (paired with snake_case_aliases: true in provider_config.json)
-//   3. DELETE-with-body naive translation (the generator only emits it for
-//      POST/PUT/PATCH) so body attributes become WHERE keys
-//   4. objectKey on POST-backed reads (the CSV objectKey applies to GET only)
-//   5. method-level or document-level pagination
-//   6. response transforms for non-JSON payloads ({contents} rows)
-//   7. request transforms for bare-array bodies ('[{{ . }}]')
-//   8. queryParamPushdown (LIMIT -> ?limit=, OData $filter, ...)
-//   9. x-stackQL-alias on parameters
+// The OVHcloud rules:
+//   1. path-level `servers` on the root paths of the project-scoped services
+//      (bin/split.mjs marks them x-stackQL-serverKind; normalize strips
+//      path-level servers, so the override is written here). /cloud/project
+//      and /cloud/project/{serviceName} are served from the unscoped v1
+//      server, not from .../cloud/project/{service_name}.
+//   2. request.nativeCasing: camel on every method (the wire is camelCase;
+//      paired with snake_case_aliases: true in provider_config.json).
+//   3. scalar reads: the response transform that wraps a bare string /
+//      number / boolean payload into the {value} object pre_normalize typed.
+//   4. scalar lists: the generator's per-item template writes each value as
+//      an unescaped quoted string; replaced with a JSON-safe one that keeps
+//      numbers as numbers.
+//   5. objectKey: $ on single-object responses that have an `items`
+//      property, so stackql's default $.items row key does not take the
+//      property for the row list.
+//   6. every service has resources and every resource has a method.
 //
 // Usage: npm run post-process
 
@@ -26,8 +28,8 @@ import fs from 'fs';
 import path from 'path';
 import yaml from 'js-yaml';
 import {
-  SERVICES_DIR, API_BASE_URL, SCOPE_PREFIX, ROOT_PATHS, WIRE_CASING,
-  listServiceFiles, forEachMethod, sqlVerbOf, dumpYaml
+  SERVICES_DIR, WIRE_CASING, SCALAR_COLUMN, SCOPES,
+  listServiceFiles, forEachMethod, sqlVerbOf, dumpYaml, loadServers, makeServiceResolver
 } from './lib/spec_helpers.mjs';
 
 if (!fs.existsSync(SERVICES_DIR)) {
@@ -42,133 +44,118 @@ if (docs.size === 0) {
   process.exit(1);
 }
 
+const servers = loadServers();
+const { scopeOfService } = makeServiceResolver();
 const errors = [];
 const counts = {};
 const bump = (k, n = 1) => { counts[k] = (counts[k] || 0) + n; };
+const clone = (v) => JSON.parse(JSON.stringify(v));
 
-// ---------------------------------------------------------------------------
-// Helpers (generic; each is a rule you can call from RULES below)
-// ---------------------------------------------------------------------------
-
-// 1. Pin root paths (outside SCOPE_PREFIX) to the bare API base.
+// 1. Root paths of a scoped service are pinned to the unscoped server of
+// their API version.
 function pinRootPaths() {
-  if (!SCOPE_PREFIX || ROOT_PATHS.length === 0) return;
-  let found = 0;
   for (const [f, doc] of docs) {
-    for (const p of ROOT_PATHS) {
-      if (doc.paths?.[p]) { doc.paths[p].servers = [{ url: API_BASE_URL }]; found++; bump('root paths pinned'); }
+    const service = f.replace(/\.yaml$/, '');
+    const scopeName = scopeOfService[service] || null;
+    for (const [pathKey, pathItem] of Object.entries(doc.paths || {})) {
+      const kind = pathItem['x-stackQL-serverKind'];
+      if (!kind) continue;
+      if (!servers[kind]) { errors.push(`${f}: ${pathKey} names server kind "${kind}" which is not in servers.json`); continue; }
+      pathItem.servers = clone(servers[kind]);
+      delete pathItem['x-stackQL-serverKind'];
+      bump('root paths pinned to the unscoped server');
     }
-    for (const p of Object.keys(doc.paths || {})) {
-      if (!ROOT_PATHS.includes(p) && p.startsWith(SCOPE_PREFIX)) errors.push(`${f}: path ${p} was not rebased onto the scoped server`);
+    const top = doc.servers?.[0];
+    if (!top?.variables?.api_host?.['x-stackQL-envVarSelector']) errors.push(`${f}: document-level server lacks the api_host selector`);
+    if (scopeName) {
+      const variable = SCOPES[scopeName].variable;
+      if (!top?.variables?.[variable]?.['x-stackQL-envVar']) errors.push(`${f}: scoped server lacks the ${variable} x-stackQL-envVar variable`);
+      for (const [pathKey, pathItem] of Object.entries(doc.paths || {})) {
+        if (!pathItem.servers && pathKey.includes(`{${SCOPES[scopeName].param}}`)) errors.push(`${f}: ${pathKey} still carries the scope path parameter`);
+      }
     }
-    const srv = doc.servers?.[0];
-    if (!srv?.variables || !Object.values(srv.variables).some((v) => v['x-stackQL-envVar'])) errors.push(`${f}: top-level server lacks an x-stackQL-envVar variable`);
   }
-  if (found === 0) errors.push(`none of ROOT_PATHS (${ROOT_PATHS.join(', ')}) exist in the generated services`);
 }
 
-// 2. request.nativeCasing on every method (or those matching filter).
-function setNativeCasing(casing, filter = () => true) {
+// 2. request.nativeCasing on every method.
+function setNativeCasing(casing) {
   if (!casing) return;
   for (const doc of docs.values()) {
-    forEachMethod(doc, (method, ctx) => {
-      if (!filter(ctx)) return;
+    forEachMethod(doc, (method) => {
       method.request = { ...(method.request || {}), nativeCasing: casing };
       bump(`nativeCasing: ${casing}`);
     });
   }
 }
 
-// 3. Naive request-body translation on DELETE methods that carry a body.
-function naiveDeleteBodies() {
-  for (const doc of docs.values()) {
-    forEachMethod(doc, (method, { operation, verb }) => {
-      if (verb !== 'delete' || !operation?.requestBody) return;
-      method.config = { ...(method.config || {}), requestBodyTranslate: { algorithm: 'naive' } };
-      bump('DELETE naive body');
+// 3. Scalar reads: wrap the bare payload into {value}.
+function wrapScalarReads() {
+  for (const [f, doc] of docs) {
+    forEachMethod(doc, (method, { operation, resourceName, methodName }) => {
+      const marker = operation?.['x-stackQL-scalarWrap'];
+      if (!marker) return;
+      const mediaType = method.response?.mediaType || 'application/json';
+      const schema = operation.responses?.[method.response?.openAPIDocKey || '200']?.content?.[mediaType]?.schema;
+      if (!schema?.properties?.[SCALAR_COLUMN]) { errors.push(`${f}: ${resourceName}.${methodName} is marked as a scalar read but its response schema has no ${SCALAR_COLUMN} property`); return; }
+      method.response = {
+        ...(method.response || {}),
+        overrideMediaType: mediaType,
+        schema_override: clone(schema),
+        transform: { type: 'golang_template_text_v0.3.0', body: `{"${SCALAR_COLUMN}": {{ . }}}` }
+      };
+      bump('scalar read transforms');
     });
   }
 }
 
-// 4. objectKey on a method by (service, resource, method).
-function setObjectKey(service, resource, methodName, objectKey) {
-  const doc = docs.get(`${service}.yaml`);
-  const method = doc?.components?.['x-stackQL-resources']?.[resource]?.methods?.[methodName];
-  if (!method) { errors.push(`setObjectKey: ${service}.${resource}.${methodName} not found`); return; }
-  method.response = { ...(method.response || {}), objectKey };
-  bump('objectKey set');
-}
-
-// 5a. Method-level pagination. 5b. Document-level pagination on a service.
-function setMethodPagination(service, resource, methodName, pagination) {
-  const doc = docs.get(`${service}.yaml`);
-  const method = doc?.components?.['x-stackQL-resources']?.[resource]?.methods?.[methodName];
-  if (!method) { errors.push(`setMethodPagination: ${service}.${resource}.${methodName} not found`); return; }
-  method.config = { ...(method.config || {}), pagination };
-  bump('method pagination');
-}
-function setServicePagination(service, pagination) {
-  const doc = docs.get(`${service}.yaml`);
-  if (!doc) { errors.push(`setServicePagination: ${service}.yaml not found`); return; }
-  doc['x-stackQL-config'] = { ...(doc['x-stackQL-config'] || {}), pagination };
-  bump('service pagination');
-}
-
-// 6. Non-JSON response -> one row with a `contents` column.
-function setContentsTransform(service, resource, methodName, wireMediaType) {
-  const doc = docs.get(`${service}.yaml`);
-  const method = doc?.components?.['x-stackQL-resources']?.[resource]?.methods?.[methodName];
-  if (!method) { errors.push(`setContentsTransform: ${service}.${resource}.${methodName} not found`); return; }
-  method.response = {
-    ...(method.response || {}),
-    mediaType: wireMediaType,
-    overrideMediaType: 'application/json',
-    schema_override: { type: 'array', items: { type: 'object', properties: { contents: { type: 'string' } } } },
-    transform: { type: 'golang_template_text_v0.3.0', body: '[{"contents": {{ toJson . }}}]' }
-  };
-  bump('contents transform');
-}
-
-// 7. Request transform (e.g. '[{{ . }}]' to wrap a single-item body into the
-// bare array the API expects; pair with bareArrayBodyToItem in pre_normalize).
-function setRequestTransform(service, resource, methodName, body, type = 'golang_template_text_v0.3.0') {
-  const doc = docs.get(`${service}.yaml`);
-  const method = doc?.components?.['x-stackQL-resources']?.[resource]?.methods?.[methodName];
-  if (!method) { errors.push(`setRequestTransform: ${service}.${resource}.${methodName} not found`); return; }
-  method.request = { ...(method.request || {}), transform: { type, body } };
-  bump('request transform');
-}
-
-// 8. queryParamPushdown at method, resource, service level (whole-block).
-function setPushdown(service, pushdown, resource = null, methodName = null) {
-  const doc = docs.get(`${service}.yaml`);
-  if (!doc) { errors.push(`setPushdown: ${service}.yaml not found`); return; }
-  let target = doc;
-  let key = 'x-stackQL-config';
-  if (resource) {
-    target = doc.components?.['x-stackQL-resources']?.[resource];
-    if (!target) { errors.push(`setPushdown: ${service}.${resource} not found`); return; }
-    if (methodName) {
-      target = target.methods?.[methodName];
-      if (!target) { errors.push(`setPushdown: ${service}.${resource}.${methodName} not found`); return; }
-      key = 'config';
-    }
+// 4. Scalar lists: a JSON-safe per-item template.
+function fixScalarListTransforms() {
+  for (const doc of docs.values()) {
+    forEachMethod(doc, (method) => {
+      const body = method.response?.transform?.body;
+      if (typeof body !== 'string' || !body.includes('jsonMapFromString')) return;
+      const m = body.match(/\{"([A-Za-z0-9_]+)":\[\{\{- range \$i, \$v := \$items -\}\}\{\{- if \$i -\}\},\{\{- end -\}\}\{"([A-Za-z0-9_]+)":"\{\{- \$v -\}\}"\}\{\{- end -\}\}\]\}/);
+      if (!m) return;
+      const [, wrapperKey, column] = m;
+      method.response.transform.body = [
+        '{{- $wrapped := printf "{\\"items\\":%s}" . -}}',
+        '{{- $parsed := jsonMapFromString $wrapped -}}',
+        '{{- $items := index $parsed "items" -}}',
+        `{"${wrapperKey}":[{{- range $i, $v := $items -}}{{- if $i -}},{{- end -}}{"${column}":{{ toJson $v }}}{{- end -}}]}`
+      ].join('\n');
+      bump('scalar list transforms made JSON-safe');
+    });
   }
-  target[key] = { ...(target[key] || {}), queryParamPushdown: pushdown };
-  bump('queryParamPushdown');
 }
 
-// 9. Alternative WHERE name for a parameter on an operation.
-function setParamAlias(service, pathKey, verb, paramName, alias) {
-  const doc = docs.get(`${service}.yaml`);
-  const op = doc?.paths?.[pathKey]?.[verb];
-  const param = (op?.parameters || []).find((p) => p.name === paramName);
-  if (!param) { errors.push(`setParamAlias: ${service} ${verb} ${pathKey} parameter ${paramName} not found`); return; }
-  param['x-stackQL-alias'] = alias;
-  bump('parameter alias');
+// 5. Objects that carry an `items` property. With no objectKey declared
+// stackql looks for the row list at $.items (its default object key), so a
+// single-object response that happens to have an `items` array property
+// (a cart and its item ids, a page of results inside a report) would be
+// projected as those items rather than as the object. An explicit root
+// objectKey keeps the object as the row.
+function pinRootObjectKey() {
+  for (const doc of docs.values()) {
+    const resolve = (schema, depth = 0) => {
+      let node = schema;
+      while (node && node.$ref && depth++ < 10) {
+        node = node.$ref.replace(/^#\//, '').split('/').reduce((acc, part) => acc?.[part.replace(/~1/g, '/').replace(/~0/g, '~')], doc);
+      }
+      return node;
+    };
+    forEachMethod(doc, (method, { operation }) => {
+      if (!operation || method.response?.objectKey) return;
+      const mediaType = method.response?.mediaType || 'application/json';
+      const schema = resolve(operation.responses?.[method.response?.openAPIDocKey || '200']?.content?.[mediaType]?.schema);
+      const items = resolve(schema?.properties?.items);
+      if (!items || !(items.type === 'array' || items.items)) return;
+      method.response = { ...(method.response || {}), objectKey: '$' };
+      bump('root objectKey on objects with an items property');
+    });
+  }
 }
 
-// Sanity: every service has resources; every resource has at least one method.
+// 6. Sanity: every service has resources; every resource has at least one method.
 function validateResources() {
   for (const [f, doc] of docs) {
     const resources = doc.components?.['x-stackQL-resources'] || {};
@@ -179,30 +166,16 @@ function validateResources() {
   }
 }
 
-// ---------------------------------------------------------------------------
-// The rules. TODO(template): add provider-specific calls in numbered order.
-// ---------------------------------------------------------------------------
-
-// 1. root paths outside the scoped server template
 pinRootPaths();
-// 2. snake_case surface (no-op when WIRE_CASING is null)
 setNativeCasing(WIRE_CASING);
-// 3. DELETE bodies
-naiveDeleteBodies();
-// 4-9. provider-specific, e.g.
-// setObjectKey('database', 'queries', 'list', '$.rows');
-// setServicePagination('udfs', { requestToken: { key: 'cursor', location: 'query' }, responseToken: { key: '$.result.pagination.nextCursor', location: 'body' } });
-// setMethodPagination('activity', 'events', 'list', { requestToken: { key: '', location: 'request' }, responseToken: { key: 'Link', location: 'header' } });
-// setContentsTransform('reports', 'exports', 'get', 'application/pdf');
-// setRequestTransform('secrets', 'secrets', 'create', '[{{ . }}]');
-// setPushdown('projects', { top: { dialect: 'custom', paramName: 'limit', maxValue: 1000 } });
-// setParamAlias('projects', '/projects/{ref}', 'get', 'ref', 'project_ref');
-
+wrapScalarReads();
+fixScalarListTransforms();
+pinRootObjectKey();
 validateResources();
 
 if (errors.length > 0) {
   console.error(`FAILED with ${errors.length} error(s), nothing written:`);
-  for (const e of errors) console.error(`  ${e}`);
+  for (const e of errors.slice(0, 100)) console.error(`  ${e}`);
   process.exit(1);
 }
 for (const [f, doc] of docs) fs.writeFileSync(path.join(SERVICES_DIR, f), dumpYaml(doc));
